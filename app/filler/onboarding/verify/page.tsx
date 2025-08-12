@@ -12,24 +12,52 @@ export default function VerifyPage() {
   const router = useRouter()
   const [verifying, setVerifying] = useState(false)
   const [resending, setResending] = useState(false)
+  const [otpCode, setOtpCode] = useState("")
 
   const onComplete = async (code: string) => {
+    setOtpCode(code)
+  }
+
+  const handleVerify = async () => {
+    if (!otpCode || otpCode.length !== 6) return
+
     setVerifying(true)
-    // AWS SES mock verify endpoint
-    await fetch("/api/auth/verify-otp", { method: "POST", body: JSON.stringify({ code, email }) })
-    setVerifying(false)
-    router.push("/filler/onboarding")
+    try {
+      // AWS SES mock verify endpoint
+      const response = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: otpCode, email }),
+      })
+
+      if (response.ok) {
+        router.push("/filler/onboarding")
+      }
+    } catch (error) {
+      console.error("Verification failed:", error)
+    } finally {
+      setVerifying(false)
+    }
   }
 
   const resend = async () => {
     setResending(true)
-    // AWS SES mock send OTP
-    await fetch("/api/auth/send-otp", { method: "POST", body: JSON.stringify({ email }) })
-    setResending(false)
+    try {
+      // AWS SES mock send OTP
+      await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+    } catch (error) {
+      console.error("Resend failed:", error)
+    } finally {
+      setResending(false)
+    }
   }
 
   return (
-    <div className="flex min-h-[calc(100svh-3.5rem)] items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-xl">
         <CardHeader>
           <CardTitle>Verify your account</CardTitle>
@@ -51,7 +79,12 @@ export default function VerifyPage() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="h-11 w-full rounded-2xl" size="lg" disabled>
+          <Button
+            className="h-11 w-full rounded-2xl bg-[#C1654B] text-white hover:bg-[#b25a43]"
+            size="lg"
+            disabled={verifying || otpCode.length !== 6}
+            onClick={handleVerify}
+          >
             {verifying ? "Verifying…" : "Enter code to continue"}
           </Button>
         </CardFooter>

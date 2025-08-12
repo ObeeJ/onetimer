@@ -13,8 +13,10 @@ export default function OTPInput({ length = 6, onComplete }: { length?: number; 
 
   useEffect(() => {
     const code = values.join("")
-    if (code.length === length && !code.includes("")) onComplete?.(code)
-  }, [values, length, onComplete])
+    if (onComplete) {
+      onComplete(code)
+    }
+  }, [values, onComplete])
 
   return (
     <div className="flex gap-2">
@@ -47,8 +49,4 @@ export default function OTPInput({ length = 6, onComplete }: { length?: number; 
       ))}
     </div>
   )
-}
-
-OTPInput.defaultProps = {
-  length: 6,
 }

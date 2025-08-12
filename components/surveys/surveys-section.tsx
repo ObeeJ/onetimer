@@ -25,22 +25,33 @@ export default function SurveysSection() {
   const filtered = useMemo(() => (cat === "all" ? surveys : surveys.filter((s) => s.category === cat)), [cat, surveys])
 
   return (
-    <div className="space-y-4" id="surveys">
+    <div className="space-y-6" id="surveys">
       <CategoryFilter value={cat} onChange={setCat} />
       <AnimatePresence mode="popLayout">
         <motion.div
           layout
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
           transition={reduce ? { duration: 0 } : undefined}
         >
           {filtered.map((survey) => (
             <motion.div
               layout
               key={survey.id}
-              initial={reduce ? false : { opacity: 0, y: 12 }}
-              animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
-              exit={reduce ? { opacity: 0 } : { opacity: 0, y: -12 }}
-              transition={reduce ? { duration: 0.1 } : { type: "spring", stiffness: 260, damping: 24, mass: 0.6 }}
+              initial={reduce ? false : { opacity: 0, y: 20, scale: 0.95 }}
+              animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, y: -20, scale: 0.95 }}
+              transition={
+                reduce
+                  ? { duration: 0.1 }
+                  : {
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 25,
+                      mass: 0.8,
+                      opacity: { duration: 0.2 },
+                    }
+              }
+              className="h-full"
             >
               <SurveyCard survey={survey} />
             </motion.div>

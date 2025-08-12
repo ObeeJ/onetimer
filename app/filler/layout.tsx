@@ -1,3 +1,4 @@
+import type React from "react"
 import type { Metadata } from "next"
 import FillerLayout from "@/layouts/filler-layout"
 
@@ -6,6 +7,10 @@ export const metadata: Metadata = {
   description: "Earn from surveys. Minimal, modern, fast PWA.",
 }
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return <FillerLayout>{children}</FillerLayout>
 }

@@ -1,122 +1,89 @@
 "use client"
 
-import type React from "react"
-
-import Link from "next/link"
 import { motion, useReducedMotion } from "framer-motion"
-import { usePwaInstall } from "@/hooks/use-pwa-install"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function Hero() {
   const reduceMotion = useReducedMotion()
-  const { canInstall, promptInstall, isStandalone } = usePwaInstall()
 
   return (
     <section className="relative overflow-hidden">
-      {/* Fluid animated background blobs (brand primary + accent). Reduced motion respected. */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
+      <div className="absolute inset-0">
         <motion.div
-          initial={{ x: "-10%", y: "-10%", scale: 1 }}
-          animate={reduceMotion ? { opacity: 0.12 } : { x: "10%", y: "0%", scale: 1.1, opacity: 0.12 }}
-          transition={{ duration: 18, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse", ease: "easeInOut" }}
-          className="absolute left-[-10%] top-[-10%] h-[60vh] w-[60vw] rounded-[999px] bg-[#013F5C]"
-          style={{ filter: "blur(60px)" }}
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: "50px 50px",
+          }}
+          animate={
+            reduceMotion
+              ? {}
+              : {
+                  backgroundPosition: ["0px 0px", "50px 50px"],
+                }
+          }
+          transition={{
+            duration: 20,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "linear",
+          }}
         />
-        <motion.div
-          initial={{ x: "20%", y: "30%", scale: 1 }}
-          animate={reduceMotion ? { opacity: 0.12 } : { x: "-10%", y: "20%", scale: 1.15, opacity: 0.12 }}
-          transition={{ duration: 20, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse", ease: "easeInOut" }}
-          className="absolute right-[-10%] bottom-[-10%] h-[55vh] w-[55vw] rounded-[999px] bg-[#C1654B]"
-          style={{ filter: "blur(70px)" }}
-        />
+
+        <div className="absolute inset-0 backdrop-blur-md bg-white/10 border-t border-white/20" />
       </div>
 
-      <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-8 px-4 py-16 sm:py-20 md:grid-cols-2 md:gap-10">
-        <div className="space-y-6 text-center md:text-left">
-          <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold tracking-wide text-[#013F5C]">
-            OneTime Survey
-          </span>
-          <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">Earn more by taking one-time surveys</h1>
-          <p className="text-slate-600">
-            Join thousands of Nigerians earning extra income. Simple, fast, and rewarding.
-          </p>
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row md:justify-start">
-            <Button asChild size="lg" className="h-12 rounded-2xl bg-[#C1654B] px-6 text-white hover:bg-[#b25a43]">
-              <Link href="/filler/auth/sign-up">Sign Up</Link>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: reduceMotion ? 0 : 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduceMotion ? 0.1 : 0.8 }}
+          className="text-center"
+        >
+          <motion.h1
+            initial={{ opacity: 0, y: reduceMotion ? 0 : 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0.1 : 0.8, delay: reduceMotion ? 0 : 0.2 }}
+            className="text-4xl font-bold tracking-tight text-white sm:text-6xl"
+          >
+            Earn Money Taking Surveys
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: reduceMotion ? 0 : 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0.1 : 0.8, delay: reduceMotion ? 0 : 0.4 }}
+            className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-white/90"
+          >
+            Join thousands of Nigerians earning extra income by sharing their opinions. Simple, fast, and rewarding
+            surveys that fit your schedule.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: reduceMotion ? 0 : 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0.1 : 0.8, delay: reduceMotion ? 0 : 0.6 }}
+            className="mt-10 flex items-center justify-center gap-x-6"
+          >
+            <Button
+              asChild
+              className="min-h-[48px] px-4 py-2 rounded-lg bg-[#013f5c] text-white font-medium hover:bg-[#012f49]"
+            >
+              <Link href="/filler/auth/sign-up">Get Started</Link>
             </Button>
             <Button
               asChild
-              size="lg"
               variant="outline"
-              className="h-12 rounded-2xl border-[#013F5C] px-6 text-[#013F5C] hover:bg-[#013F5C]/5 bg-transparent"
+              className="min-h-[48px] px-4 py-2 rounded-lg bg-white text-[#013f5c] font-medium hover:bg-gray-100 border border-gray-300"
             >
-              <Link href="/filler/auth/sign-in">Sign In</Link>
+              <Link href="#features">Learn More</Link>
             </Button>
-
-            {/* On mobile and when PWA not installed, show Install App */}
-            {!isStandalone && canInstall ? (
-              <Button
-                size="lg"
-                className="h-12 rounded-2xl bg-[#013F5C] px-6 text-white sm:hidden"
-                onClick={promptInstall}
-              >
-                Install App
-              </Button>
-            ) : null}
-          </div>
-          <div className="flex items-center justify-center gap-6 md:justify-start">
-            <Stat label="Surveys Completed" value="120k+" />
-            <Stat label="Avg. per Survey" value="₦1,000" />
-          </div>
-        </div>
-
-        {/* Visual card using provided reference image on the right */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="relative mx-auto w-full max-w-[560px]"
-        >
-          <div className="rounded-3xl border border-slate-200/60 bg-white/70 p-4 shadow-xl backdrop-blur-xl">
-            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
-              <Image
-                src="/images/landing-illustration.jpg"
-                alt="Illustration of a person completing a one-time survey on a phone"
-                fill
-                sizes="(max-width: 768px) 100vw, 560px"
-                className="object-cover"
-                priority
-              />
-            </div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <BadgePill color="#013F5C">Quick Payouts</BadgePill>
-              <BadgePill color="#C1654B">One-Time</BadgePill>
-              <BadgePill color="#013F5C">No Fuss</BadgePill>
-            </div>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
-  )
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="text-center md:text-left">
-      <div className="text-2xl font-semibold">{value}</div>
-      <div className="text-xs uppercase tracking-wide text-slate-500">{label}</div>
-    </div>
-  )
-}
-
-function BadgePill({ color, children }: { color: string; children: React.ReactNode }) {
-  return (
-    <span
-      className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold"
-      style={{ borderColor: color, color }}
-    >
-      {children}
-    </span>
   )
 }
