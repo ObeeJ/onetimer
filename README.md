@@ -1,26 +1,23 @@
 # Modern Survey Filler Role
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+## Automatically synced with your deployments
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/objs-projects-6e8b0a17/v0-modern-survey-filler-role)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/jmlZFWGRukH)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/objs-projects-6e8b0a17/modern-survey-filler-role)
 
 ## Overview
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+This repository will stay in sync with your deployed app.
+Any changes you make to your deployed app will be automatically pushed to this repository from your deployment platform.
 
 ## Deployment
 
 Your project is live at:
 
-**[https://vercel.com/objs-projects-6e8b0a17/v0-modern-survey-filler-role](https://vercel.com/objs-projects-6e8b0a17/v0-modern-survey-filler-role)**
+**[https://vercel.com/objs-projects-6e8b0a17/modern-survey-filler-role](https://vercel.com/objs-projects-6e8b0a17/modern-survey-filler-role)**
 
 ## Build your app
 
-Continue building your app on:
-
-**[https://v0.dev/chat/projects/jmlZFWGRukH](https://v0.dev/chat/projects/jmlZFWGRukH)**
+Continue building your app on your preferred platform or locally.
 
 ## How It Works
 

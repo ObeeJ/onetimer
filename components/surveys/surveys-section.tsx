@@ -2,31 +2,49 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
-import { CategoryFilter } from "./surveys-toolbar"
+// categories removed - render all surveys
 import SurveyCard from "./survey-card"
 import type { Survey } from "@/types/survey"
-import { fetchJSON } from "@/hooks/use-api"
+import { useAvailableSurveys } from "@/hooks/use-user-api"
 
 export default function SurveysSection() {
-  const [surveys, setSurveys] = useState<Survey[]>([])
-  const [cat, setCat] = useState<string>("all")
+  const { surveys, loading, error, refetch } = useAvailableSurveys()
+  // categories removed
   const reduce = useReducedMotion()
 
-  useEffect(() => {
-    let mounted = true
-    fetchJSON<{ data: Survey[] }>("/api/surveys").then((res) => {
-      if (mounted) setSurveys(res.data)
-    })
-    return () => {
-      mounted = false
-    }
-  }, [])
+  const filtered = useMemo(() => surveys, [surveys])
 
-  const filtered = useMemo(() => (cat === "all" ? surveys : surveys.filter((s) => s.category === cat)), [cat, surveys])
+  if (loading) {
+    return (
+      <div className="space-y-6" id="surveys">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="h-64 animate-pulse rounded-lg bg-gray-200" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6" id="surveys">
+        <div className="rounded-lg border bg-red-50 p-4 text-red-700">
+          Error loading surveys: {error}
+          <button 
+            onClick={refetch}
+            className="ml-2 text-red-600 underline hover:text-red-800"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6" id="surveys">
-      <CategoryFilter value={cat} onChange={setCat} />
+      {/* category filter removed */}
       <AnimatePresence mode="popLayout">
         <motion.div
           layout
@@ -51,7 +69,7 @@ export default function SurveysSection() {
                       opacity: { duration: 0.2 },
                     }
               }
-              className="h-full"
+              className="h-full min-w-0"
             >
               <SurveyCard survey={survey} />
             </motion.div>

@@ -1,4 +1,5 @@
 import type React from "react"
+import { Logo } from "@/components/ui/logo"
 
 export default function AuthLayout({
   children,
@@ -10,7 +11,13 @@ export default function AuthLayout({
       <div className="flex min-h-screen flex-col">
         <header className="border-b border-slate-200/60 bg-white/80 backdrop-blur-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-center px-4 py-4">
-            <div className="text-xl font-bold tracking-tight text-[#013F5C]">OneTime Survey</div>
+            <Logo 
+              size="md" 
+              showText={true} 
+              href="/"
+              textClassName="text-[#013F5C]"
+              priority={true}
+            />
           </div>
         </header>
 

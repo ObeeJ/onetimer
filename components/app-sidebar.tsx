@@ -17,11 +17,13 @@ import {
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
+import { LogoCompact } from "@/components/ui/logo"
 
 const navItems = [
   { title: "Dashboard", url: "/filler", icon: Home },
   { title: "Surveys", url: "/filler/surveys", icon: ListChecks },
   { title: "Earnings", url: "/filler/earnings", icon: Wallet },
+  { title: "Profile", url: "/filler/profile", icon: User2 },
   { title: "Referrals", url: "/filler/referrals", icon: Users },
 ]
 
@@ -30,10 +32,17 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader />
+      <SidebarHeader className="border-b border-sidebar-border p-4">
+        <div className="flex items-center gap-2">
+          <LogoCompact size="sm" href="/filler" priority={true} />
+          <span className="font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
+            Onetime Survey
+          </span>
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>OneTime Survey</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
@@ -74,10 +83,10 @@ export function AppSidebar() {
             <div className="flex size-9 items-center justify-center rounded-full border bg-white">
               <User2 className="h-4 w-4 text-slate-700" />
             </div>
-            <div className="min-w-0 flex-1">
+            <Link href="/filler/profile" className="min-w-0 flex-1 hover:underline">
               <div className="truncate text-sm font-semibold">{user?.name ?? "User"}</div>
               <div className="truncate text-xs text-slate-500">{user?.email ?? ""}</div>
-            </div>
+            </Link>
             <button
               className="inline-flex size-8 items-center justify-center rounded-md hover:bg-slate-100"
               aria-label="Sign out"

@@ -9,13 +9,37 @@ export default function Hero() {
 
   return (
     <section className="relative overflow-hidden">
-      <div className="absolute inset-0">
+      <div className="absolute inset-0" aria-hidden>
+        {/* Crisp SVG grid for sharp lines on all resolutions */}
+        <svg
+          className="absolute inset-0 w-full h-full -z-10 opacity-30 landing-grid-svg"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 100 100"
+        >
+          <defs>
+            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+              <path d="M10 0 L0 0 0 10" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
+            </pattern>
+            <linearGradient id="gridFade" x1="0" x2="1">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.06)" />
+              <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+            </linearGradient>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+          <rect width="100%" height="100%" fill="url(#gridFade)" opacity="0.3" />
+        </svg>
+
+        {/* Subtle animated blobs behind the grid */}
+        <div className="landing-blob landing-blob-1" />
+        <div className="landing-blob landing-blob-2" />
+
         <motion.div
-          className="absolute inset-0 opacity-20"
+          className="absolute inset-0 opacity-12"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+              linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)
             `,
             backgroundSize: "50px 50px",
           }}
@@ -27,13 +51,13 @@ export default function Hero() {
                 }
           }
           transition={{
-            duration: 20,
+            duration: 22,
             repeat: Number.POSITIVE_INFINITY,
             ease: "linear",
           }}
         />
 
-        <div className="absolute inset-0 backdrop-blur-md bg-white/10 border-t border-white/20" />
+        <div className="absolute inset-0 backdrop-blur-md bg-white/6 border-t border-white/10" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
