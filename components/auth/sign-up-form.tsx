@@ -6,20 +6,51 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { fetchJSON } from "@/hooks/use-api"
 
 export default function SignUpForm() {
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
   const [sending, setSending] = useState(false)
+  const [error, setError] = useState("")
   const router = useRouter()
 
   const sendOtp = async () => {
+    if (!email || !password) {
+      setError("Please fill in all required fields")
+      return
+    }
+    
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address")
+      return
+    }
+    
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters")
+      return
+    }
+
+    setError("")
     setSending(true)
-    // AWS SES mock: Replace this endpoint with your SES-backed endpoint
-    await fetch("/api/auth/send-otp", { method: "POST", body: JSON.stringify({ email, phone }) })
-    setSending(false)
-    router.push("/filler/onboarding/verify?email=" + encodeURIComponent(email))
+    
+    try {
+      // Use fetchJSON so client-only mocks are used in the browser
+      await fetchJSON("/api/auth/send-otp", { method: "POST", body: JSON.stringify({ email, phone }) })
+      router.push("/filler/onboarding/verify?email=" + encodeURIComponent(email))
+    } catch (err) {
+      setError("Something went wrong. Please try again.")
+      console.error("Sign up error:", err)
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && email && password && !sending) {
+      sendOtp()
+    }
   }
 
   return (
@@ -29,18 +60,31 @@ export default function SignUpForm() {
           <CardTitle>Create your account</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="space-y-2">
+          {error && (
+            <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+                    <div className="space-y-2">
             <label className="text-sm font-medium">Email</label>
             <Input
               type="email"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyPress={handleKeyPress}
+              required
             />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Phone</label>
-            <Input type="tel" placeholder="+2348012345678" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <Input 
+              type="tel" 
+              placeholder="+2348012345678" 
+              value={phone} 
+              onChange={(e) => setPhone(e.target.value)}
+              onKeyPress={handleKeyPress} 
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Password</label>
@@ -49,6 +93,8 @@ export default function SignUpForm() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyPress={handleKeyPress}
+              required
             />
           </div>
           <Button

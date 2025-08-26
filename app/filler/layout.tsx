@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import FillerLayout from "@/layouts/filler-layout"
+import { FillerSidebar } from "@/components/filler-sidebar"
 
 export const metadata: Metadata = {
   title: "Survey Filler | Dashboard",
@@ -12,5 +12,19 @@ export default function Layout({
 }: {
   children: React.ReactNode
 }) {
-  return <FillerLayout>{children}</FillerLayout>
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <FillerSidebar />
+      <main className="ml-64 min-h-screen">
+        {children}
+      </main>
+    </div>
+  )
+}
+
+// Provide a viewport export for this layout as recommended by Next.js
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 }
