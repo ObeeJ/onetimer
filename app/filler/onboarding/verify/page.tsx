@@ -1,6 +1,7 @@
 "use client"
 
 import { useSearchParams, useRouter } from "next/navigation"
+import { fetchJSON } from "@/hooks/use-api"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import OTPInput from "@/components/auth/otp-input"
@@ -24,13 +25,12 @@ export default function VerifyPage() {
     setVerifying(true)
     try {
       // AWS SES mock verify endpoint
-      const response = await fetch("/api/auth/verify-otp", {
+      const res = await fetchJSON("/api/auth/verify-otp", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: otpCode, email }),
       })
 
-      if (response.ok) {
+      if (res?.ok) {
         router.push("/filler/onboarding")
       }
     } catch (error) {
@@ -43,12 +43,8 @@ export default function VerifyPage() {
   const resend = async () => {
     setResending(true)
     try {
-      // AWS SES mock send OTP
-      await fetch("/api/auth/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      })
+  // AWS SES mock send OTP
+  await fetchJSON("/api/auth/send-otp", { method: "POST", body: JSON.stringify({ email }) })
     } catch (error) {
       console.error("Resend failed:", error)
     } finally {
@@ -57,38 +53,36 @@ export default function VerifyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-xl">
-        <CardHeader>
-          <CardTitle>Verify your account</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-slate-600">Enter the 6-digit code sent to {email || "your email"}.</p>
-          <OTPInput onComplete={onComplete} />
-          <div className="flex items-center justify-between text-sm">
-            <Button variant="outline" className="rounded-xl bg-transparent" onClick={() => router.back()}>
-              Back
-            </Button>
-            <Button
-              className="rounded-xl bg-[#013F5C] text-white hover:bg-[#0b577a]"
-              onClick={resend}
-              disabled={resending}
-            >
-              {resending ? "Resending…" : "Resend code"}
-            </Button>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button
-            className="h-11 w-full rounded-2xl bg-[#C1654B] text-white hover:bg-[#b25a43]"
-            size="lg"
-            disabled={verifying || otpCode.length !== 6}
-            onClick={handleVerify}
-          >
-            {verifying ? "Verifying…" : "Enter code to continue"}
+    <Card className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-xl">
+      <CardHeader>
+        <CardTitle>Verify your account</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-slate-600">Enter the 6-digit code sent to {email || "your email"}.</p>
+        <OTPInput onComplete={onComplete} />
+        <div className="flex items-center justify-between text-sm">
+          <Button variant="outline" className="rounded-xl bg-transparent" onClick={() => router.back()}>
+            Back
           </Button>
-        </CardFooter>
-      </Card>
-    </div>
+          <Button
+            className="rounded-xl bg-[#013F5C] text-white hover:bg-[#0b577a]"
+            onClick={resend}
+            disabled={resending}
+          >
+            {resending ? "Resending…" : "Resend code"}
+          </Button>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button
+          className="h-11 w-full rounded-2xl bg-[#C1654B] text-white hover:bg-[#b25a43]"
+          size="lg"
+          disabled={verifying || otpCode.length !== 6}
+          onClick={handleVerify}
+        >
+          {verifying ? "Verifying…" : "Enter code to continue"}
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }

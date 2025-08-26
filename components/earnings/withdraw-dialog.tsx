@@ -5,8 +5,29 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import OTPModal from "@/components/ui/otp-modal"
+import { useAuth } from "@/hooks/use-auth"
 import { Loader2, AlertCircle, CheckCircle, Banknote } from "lucide-react"
+import { fetchJSON } from "@/hooks/use-api"
+
+const NIGERIAN_BANKS = [
+  "Access Bank",
+  "Fidelity Bank",
+  "First Bank of Nigeria",
+  "FCMB",
+  "GTBank",
+  "Heritage Bank",
+  "Keystone Bank",
+  "Polaris Bank",
+  "Stanbic IBTC",
+  "Standard Chartered",
+  "Sterling Bank",
+  "UBA",
+  "Union Bank",
+  "Wema Bank",
+  "Zenith Bank",
+]
 
 export default function WithdrawDialog({
   open = false,
@@ -26,6 +47,32 @@ export default function WithdrawDialog({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [otpOpen, setOtpOpen] = useState(false)
+  const [pendingSubmit, setPendingSubmit] = useState(false)
+  const { user, loaded } = useAuth()
+
+  // try prefill from server or local storage
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      try {
+        const p = await fetchJSON<any>("/api/profile")
+        if (mounted && p) {
+          setFormData((f) => ({ ...f, accountName: p.accountName ?? f.accountName, bankName: p.bankName ?? f.bankName, accountNumber: p.accountNumber ?? f.accountNumber }))
+        }
+      } catch {
+        try {
+          const raw = localStorage.getItem("sf:profile")
+          if (raw) {
+            const parsed = JSON.parse(raw)
+            if (mounted) setFormData((f) => ({ ...f, accountName: parsed.accountName ?? f.accountName, bankName: parsed.bankName ?? f.bankName, accountNumber: parsed.accountNumber ?? f.accountNumber }))
+          }
+        } catch {}
+      }
+    }
+    load()
+    return () => { mounted = false }
+  }, [])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -60,17 +107,24 @@ export default function WithdrawDialog({
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
-
   const handleSubmit = async () => {
     if (!validateForm()) return
 
+    // open OTP modal to confirm
+    setPendingSubmit(true)
+    setOtpOpen(true)
+    return
+  }
+
+  const onOtpVerified = async () => {
+    // proceed with previously validated formData
+    setOtpOpen(false)
+    setPendingSubmit(false)
     setIsLoading(true)
     setErrors({})
-
     try {
-      const response = await fetch("/api/payments/withdraw", {
+      await fetchJSON("/api/payments/withdraw", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           accountName: formData.accountName,
           bankName: formData.bankName,
@@ -78,10 +132,6 @@ export default function WithdrawDialog({
           amount: Number(formData.amount),
         }),
       })
-
-      if (!response.ok) {
-        throw new Error("Withdrawal request failed")
-      }
 
       setSuccess(true)
       setTimeout(() => {
@@ -113,7 +163,8 @@ export default function WithdrawDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-bold text-slate-900">
@@ -154,13 +205,21 @@ export default function WithdrawDialog({
                 <Label htmlFor="bankName" className="text-sm font-semibold text-slate-700">
                   Bank Name *
                 </Label>
-                <Input
-                  id="bankName"
-                  value={formData.bankName}
-                  onChange={(e) => updateField("bankName", e.target.value)}
-                  placeholder="Enter bank name"
-                  className={`mt-1 ${errors.bankName ? "border-red-500" : ""}`}
-                />
+                <div className="mt-1">
+                  <select
+                    id="bankName"
+                    value={formData.bankName}
+                    onChange={(e) => updateField("bankName", e.target.value)}
+                    className={`w-full rounded-md border px-3 py-2 text-sm ${errors.bankName ? "border-red-500" : "border-slate-200"}`}
+                  >
+                    <option value="">Select bank</option>
+                    {NIGERIAN_BANKS.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 {errors.bankName && <p className="text-sm text-red-600 mt-1">{errors.bankName}</p>}
               </div>
 
@@ -208,23 +267,32 @@ export default function WithdrawDialog({
         )}
 
         {!success && (
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={handleClose} disabled={isLoading} className="rounded-xl bg-transparent">
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit} disabled={isLoading} className="rounded-xl bg-[#013F5C] hover:bg-[#0b577a]">
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                "Submit Withdrawal"
-              )}
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="gap-2 flex items-center justify-between">
+              <p className="text-xs text-slate-500 mr-4">An OTP will be sent to your email to confirm this withdrawal.</p>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={handleClose} disabled={isLoading} className="rounded-xl bg-transparent">
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                  className="h-12 rounded-xl bg-[#013F5C] font-semibold text-white hover:bg-[#0b577a] disabled:bg-slate-300 disabled:text-slate-500"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Withdraw Funds"
+                  )}
+                </Button>
+              </div>
+            </DialogFooter>
         )}
       </DialogContent>
-    </Dialog>
+      </Dialog>
+      <OTPModal open={otpOpen} email={user?.email} onClose={() => { setOtpOpen(false); setPendingSubmit(false) }} onVerified={onOtpVerified} />
+    </>
   )
 }

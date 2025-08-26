@@ -1,0 +1,116 @@
+openapi: 3.0.3
+info:
+  title: OneTime Creator API (minimal)
+  version: 1.0.0
+paths:
+  /creator/signup:
+    post:
+      summary: Create a creator account / submit business verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                company:
+                  type: string
+                regNumber:
+                  type: string
+                contact:
+                  type: string
+      responses:
+        '200':
+          description: Submitted
+  /creator/verify:
+    post:
+      summary: Admin verifies or rejects a creator (admin-only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                creatorId:
+                  type: string
+                approved:
+                  type: boolean
+      responses:
+        '200':
+          description: Updated
+  /creator/setup-payment:
+    post:
+      summary: Link Paystack account or set payment method
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                paystack:
+                  type: string
+      responses:
+        '200':
+          description: Saved
+  /creator/surveys:
+    get:
+      summary: List creator surveys
+      responses:
+        '200':
+          description: Array of surveys
+    post:
+      summary: Create a new survey (draft or submit for review)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                target:
+                  type: string
+                reward:
+                  type: number
+                budget:
+                  type: number
+                status:
+                  type: string
+                  enum: [draft, pending]
+                questions:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: Created
+  /creator/surveys/{surveyId}/responses:
+    get:
+      summary: Get survey responses
+      parameters:
+        - name: surveyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Array of responses
+  /creator/surveys/{surveyId}/export:
+    get:
+      summary: Export survey responses (CSV)
+      parameters:
+        - name: surveyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: CSV
+components: {}
