@@ -1,221 +1,149 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
 
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap');
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated to use OneTime Survey brand colors and light-mode-only theme */
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+
+  /* Primary brand color: #013F5C */
+  --primary: oklch(0.25 0.05 240);
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.15 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+
+  /* Accent brand color: #C1654B */
+  --accent: oklch(0.65 0.12 35);
+  --accent-foreground: oklch(0.99 0 0);
+
+  --destructive: oklch(0.65 0.15 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.96 0 0);
+  --ring: oklch(0.25 0.05 240);
+
+  /* Chart colors using brand palette */
+  --chart-1: oklch(0.25 0.05 240);
+  --chart-2: oklch(0.65 0.12 35);
+  --chart-3: oklch(0.45 0.08 200);
+  --chart-4: oklch(0.75 0.1 60);
+  --chart-5: oklch(0.55 0.06 300);
+
+  --radius: 0.75rem;
+
+  /* Sidebar using brand colors */
+  --sidebar: oklch(0.99 0 0);
+  --sidebar-foreground: oklch(0.15 0 0);
+  --sidebar-primary: oklch(0.25 0.05 240);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.96 0 0);
+  --sidebar-accent-foreground: oklch(0.15 0 0);
+  --sidebar-border: oklch(0.92 0 0);
+  --sidebar-ring: oklch(0.25 0.05 240);
+}
+
+/* Removed dark mode variables since app is light-mode only */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Added Open Sans font family configuration */
+  --font-sans: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif;
+}
 
 @layer base {
   * {
-    border-color: theme('colors.slate.200');
-    box-sizing: border-box;
+    @apply border-border outline-ring/50;
   }
-  
+
   body {
-    font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
-    background-color: #f8fafc;
+    @apply bg-background text-foreground font-sans;
+    /* Ensure consistent typography with Open Sans Medium+ weights */
+    font-weight: 500;
     line-height: 1.6;
-    margin: 0;
-    padding: 0;
   }
-  
-  button {
-    cursor: pointer;
-  }
-  
-  button:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-}
 
-@layer components {
-  /* Layout Components */
-  .page-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8;
+  /* Typography hierarchy using Open Sans Medium and above */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-sans;
+    font-weight: 700;
+    line-height: 1.2;
   }
-  
-  .page-header {
-    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8;
-  }
-  
-  /* Card Components */
-  .card-base {
-    @apply bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden;
-  }
-  
-  .card-hover {
-    @apply bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden;
-  }
-  
-  .card-content {
-    @apply p-6 w-full;
-  }
-  
-  .card-header {
-    @apply px-6 py-4 border-b border-slate-200 w-full;
-  }
-  
-  .card-grid {
-    @apply grid gap-6;
-  }
-  
-  .card-grid-1 {
-    @apply grid grid-cols-1 gap-6;
-  }
-  
-  .card-grid-2 {
-    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
-  }
-  
-  .card-grid-3 {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
-  }
-  
-  .card-grid-4 {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
-  }
-  
-  /* Button Components */
-  .btn-primary {
-    @apply inline-flex items-center justify-center bg-[#013f5c] hover:bg-[#024a6b] text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#013f5c] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-  
-  .btn-secondary {
-    @apply inline-flex items-center justify-center bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-medium px-6 py-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-  
-  .btn-ghost {
-    @apply inline-flex items-center justify-center bg-transparent hover:bg-slate-100 text-slate-600 font-medium px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-  
-  .btn-outline {
-    @apply inline-flex items-center justify-center bg-transparent hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium px-6 py-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-  
-  /* Badge Components */
-  .badge-base {
-    @apply px-3 py-1 rounded-full text-xs font-medium;
-  }
-  
-  .badge-success {
-    @apply bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium;
-  }
-  
-  .badge-warning {
-    @apply bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium;
-  }
-  
-  .badge-info {
-    @apply bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium;
-  }
-  
-  .badge-error {
-    @apply bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium;
-  }
-  
-  /* Form Components */
-  .input-base {
-    @apply w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#013f5c] focus:border-transparent transition-colors;
-  }
-  
-  /* Table Components */
-  .table-header {
-    @apply bg-slate-50 border-b border-slate-200;
-  }
-  
-  .table-cell {
-    @apply px-6 py-4 text-sm;
-  }
-  
-  .table-row {
-    @apply border-b border-slate-100 hover:bg-slate-50 transition-colors;
-  }
-  
-  /* Animation Components */
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-in-out;
-  }
-  
-  .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  /* Typography */
-  .heading-1 {
-    @apply text-3xl font-bold text-slate-900 tracking-tight;
-  }
-  
-  .heading-2 {
-    @apply text-2xl font-bold text-slate-900;
-  }
-  
-  .heading-3 {
-    @apply text-xl font-semibold text-slate-900;
-  }
-  
-  .text-muted {
-    @apply text-slate-600;
-  }
-  
-  .text-subtle {
-    @apply text-slate-500;
-  }
-}
 
-/* Custom modal animations */
-@layer utilities {
-  .animate-modal-fade-in {
-    animation: modal-fade-in 0.3s ease-out;
+  .font-medium {
+    font-weight: 500;
   }
-  
-  .animate-modal-slide-up {
-    animation: modal-slide-up 0.3s ease-out;
-  }
-  
-  .animate-modal-scale {
-    animation: modal-scale 0.3s ease-out;
-  }
-}
 
-@keyframes modal-fade-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
+  .font-semibold {
+    font-weight: 600;
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 
-@keyframes modal-slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(100%);
+  .font-bold {
+    font-weight: 700;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-@keyframes modal-scale {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
+  /* Consistent spacing and padding utilities */
+  .container {
+    @apply mx-auto px-4 sm:px-6 lg:px-8;
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+
+  /* Glass morphism utility classes for consistent styling */
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-xl border border-slate-200/60;
   }
+
+  .glass-header {
+    @apply bg-white/70 backdrop-blur-xl border-b border-slate-200/60;
+  }
+
+  /* Removed problematic btn-primary and btn-accent classes that were causing CSS concatenation issues */
 }
