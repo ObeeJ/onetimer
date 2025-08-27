@@ -1,9 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-/* stylelint-disable at-rule-no-unknown */
 @custom-variant dark (&:is(.dark *));
-/* stylelint-enable at-rule-no-unknown */
 
 :root {
   --background: oklch(1 0 0);
@@ -76,7 +74,6 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
-/* stylelint-disable at-rule-no-unknown */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -116,68 +113,11 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* stylelint-enable at-rule-no-unknown */@layer base {
+@layer base {
   * {
-  box-sizing: border-box;
-  /* use border color token so generic parsers don't need Tailwind */
-  border-color: var(--border);
-  outline-color: var(--ring);
+    @apply border-border outline-ring/50;
   }
   body {
-  background: var(--background);
-  color: var(--foreground);
-  }
-}
-
-@layer components {
-  /* Landing page background grid + animated blobs */
-  .landing-grid-svg {
-    mix-blend-mode: overlay;
-  }
-
-  .landing-blob {
-    position: absolute;
-    z-index: -20;
-    width: 40vmax;
-    height: 40vmax;
-    filter: blur(48px);
-    transform: translate3d(0, 0, 0);
-    will-change: transform;
-    opacity: 0.6;
-    border-radius: 48%;
-    /* Brand-aligned gradients (primary: #013f5c) with soft complements */
-    background: radial-gradient(circle at 30% 30%, rgba(1,63,92,0.18), rgba(1,63,92,0.02) 40%), radial-gradient(circle at 70% 70%, rgba(0,180,140,0.10), rgba(0,180,140,0.02) 40%);
-  }
-
-  .landing-blob-1 {
-    top: -10vmin;
-    left: -20vmin;
-    animation: blobMove1 18s linear infinite;
-  }
-
-  .landing-blob-2 {
-    bottom: -12vmin;
-    right: -18vmin;
-    /* Softer complementary accent for depth */
-    background: radial-gradient(circle at 20% 20%, rgba(1,63,92,0.12), rgba(1,63,92,0.02) 40%), radial-gradient(circle at 80% 80%, rgba(220,100,160,0.06), rgba(220,100,160,0.02) 40%);
-    animation: blobMove2 24s linear infinite;
-  }
-
-  @keyframes blobMove1 {
-    0% { transform: translate3d(0, 0, 0) scale(1); }
-    50% { transform: translate3d(8vmin, 6vmin, 0) scale(1.05); }
-    100% { transform: translate3d(0, 0, 0) scale(1); }
-  }
-
-  @keyframes blobMove2 {
-    0% { transform: translate3d(0, 0, 0) scale(1); }
-    50% { transform: translate3d(-10vmin, -6vmin, 0) scale(0.98); }
-    100% { transform: translate3d(0, 0, 0) scale(1); }
-  }
-
-  /* Dark mode tuning */
-  .dark .landing-blob {
-    opacity: 0.45;
-    filter: blur(56px);
+    @apply bg-background text-foreground;
   }
 }

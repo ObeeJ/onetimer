@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Coins, Star } from 'lucide-react'
-import { useRouter, useParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { fetchJSON } from "@/hooks/use-api"
 import SurveyProgress from "@/components/surveys/survey-progress"
 
@@ -19,22 +19,19 @@ type RatingQ = { id: string; type: "rating"; text: string; scale?: number }
 type MatrixQ = { id: string; type: "matrix"; text: string; rows: string[]; cols: string[] }
 type Q = SingleQ | MultiQ | TextQ | RatingQ | MatrixQ
 
-export default function TakeSurveyPage() {
+export default function TakeSurveyPage({ params }: { params: { id: string } }) {
   const [questions, setQuestions] = useState<Q[]>([])
   const [answers, setAnswers] = useState<Record<string, any>>({})
   const [idx, setIdx] = useState(0)
   const router = useRouter()
   const [reward, setReward] = useState(20)
-  const params = useParams()
-  const id = params?.id
 
   useEffect(() => {
-    if (!id) return
-    fetchJSON<{ data: Q[] }>(`/api/surveys/${id}`).then((r) => {
+    fetchJSON<{ data: Q[] }>(`/api/surveys/${params.id}`).then((r) => {
       setQuestions(r.data)
       setReward(30 + Math.floor(Math.random() * 30))
     })
-  }, [id])
+  }, [params.id])
 
   const q = questions[idx]
   const progress = useMemo(() => (questions.length ? ((idx) / questions.length) * 100 : 0), [idx, questions.length])
@@ -57,7 +54,7 @@ export default function TakeSurveyPage() {
   }
 
   const submit = async () => {
-  await fetchJSON(`/api/surveys/${id}/submit`, {
+    await fetch(`/api/surveys/${params.id}/submit`, {
       method: "POST",
       body: JSON.stringify({ answers }),
     })

@@ -17,28 +17,11 @@ export default function ReferralsPage() {
   const [link, setLink] = useState("")
   const [users, setUsers] = useState<RefUser[]>([])
   const [copied, setCopied] = useState(false)
-  // regenerate removed from referrals UI; link rotation handled elsewhere/admin
+  const [isGenerating, setIsGenerating] = useState(false)
 
   useEffect(() => {
-    fetchJSON<{ link: string }>("/api/referrals")
-      .then((r) => {
-        if (r) {
-          setLink(r.link || "https://onetime.com/ref/demo123")
-        }
-      })
-      .catch(() => {
-        setLink("https://onetime.com/ref/demo123")
-      })
-    
-    fetchJSON<{ users: RefUser[] }>("/api/referrals?list=1")
-      .then((r) => {
-        if (r) {
-          setUsers(r.users || [])
-        }
-      })
-      .catch(() => {
-        setUsers([])
-      })
+    fetchJSON<{ link: string }>("/api/referrals").then((r) => setLink(r.link))
+    fetchJSON<{ users: RefUser[] }>("/api/referrals?list=1").then((r) => setUsers(r.users))
   }, [])
 
   const copyLink = async () => {
@@ -47,7 +30,15 @@ export default function ReferralsPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-
+  const generate = async () => {
+    setIsGenerating(true)
+    try {
+      const r = await fetchJSON<{ link: string }>("/api/referrals/generate", { method: "POST" })
+      setLink(r.link)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
 
   const totalReferrals = users.length
   const totalEarnings = users.reduce((sum, user) => sum + user.points, 0)
@@ -59,9 +50,9 @@ export default function ReferralsPage() {
         <p className="text-slate-600 font-medium">Invite friends and earn rewards together</p>
       </div>
 
-  <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-3">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-    <Card className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-sm hover:shadow-md transition-all duration-300">
+          <Card className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-sm hover:shadow-md transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold text-slate-600">Total Referrals</CardTitle>
               <Users className="h-5 w-5 text-[#C1654B]" />
@@ -115,7 +106,7 @@ export default function ReferralsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-  <Card className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-sm">
+        <Card className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-sm">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Share2 className="h-5 w-5 text-[#013F5C]" />
@@ -129,13 +120,13 @@ export default function ReferralsPage() {
                 <Input
                   value={link}
                   readOnly
-      className="h-12 rounded-xl border-slate-300 bg-slate-50 font-mono text-sm"
+                  className="h-12 rounded-xl border-slate-300 bg-slate-50 font-mono text-sm"
                 />
               </div>
               <div className="flex gap-2">
                 <Button
                   onClick={copyLink}
-      className="h-12 rounded-xl bg-[#013F5C] font-semibold text-white hover:bg-[#0b577a]"
+                  className="h-12 rounded-xl bg-[#013F5C] font-semibold text-white hover:bg-[#0b577a]"
                   disabled={copied}
                 >
                   {copied ? (
@@ -150,7 +141,24 @@ export default function ReferralsPage() {
                     </>
                   )}
                 </Button>
-                {/* regenerate removed */}
+                <Button
+                  variant="outline"
+                  onClick={generate}
+                  disabled={isGenerating}
+                  className="h-12 rounded-xl border-slate-300 bg-white font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  {isGenerating ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Regenerate
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
 
