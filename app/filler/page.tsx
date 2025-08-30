@@ -31,7 +31,7 @@ export default function DashboardPage() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: reduceMotion ? 0.1 : 0.4, ease: "easeOut" },
+      transition: { duration: reduceMotion ? 0.1 : 0.4, ease: [0, 0, 0.58, 1] },
     },
   }
 

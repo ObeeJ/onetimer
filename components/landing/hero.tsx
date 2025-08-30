@@ -29,7 +29,7 @@ export default function Hero() {
           transition={{
             duration: 20,
             repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
+            ease: [0, 0, 1, 1],
           }}
         />
 

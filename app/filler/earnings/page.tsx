@@ -42,7 +42,7 @@ export default function EarningsPage() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: reduceMotion ? 0 : 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: reduceMotion ? 0.1 : 0.4, ease: "easeOut" } }
+    visible: { opacity: 1, y: 0, transition: { duration: reduceMotion ? 0.1 : 0.4, ease: [0, 0, 0.58, 1] } }
   }
 
   if (!isAuthenticated) {
