@@ -17,7 +17,7 @@ interface OTPVerificationFormProps {
   success?: boolean
 }
 
-function OTPVerificationForm({ 
+export default function OTPVerificationForm({ 
   email, 
   phone, 
   onVerify, 
@@ -44,12 +44,10 @@ function OTPVerificationForm({
     newOtp[index] = value
     setOtp(newOtp)
 
-    // Auto-focus next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus()
     }
 
-    // Auto-submit when all fields are filled
     if (newOtp.every(digit => digit !== "") && !isLoading) {
       onVerify(newOtp.join(""))
     }
@@ -174,6 +172,3 @@ function OTPVerificationForm({
     </Card>
   )
 }
-
-export default OTPVerificationForm
-export { OTPVerificationForm }
