@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion, useReducedMotion, easeOut } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -44,7 +44,7 @@ export default function ReferralsPage() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: reduceMotion ? 0 : 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: reduceMotion ? 0.1 : 0.4, ease: [0, 0, 0.58, 1] } }
+    visible: { opacity: 1, y: 0, transition: { duration: reduceMotion ? 0.1 : 0.4, ease: easeOut } }
   }
 
   const copyToClipboard = async () => {

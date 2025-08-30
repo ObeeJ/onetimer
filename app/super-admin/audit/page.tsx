@@ -14,7 +14,8 @@ import {
   Users, 
   ListChecks,
   AlertTriangle,
-  Calendar
+  Calendar,
+  Settings
 } from "lucide-react"
 
 export default function AuditLogsPage() {

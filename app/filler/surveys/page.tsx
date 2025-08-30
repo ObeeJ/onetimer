@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, useReducedMotion } from "framer-motion"
+import { motion, useReducedMotion, easeOut } from "framer-motion"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -87,7 +87,7 @@ export default function SurveysPage() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: reduceMotion ? 0.1 : 0.4, ease: [0, 0, 0.58, 1] },
+      transition: { duration: reduceMotion ? 0.1 : 0.4, ease: easeOut },
     },
   }
 

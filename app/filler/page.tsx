@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion, useReducedMotion, easeOut } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -31,7 +31,7 @@ export default function DashboardPage() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: reduceMotion ? 0.1 : 0.4, ease: [0, 0, 0.58, 1] },
+      transition: { duration: reduceMotion ? 0.1 : 0.4, ease: easeOut },
     },
   }
 
