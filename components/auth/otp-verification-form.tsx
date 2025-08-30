@@ -17,7 +17,7 @@ interface OTPVerificationFormProps {
   success?: boolean
 }
 
-export function OTPVerificationForm({ 
+function OTPVerificationForm({ 
   email, 
   phone, 
   onVerify, 
@@ -174,3 +174,6 @@ export function OTPVerificationForm({
     </Card>
   )
 }
+
+export default OTPVerificationForm
+export { OTPVerificationForm }
