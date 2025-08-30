@@ -258,4 +258,69 @@ export default function EarningsPage() {
       </div>
     </div>
   )
+}"flex-1 min-w-0">
+                              <p className="font-medium text-slate-900 truncate">{transaction.title}</p>
+                              <p className="text-sm text-slate-500">{transaction.date}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="text-right">
+                                <p className="font-semibold text-slate-900">₦{transaction.amount}</p>
+                                <Badge 
+                                  variant={transaction.status === "completed" ? "default" : "secondary"}
+                                  className={transaction.status === "completed" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}
+                                >
+                                  {transaction.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="breakdown" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="rounded-xl">
+                    <CardHeader>
+                      <CardTitle>Earnings by Source</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Surveys</span>
+                        <span className="font-semibold">₦18,500</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Referrals</span>
+                        <span className="font-semibold">₦6,250</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Bonuses</span>
+                        <span className="font-semibold">₦0</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="rounded-xl">
+                    <CardHeader>
+                      <CardTitle>Withdrawal Options</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-slate-600">Available balance: ₦{(earningsData.total - earningsData.withdrawn).toLocaleString()}</p>
+                      <Button className="w-full bg-[#013F5C] hover:bg-[#0b577a]">
+                        Request Withdrawal
+                      </Button>
+                      <p className="text-xs text-slate-500">Minimum withdrawal: ₦5,000</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </motion.div>
+        </motion.div>
+      </div>
+    </div>
+  )
 }

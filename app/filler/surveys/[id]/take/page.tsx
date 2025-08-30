@@ -22,7 +22,7 @@ type Q = SingleQ | MultiQ | TextQ | RatingQ | MatrixQ
 export default function TakeSurveyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [questions, setQuestions] = useState<Q[]>([])
-  const [answers, setAnswers] = useState<Record<string, any>>({})
+  const [answers, setAnswers] = useState<Record<string, string | string[] | number | Record<string, string>>>({})
   const [idx, setIdx] = useState(0)
   const router = useRouter()
   const [reward, setReward] = useState(20)
