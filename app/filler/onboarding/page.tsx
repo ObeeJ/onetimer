@@ -150,12 +150,12 @@ export default function OnboardingPage() {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-slate-900">You're all set!</h2>
+              <h2 className="text-xl font-bold text-slate-900">You&apos;re all set!</h2>
               <p className="text-slate-600">Your profile is complete and you can start earning</p>
             </div>
             
             <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-              <h3 className="font-semibold text-slate-900">What's next?</h3>
+              <h3 className="font-semibold text-slate-900">What&apos;s next?</h3>
               <ul className="text-sm text-slate-600 space-y-1">
                 <li>• Browse available surveys on your dashboard</li>
                 <li>• Complete surveys to earn money</li>
