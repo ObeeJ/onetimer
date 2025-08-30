@@ -287,5 +287,3 @@ For support and questions:
 - [ ] API documentation
 
 ---
-
-**Built with ❤️ using Next.js, TypeScript, and Tailwind CSS**
