@@ -162,7 +162,7 @@ export default function EarningsPage() {
                   <CardTitle className="text-sm font-medium text-slate-600">Withdrawn</CardTitle>
                   <CheckCircle className="h-4 w-4 text-purple-600" />
                 </CardHeader>
-             <CardContent>
+                <CardContent>
                   <div className="text-2xl font-bold text-slate-900">₦{earningsData.withdrawn.toLocaleString()}</div>
                   <p className="text-xs text-slate-500 mt-1">Successfully paid out</p>
                 </CardContent>
