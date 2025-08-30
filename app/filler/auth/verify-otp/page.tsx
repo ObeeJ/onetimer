@@ -22,6 +22,7 @@ export default function VerifyOTPPage() {
         name: "New User",
         email: email || undefined,
         phone: phone || undefined,
+        role: "filler",
         isVerified: true
       })
       

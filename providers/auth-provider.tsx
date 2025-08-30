@@ -5,8 +5,9 @@ import { createContext, useContext, useEffect, useState } from "react"
 interface User {
   id: string
   name: string
-  email: string
-  role: "filler" | "creator" | "admin" | "super_admin"
+  email?: string
+  phone?: string
+  role?: "filler" | "creator" | "admin" | "super_admin"
   isVerified?: boolean
 }
 
