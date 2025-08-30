@@ -7,6 +7,7 @@ type User = {
   name: string
   email?: string
   phone?: string
+  isVerified?: boolean
 }
 
 const KEY = "sf:user"
@@ -39,5 +40,6 @@ export function useAuth() {
     signIn,
     signOut,
     isAuthenticated: !!user,
+    isVerified: user?.isVerified || false,
   }
 }
