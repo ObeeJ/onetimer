@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Crown, Eye, EyeOff } from "lucide-react"
+import { User2, Eye, EyeOff } from "lucide-react"
 import { useSuperAdminAuth } from "@/hooks/use-super-admin-auth"
 import { useRouter } from "next/navigation"
 
@@ -37,16 +37,14 @@ export default function SuperAdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-purple-100 rounded-full">
-              <Crown className="h-8 w-8 text-purple-600" />
-            </div>
+            <img src="/Logo.png" alt="OneTime Survey" className="h-16 w-auto" />
           </div>
           <CardTitle className="text-2xl font-bold">Super Admin Login</CardTitle>
-          <p className="text-slate-600">System-wide access control</p>
+          <p className="text-slate-600">OneTime System Management</p>
         </CardHeader>
         <CardContent>
           {!showMFA ? (
@@ -84,7 +82,7 @@ export default function SuperAdminLoginPage() {
                   </Button>
                 </div>
               </div>
-              <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-[#013F5C] hover:bg-[#0b577a]" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
@@ -107,7 +105,7 @@ export default function SuperAdminLoginPage() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-[#013F5C] hover:bg-[#0b577a]" disabled={isLoading}>
                 {isLoading ? "Verifying..." : "Verify & Login"}
               </Button>
               <Button 

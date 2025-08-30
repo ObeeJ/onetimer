@@ -7,6 +7,8 @@
 
 > A comprehensive survey platform connecting survey creators with respondents, featuring role-based dashboards, payment processing, and administrative oversight.
 
+📋 **[Detailed Port Configuration & Setup Guide →](README-PORTS.md)**
+
 ## 🚀 Features
 
 ### 👥 **Multi-Role Architecture**
@@ -41,30 +43,32 @@
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Filler App    │    │  Creator App    │    │   Admin Panel   │
-│   (Blue Theme)  │    │ (Orange Theme)  │    │   (Red Theme)   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │ Super Admin     │
-                    │ (Purple Theme)  │
-                    └─────────────────┘
-```
+Multi-role platform with isolated dashboards:
+- **Fillers**: Earn money completing surveys (Blue theme - `#013F5C`)
+- **Creators**: Create and manage surveys (Orange theme - `#C1654B`)  
+- **Admins**: Platform moderation (Blue theme - `#013F5C`)
+- **Super Admins**: System oversight (Blue theme - `#013F5C`)
+
+**[View detailed architecture & port setup →](README-PORTS.md)**
 
 ## 🛠️ Tech Stack
 
+### Frontend
 - **Framework**: Next.js 15 with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS + shadcn/ui components
 - **Icons**: Lucide React
 - **State Management**: React Hooks + localStorage
+
+### Backend
+- **Language**: Go (Golang)
 - **Authentication**: AWS Cognito (ready for integration)
 - **Payments**: Paystack (ready for integration)
-- **Deployment**: Docker + Nginx
+- **Database**: PostgreSQL (ready for integration)
+
+### Deployment
+- **Containerization**: Docker + Nginx
+- **Cloud**: AWS (ready for deployment)
 
 ## 🚀 Quick Start
 
@@ -88,6 +92,8 @@ npm run dev
 
 # Open http://localhost:3000
 ```
+
+**For detailed port configuration and multi-service setup, see [README-PORTS.md](README-PORTS.md)**
 
 ### Docker Deployment
 
@@ -114,13 +120,13 @@ docker run -p 3000:3000 onetime-survey
 - Credit management
 - Audience targeting
 
-### 🔴 **Admin Panel** (`/admin`)
+### 🔵 **Admin Panel** (`/admin`)
 - User management and KYC approval
 - Survey review and moderation
 - Payment processing
 - Platform analytics
 
-### 🟣 **Super Admin Panel** (`/super-admin`)
+### 🔵 **Super Admin Panel** (`/super-admin`)
 - Admin management
 - System configuration
 - Financial oversight
@@ -171,8 +177,8 @@ onetime/
 ### Color Themes
 - **Filler**: Blue (`#013F5C`)
 - **Creator**: Orange (`#C1654B`)
-- **Admin**: Red (`#DC2626`)
-- **Super Admin**: Purple (`#7C3AED`)
+- **Admin**: Blue (`#013F5C`)
+- **Super Admin**: Blue (`#013F5C`)
 
 ### Components
 - Built with shadcn/ui for consistency
@@ -181,6 +187,12 @@ onetime/
 - Responsive design patterns
 
 ## 🔌 Integration Readiness
+
+### Golang Backend API
+```go
+// Backend API endpoints ready for integration
+// Authentication, surveys, payments, user management
+```
 
 ### AWS Cognito
 ```typescript
@@ -195,8 +207,8 @@ onetime/
 ```
 
 ### Database
-```typescript
-// Data models and API routes ready for database integration
+```go
+// PostgreSQL integration with Golang backend
 // Mock data currently used for development
 ```
 
@@ -264,9 +276,10 @@ For support and questions:
 
 ## 🗺️ Roadmap
 
+- [ ] Golang backend API development
 - [ ] AWS Cognito integration
 - [ ] Paystack payment processing
-- [ ] Database integration (PostgreSQL)
+- [ ] PostgreSQL database integration
 - [ ] Real-time notifications
 - [ ] Mobile app (React Native)
 - [ ] Advanced analytics dashboard

@@ -29,8 +29,28 @@ const navItems = [
 ]
 
 export function AppSidebar() {
-  const { user, isAuthenticated, isVerified, signOut } = useAuth()
+  const { user, isAuthenticated, isVerified, signOut, isLoading } = useAuth()
   const pathname = usePathname()
+
+  // Show loading state during hydration
+  if (isLoading) {
+    return (
+      <Sidebar collapsible="icon">
+        <SidebarHeader className="flex items-center justify-between px-3">
+          <div className="flex items-center justify-between w-full">
+            <Link href="/filler" className="hover:opacity-80 transition-opacity group-data-[collapsible=icon]:hidden">
+              <img src="/Logo.png" alt="OneTime Survey" className="h-10 sm:h-14 md:h-12 w-auto" />
+            </Link>
+            <SidebarTrigger className="rounded-xl group-data-[collapsible=icon]:mx-auto" />
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <div className="p-4 text-center text-slate-500">Loading...</div>
+        </SidebarContent>
+        <SidebarRail />
+      </Sidebar>
+    )
+  }
 
   return (
     <Sidebar collapsible="icon">
@@ -105,7 +125,9 @@ export function AppSidebar() {
               aria-label="Sign out"
               onClick={() => {
                 signOut()
-                window.location.href = "/filler/auth/sign-in"
+                if (typeof window !== 'undefined') {
+                  window.location.href = "/filler/auth/sign-in"
+                }
               }}
               title="Log out"
             >

@@ -25,11 +25,11 @@ export default function AdminLayout({
 
   if (!isAuthenticated && !isAuthPage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-slate-600 mb-4">Please sign in to access the admin panel</p>
-          <a href="/admin/auth/login" className="text-red-600 hover:underline">
+          <a href="/admin/auth/login" className="text-[#013F5C] hover:underline">
             Go to Login
           </a>
         </div>

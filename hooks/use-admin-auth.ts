@@ -1,5 +1,6 @@
 "use client"
 
+import { useAuth } from "@/providers/auth-provider"
 import { useState, useEffect } from "react"
 
 interface AdminUser {
@@ -10,42 +11,44 @@ interface AdminUser {
 }
 
 export function useAdminAuth() {
-  const [user, setUser] = useState<AdminUser | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const { user, isAuthenticated, signIn: globalSignIn, signOut: globalSignOut, isLoading } = useAuth()
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
 
   useEffect(() => {
     const storedUser = localStorage.getItem("admin_user")
     if (storedUser) {
-      setUser(JSON.parse(storedUser))
-      setIsAuthenticated(true)
+      setAdminUser(JSON.parse(storedUser))
     }
-    setIsLoading(false)
   }, [])
 
   const signIn = (email: string, password: string) => {
-    // Mock authentication
     const mockUser: AdminUser = {
       id: "admin_1",
       name: "Admin User",
       email,
-      role: "super_admin"
+      role: "admin"
     }
-    setUser(mockUser)
-    setIsAuthenticated(true)
+    setAdminUser(mockUser)
     localStorage.setItem("admin_user", JSON.stringify(mockUser))
+    globalSignIn({
+      id: mockUser.id,
+      name: mockUser.name,
+      email: mockUser.email,
+      role: "admin",
+      isVerified: true
+    })
     return Promise.resolve(mockUser)
   }
 
   const signOut = () => {
-    setUser(null)
-    setIsAuthenticated(false)
+    setAdminUser(null)
     localStorage.removeItem("admin_user")
+    globalSignOut()
   }
 
   return {
-    user,
-    isAuthenticated,
+    user: adminUser,
+    isAuthenticated: isAuthenticated && user?.role === "admin",
     isLoading,
     signIn,
     signOut

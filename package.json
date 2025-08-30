@@ -1,12 +1,16 @@
 {
-  "name": "my-v0-project",
+  "name": "onetime-survey",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "dev:admin": "next dev -p 3001",
+    "dev:superadmin": "next dev -p 3002",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "start:admin": "next start -p 3001",
+    "start:superadmin": "next start -p 3002"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
