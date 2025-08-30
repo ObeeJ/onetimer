@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, use } from "react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -19,7 +19,8 @@ type RatingQ = { id: string; type: "rating"; text: string; scale?: number }
 type MatrixQ = { id: string; type: "matrix"; text: string; rows: string[]; cols: string[] }
 type Q = SingleQ | MultiQ | TextQ | RatingQ | MatrixQ
 
-export default function TakeSurveyPage({ params }: { params: { id: string } }) {
+export default function TakeSurveyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const [questions, setQuestions] = useState<Q[]>([])
   const [answers, setAnswers] = useState<Record<string, any>>({})
   const [idx, setIdx] = useState(0)
@@ -27,11 +28,11 @@ export default function TakeSurveyPage({ params }: { params: { id: string } }) {
   const [reward, setReward] = useState(20)
 
   useEffect(() => {
-    fetchJSON<{ data: Q[] }>(`/api/surveys/${params.id}`).then((r) => {
+    fetchJSON<{ data: Q[] }>(`/api/surveys/${id}`).then((r) => {
       setQuestions(r.data)
       setReward(30 + Math.floor(Math.random() * 30))
     })
-  }, [params.id])
+  }, [id])
 
   const q = questions[idx]
   const progress = useMemo(() => (questions.length ? ((idx) / questions.length) * 100 : 0), [idx, questions.length])
@@ -54,7 +55,7 @@ export default function TakeSurveyPage({ params }: { params: { id: string } }) {
   }
 
   const submit = async () => {
-    await fetch(`/api/surveys/${params.id}/submit`, {
+    await fetch(`/api/surveys/${id}/submit`, {
       method: "POST",
       body: JSON.stringify({ answers }),
     })

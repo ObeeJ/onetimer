@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Users, Shield, Settings, BarChart3, FileText, AlertTriangle, CreditCard, LogOut, Crown } from "lucide-react"
+import { Home, Users, Shield, Settings, BarChart3, FileText, AlertTriangle, CreditCard, LogOut, User2 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -38,10 +38,7 @@ export function SuperAdminSidebar() {
       <SidebarHeader className="flex items-center justify-between px-3">
         <div className="flex items-center justify-between w-full">
           <Link href="/super-admin" className="hover:opacity-80 transition-opacity group-data-[collapsible=icon]:hidden">
-            <div className="flex items-center gap-2">
-              <Crown className="h-8 w-8 text-purple-600" />
-              <span className="font-bold text-lg">Super Admin</span>
-            </div>
+            <img src="/Logo.png" alt="OneTime Survey" className="h-10 sm:h-14 md:h-12 w-auto" />
           </Link>
           <SidebarTrigger className="rounded-xl group-data-[collapsible=icon]:mx-auto" />
         </div>
@@ -58,7 +55,7 @@ export function SuperAdminSidebar() {
                     <SidebarMenuButton asChild tooltip={item.title}>
                       <Link 
                         href={item.url}
-                        className={`${isActive ? "bg-purple-600 text-white font-bold rounded-lg" : "hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-all duration-200"}`}
+                        className={`${isActive ? "bg-[#013F5C] text-white font-bold rounded-lg" : "hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-all duration-200"}`}
                       >
                         <item.icon />
                         <span>{item.title}</span>
@@ -77,8 +74,8 @@ export function SuperAdminSidebar() {
           role="group"
           aria-label="Super Admin profile"
         >
-          <div className="flex size-9 items-center justify-center rounded-full border bg-purple-100">
-            <Crown className="h-4 w-4 text-purple-600" />
+          <div className="flex size-9 items-center justify-center rounded-full border bg-white">
+            <User2 className="h-4 w-4 text-slate-700" />
           </div>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
             <div className="truncate text-sm font-semibold">{user?.name ?? "Super Admin"}</div>

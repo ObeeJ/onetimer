@@ -25,11 +25,11 @@ export default function SuperAdminLayout({
 
   if (!isAuthenticated && !isAuthPage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Super Admin Access Required</h1>
           <p className="text-slate-600 mb-4">Please sign in with super admin credentials</p>
-          <a href="/super-admin/auth/login" className="text-purple-600 hover:underline">
+          <a href="/super-admin/auth/login" className="text-[#013F5C] hover:underline">
             Go to Login
           </a>
         </div>

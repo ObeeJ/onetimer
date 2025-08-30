@@ -1,5 +1,6 @@
 "use client"
 
+import { useAuth } from "@/providers/auth-provider"
 import { useCallback, useEffect, useState } from "react"
 
 type Creator = {
@@ -16,26 +17,33 @@ type Creator = {
 const KEY = "creator:user"
 
 export function useCreatorAuth() {
+  const { user, isAuthenticated, signIn: globalSignIn, signOut: globalSignOut, isLoading } = useAuth()
   const [creator, setCreator] = useState<Creator | null>(null)
-  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY)
       if (raw) setCreator(JSON.parse(raw))
     } catch {}
-    setLoaded(true)
   }, [])
 
   const signIn = useCallback((c: Creator) => {
     localStorage.setItem(KEY, JSON.stringify(c))
     setCreator(c)
-  }, [])
+    globalSignIn({
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      role: "creator",
+      isVerified: c.isVerified
+    })
+  }, [globalSignIn])
 
   const signOut = useCallback(() => {
     localStorage.removeItem(KEY)
     setCreator(null)
-  }, [])
+    globalSignOut()
+  }, [globalSignOut])
 
   const updateCredits = useCallback((credits: number) => {
     if (creator) {
@@ -47,11 +55,12 @@ export function useCreatorAuth() {
 
   return {
     creator,
-    loaded,
+    user: creator,
+    loaded: !isLoading,
     signIn,
     signOut,
     updateCredits,
-    isAuthenticated: !!creator,
+    isAuthenticated: isAuthenticated && user?.role === "creator",
     isApproved: creator?.status === "approved",
   }
 }

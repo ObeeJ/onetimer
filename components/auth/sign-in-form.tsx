@@ -34,6 +34,7 @@ export default function SignInForm() {
         id: "1",
         name: "John Doe",
         email: email,
+        role: "filler",
         isVerified: true
       })
       
