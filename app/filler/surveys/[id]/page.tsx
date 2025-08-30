@@ -17,8 +17,9 @@ async function getSurvey(id: string) {
   }
 }
 
-export default async function Page({ params }: { params: { id: string } }) {
-  const data = await getSurvey(params.id)
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const data = await getSurvey(id)
   if (!data?.data) notFound()
   const survey = data.data
   
