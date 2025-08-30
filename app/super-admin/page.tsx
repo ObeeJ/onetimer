@@ -13,7 +13,8 @@ import {
   CheckCircle,
   Clock,
   Activity,
-  Server
+  Server,
+  Settings
 } from "lucide-react"
 
 export default function SuperAdminDashboard() {
