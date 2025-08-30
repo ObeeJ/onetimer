@@ -1,70 +1,193 @@
 "use client"
 
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Eye, EyeOff, AlertCircle, Check } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function SignUpForm() {
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [password, setPassword] = useState("")
-  const [sending, setSending] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: ""
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const { signIn } = useAuth()
   const router = useRouter()
 
-  const sendOtp = async () => {
-    setSending(true)
-    // AWS SES mock: Replace this endpoint with your SES-backed endpoint
-    await fetch("/api/auth/send-otp", { method: "POST", body: JSON.stringify({ email, phone }) })
-    setSending(false)
-    router.push("/filler/onboarding/verify?email=" + encodeURIComponent(email))
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const validatePassword = (password: string) => {
+    return password.length >= 8
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
+
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match")
+      setIsLoading(false)
+      return
+    }
+
+    if (!validatePassword(formData.password)) {
+      setError("Password must be at least 8 characters long")
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      // TODO: Replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Redirect to OTP verification
+      router.push(`/filler/auth/verify-otp?email=${encodeURIComponent(formData.email)}`)
+    } catch (err) {
+      setError("Failed to create account. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
-    <div className="w-full max-w-sm">
-      <Card className="rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-sm">
-        <CardHeader>
-          <CardTitle>Create your account</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+    <Card className="w-full">
+      <CardHeader className="text-center">
+        <CardTitle>Create your account</CardTitle>
+        <CardDescription>
+          Join thousands earning money by sharing their opinions
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           <div className="space-y-2">
-            <label className="text-sm font-medium">Email</label>
+            <Label htmlFor="name">Full name</Label>
             <Input
+              id="name"
+              type="text"
+              placeholder="Enter your full name"
+              value={formData.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email address</Label>
+            <Input
+              id="email"
               type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              required
             />
           </div>
+
           <div className="space-y-2">
-            <label className="text-sm font-medium">Phone</label>
-            <Input type="tel" placeholder="+2348012345678" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Password</label>
+            <Label htmlFor="phone">Phone number</Label>
             <Input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              id="phone"
+              type="tel"
+              placeholder="Enter your phone number"
+              value={formData.phone}
+              onChange={(e) => handleChange("phone", e.target.value)}
+              required
             />
           </div>
-          <Button
-            className="h-11 w-full rounded-2xl bg-[#C1654B] text-white hover:bg-[#b25a43]"
-            size="lg"
-            onClick={sendOtp}
-            disabled={sending || !email || !password}
+          
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Create a password"
+                value={formData.password}
+                onChange={(e) => handleChange("password", e.target.value)}
+                required
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              {validatePassword(formData.password) ? (
+                <Check className="h-3 w-3 text-green-600" />
+              ) : (
+                <div className="h-3 w-3 rounded-full border border-slate-300" />
+              )}
+              <span className={validatePassword(formData.password) ? "text-green-600" : "text-slate-500"}>
+                At least 8 characters
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm password</Label>
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm your password"
+                value={formData.confirmPassword}
+                onChange={(e) => handleChange("confirmPassword", e.target.value)}
+                required
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          
+          <Button 
+            type="submit" 
+            className="w-full bg-[#013F5C] hover:bg-[#0b577a]"
+            disabled={isLoading}
           >
-            {sending ? "Sending…" : "Create account"}
+            {isLoading ? "Creating account..." : "Create account"}
           </Button>
-          <Button variant="outline" className="h-11 w-full rounded-2xl bg-transparent" size="lg" asChild>
-            <Link href="/filler/auth/sign-in">I already have an account</Link>
-          </Button>
-        </CardContent>
-        <CardFooter className="justify-center text-sm">By continuing you agree to our terms.</CardFooter>
-      </Card>
-    </div>
+          
+          <div className="text-center text-sm text-slate-600">
+            Already have an account?{" "}
+            <Link href="/filler/auth/sign-in" className="text-[#013F5C] hover:underline">
+              Sign in
+            </Link>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 }

@@ -1,191 +1,261 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { motion } from "framer-motion"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react"
+import { motion, useReducedMotion } from "framer-motion"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import WithdrawDialog from "@/components/earnings/withdraw-dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { fetchJSON } from "@/hooks/use-api"
-import { Wallet, TrendingUp, DollarSign, Download, Clock } from "lucide-react"
-
-type Earning = { id: string; points: number; date: string; source: string }
-
-const POINTS_PER_USD = 1000
-const POINTS_PER_NGN = 1 // 1000 pts = ₦1000 => 1 pt = ₦1
+import { Breadcrumb } from "@/components/ui/breadcrumb"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { EmptyState } from "@/components/ui/empty-state"
+import { DollarSign, TrendingUp, Calendar, Download, Lock, CheckCircle } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function EarningsPage() {
-  const [balance, setBalance] = useState(0)
-  const [history, setHistory] = useState<Earning[]>([])
-  const [open, setOpen] = useState(false)
+  const { isAuthenticated, isVerified } = useAuth()
+  const reduceMotion = useReducedMotion()
+  const [timeRange, setTimeRange] = useState("lifetime")
 
-  useEffect(() => {
-    fetchJSON<{ balance: number; history: Earning[] }>("/api/earnings").then((r) => {
-      setBalance(r.balance)
-      setHistory(r.history)
-    })
-  }, [])
+  // TODO: Replace with actual API data
+  const earningsData = {
+    total: 24750,
+    thisMonth: 8250,
+    pending: 1500,
+    withdrawn: 23250
+  }
 
-  const usd = useMemo(() => balance / POINTS_PER_USD, [balance])
-  const ngn = useMemo(() => balance * POINTS_PER_NGN, [balance])
+  const transactions = [
+    { id: "1", type: "survey", title: "Consumer Behavior Study", amount: 550, date: "2024-01-15", status: "completed" },
+    { id: "2", type: "survey", title: "Product Feedback", amount: 325, date: "2024-01-14", status: "completed" },
+    { id: "3", type: "referral", title: "Friend Referral Bonus", amount: 1000, date: "2024-01-13", status: "completed" },
+    { id: "4", type: "survey", title: "Market Research", amount: 475, date: "2024-01-12", status: "pending" }
+  ]
 
-  const fmtUSD = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(usd)
-  const fmtNGN = new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0,
-  }).format(ngn)
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: reduceMotion ? 0 : 0.1, duration: reduceMotion ? 0.1 : 0.3 }
+    }
+  }
 
-  const canWithdraw = balance >= 1000
+  const itemVariants = {
+    hidden: { opacity: 0, y: reduceMotion ? 0 : 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: reduceMotion ? 0.1 : 0.4, ease: "easeOut" } }
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex-1 min-w-0 overflow-auto">
+        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
+          <EmptyState
+            icon={Lock}
+            title="Sign in to view earnings"
+            description="Please sign in to access your earnings dashboard."
+            action={{ label: "Sign in", href: "/filler/auth/sign-in" }}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  if (!isVerified) {
+    return (
+      <div className="flex-1 min-w-0 overflow-auto">
+        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
+          <Breadcrumb items={[{ label: "Earnings" }]} />
+          
+          <Card className="border-yellow-200 bg-yellow-50 rounded-xl">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <Lock className="h-8 w-8 text-yellow-600" />
+                <div>
+                  <h3 className="text-lg font-semibold text-yellow-800">Complete Verification Required</h3>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    Please complete your account verification to unlock earnings tracking and withdrawals.
+                  </p>
+                  <Button className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white">
+                    Complete Verification
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="container mx-auto space-y-8 p-4 md:p-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Earnings Dashboard</h1>
-        <p className="text-slate-600 font-medium">Track your survey earnings and manage withdrawals</p>
-      </div>
+    <div className="flex-1 min-w-0 overflow-auto">
+      <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
+          
+          <motion.div variants={itemVariants}>
+            <Breadcrumb items={[{ label: "Earnings" }]} />
+          </motion.div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <Card className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-sm hover:shadow-md transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-slate-600">Total Points</CardTitle>
-              <Wallet className="h-5 w-5 text-[#C1654B]" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900">{balance.toLocaleString()}</div>
-              <p className="text-xs text-slate-500 mt-1">Available for withdrawal</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-sm hover:shadow-md transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-slate-600">USD Value</CardTitle>
-              <DollarSign className="h-5 w-5 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900">{fmtUSD}</div>
-              <p className="text-xs text-slate-500 mt-1">1,000 points = $1.00</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Card className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-sm hover:shadow-md transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-semibold text-slate-600">Naira Value</CardTitle>
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900">{fmtNGN}</div>
-              <p className="text-xs text-slate-500 mt-1">1,000 points = ₦1,000</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-      >
-        <Card className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <motion.div variants={itemVariants}>
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <div>
-                <CardTitle className="text-xl font-bold text-slate-900">Withdraw Earnings</CardTitle>
-                <p className="text-sm text-slate-600 mt-1">Transfer your earnings to your bank account via Paystack</p>
+                <h1 className="text-2xl font-bold text-slate-900">Earnings Dashboard</h1>
+                <p className="text-slate-600">Track your survey earnings and manage withdrawals</p>
               </div>
-              <Download className="h-6 w-6 text-[#013F5C]" />
+              <div className="flex gap-2">
+                <Select value={timeRange} onValueChange={setTimeRange}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="lifetime">Lifetime</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Badge variant={canWithdraw ? "default" : "secondary"} className="rounded-full">
-                {canWithdraw ? "Eligible" : "Minimum not met"}
-              </Badge>
-              <span className="text-sm text-slate-600">
-                {canWithdraw ? "You can withdraw your earnings" : "Minimum 1,000 points required"}
-              </span>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button
-              onClick={() => setOpen(true)}
-              disabled={!canWithdraw}
-              size="lg"
-              className="h-12 rounded-xl bg-[#013F5C] font-semibold text-white hover:bg-[#0b577a] disabled:bg-slate-300 disabled:text-slate-500"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Withdraw Funds
-            </Button>
-          </CardFooter>
-        </Card>
-      </motion.div>
+          </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        <Card className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-[#C1654B]" />
-              <CardTitle className="text-xl font-bold text-slate-900">Earnings History</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-xl border border-slate-200 overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50/80">
-                    <TableHead className="font-semibold text-slate-700">Date</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Source</TableHead>
-                    <TableHead className="text-right font-semibold text-slate-700">Points</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {history.map((h, index) => (
-                    <TableRow key={h.id} className="hover:bg-slate-50/50 transition-colors">
-                      <TableCell className="font-medium text-slate-900">
-                        {new Date(h.date).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </TableCell>
-                      <TableCell className="text-slate-600">{h.source}</TableCell>
-                      <TableCell className="text-right">
-                        <Badge variant="outline" className="rounded-full bg-green-50 text-green-700 border-green-200">
-                          +{h.points} pts
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+          <motion.div variants={itemVariants}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="rounded-2xl shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-slate-600">Total Earnings</CardTitle>
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-slate-900">₦{earningsData.total.toLocaleString()}</div>
+                  <p className="text-xs text-slate-500 mt-1">All time earnings</p>
+                </CardContent>
+              </Card>
 
-      <WithdrawDialog open={open} onOpenChange={setOpen} balance={balance} />
+              <Card className="rounded-2xl shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-slate-600">This Month</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-slate-900">₦{earningsData.thisMonth.toLocaleString()}</div>
+                  <p className="text-xs text-slate-500 mt-1">+15% from last month</p>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-slate-600">Pending</CardTitle>
+                  <Calendar className="h-4 w-4 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-slate-900">₦{earningsData.pending.toLocaleString()}</div>
+                  <p className="text-xs text-slate-500 mt-1">Awaiting approval</p>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-slate-600">Withdrawn</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-slate-900">₦{earningsData.withdrawn.toLocaleString()}</div>
+                  <p className="text-xs text-slate-500 mt-1">Successfully paid out</p>
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <Tabs defaultValue="transactions" className="space-y-6">
+              <TabsList>
+                <TabsTrigger value="transactions">Transaction History</TabsTrigger>
+                <TabsTrigger value="breakdown">Earnings Breakdown</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="transactions" className="space-y-4">
+                <Card className="rounded-xl">
+                  <CardHeader>
+                    <CardTitle>Recent Transactions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {transactions.length === 0 ? (
+                      <EmptyState
+                        icon={DollarSign}
+                        title="No transactions yet"
+                        description="Complete surveys to start earning and see your transaction history here."
+                      />
+                    ) : (
+                      <div className="space-y-4">
+                        {transactions.map((transaction) => (
+                          <div key={transaction.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-slate-900 truncate">{transaction.title}</p>
+                              <p className="text-sm text-slate-500">{transaction.date}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="text-right">
+                                <p className="font-semibold text-slate-900">₦{transaction.amount}</p>
+                                <Badge 
+                                  variant={transaction.status === "completed" ? "default" : "secondary"}
+                                  className={transaction.status === "completed" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}
+                                >
+                                  {transaction.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="breakdown" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="rounded-xl">
+                    <CardHeader>
+                      <CardTitle>Earnings by Source</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Surveys</span>
+                        <span className="font-semibold">₦18,500</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Referrals</span>
+                        <span className="font-semibold">₦6,250</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Bonuses</span>
+                        <span className="font-semibold">₦0</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="rounded-xl">
+                    <CardHeader>
+                      <CardTitle>Withdrawal Options</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-slate-600">Available balance: ₦{(earningsData.total - earningsData.withdrawn).toLocaleString()}</p>
+                      <Button className="w-full bg-[#013F5C] hover:bg-[#0b577a]">
+                        Request Withdrawal
+                      </Button>
+                      <p className="text-xs text-slate-500">Minimum withdrawal: ₦5,000</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </motion.div>
+        </motion.div>
+      </div>
     </div>
   )
 }

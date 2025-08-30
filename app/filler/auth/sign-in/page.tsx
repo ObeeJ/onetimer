@@ -1,11 +1,15 @@
 "use client"
 
 import SignInForm from "@/components/auth/sign-in-form"
+import { AuthLayout } from "@/components/auth/auth-layout"
 
 export default function Page() {
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
+    <AuthLayout 
+      title="Welcome back" 
+      subtitle="Sign in to your account to continue earning"
+    >
       <SignInForm />
-    </main>
+    </AuthLayout>
   )
 }

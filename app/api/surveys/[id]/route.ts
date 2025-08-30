@@ -1,19 +1,30 @@
 import { NextResponse } from "next/server"
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
-  const id = params.id
-
-  // Mixed question types
-  const data = [
-    { id: "q1", type: "single", text: "How often do you shop online?", options: ["Daily", "Weekly", "Monthly", "Rarely"] },
-    { id: "q2", type: "multi", text: "Which categories do you buy most?", options: ["Groceries", "Electronics", "Fashion", "Beauty", "Home"] },
-    { id: "q3", type: "text", text: "What could improve your shopping experience?" },
-    { id: "q4", type: "rating", text: "Rate your satisfaction with delivery speed", scale: 5 },
-    { id: "q5", type: "matrix", text: "Please rate the following:", rows: ["Price", "Quality", "Customer Support"], cols: ["Very Poor", "Poor", "Average", "Good", "Excellent"] },
-  ]
-
-  return NextResponse.json({
-    data,
-    survey: { id, title: `Survey ${id}`, description: "Help us understand your preferences." },
-  })
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const { id } = params
+  
+  const survey = {
+    id,
+    title: `Consumer Preferences ${id}`,
+    description: "Help brands understand your habits and preferences through this detailed survey.",
+    category: ["lifestyle", "finance", "tech", "health"][parseInt(id) % 4],
+    estimatedTime: 5 + (parseInt(id) % 5),
+    reward: 20 + (parseInt(id) % 10),
+    eligible: parseInt(id) % 3 !== 0,
+    questions: [
+      {
+        id: "q1",
+        type: "multiple-choice",
+        question: "What is your age group?",
+        options: ["18-25", "26-35", "36-45", "46-55", "55+"]
+      },
+      {
+        id: "q2", 
+        type: "text",
+        question: "What factors influence your purchasing decisions?"
+      }
+    ]
+  }
+  
+  return NextResponse.json({ data: survey })
 }
