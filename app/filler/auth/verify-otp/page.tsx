@@ -1,10 +1,11 @@
 "use client"
 
+import { Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import OTPVerificationForm from "@/components/auth/otp-verification-form"
 
-export default function VerifyOTPPage() {
+function VerifyOTPContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { signIn } = useAuth()
@@ -42,18 +43,26 @@ export default function VerifyOTPPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <img src="/Logo.png" alt="OneTime Survey" className="h-16 w-auto mx-auto mb-4" />
-        </div>
-        <OTPVerificationForm 
-          email={email || undefined}
-          phone={phone || undefined}
-          onVerify={handleVerify}
-          onResend={handleResend}
-        />
+    <div className="w-full max-w-sm">
+      <div className="text-center mb-8">
+        <img src="/Logo.png" alt="OneTime Survey" className="h-16 w-auto mx-auto mb-4" />
       </div>
+      <OTPVerificationForm 
+        email={email || undefined}
+        phone={phone || undefined}
+        onVerify={handleVerify}
+        onResend={handleResend}
+      />
+    </div>
+  )
+}
+
+export default function VerifyOTPPage() {
+  return (
+    <main className="flex min-h-screen items-center justify-center p-4">
+      <Suspense fallback={<div>Loading...</div>}>
+        <VerifyOTPContent />
+      </Suspense>
     </main>
   )
 }
