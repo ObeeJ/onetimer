@@ -22,7 +22,7 @@ type Q = SingleQ | MultiQ | TextQ | RatingQ | MatrixQ
 export default function TakeSurveyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [questions, setQuestions] = useState<Q[]>([])
-  const [answers, setAnswers] = useState<Record<string, string | string[] | number | Record<string, string>>>({})
+  const [answers, setAnswers] = useState<Record<string, string>>({})
   const [idx, setIdx] = useState(0)
   const router = useRouter()
   const [reward, setReward] = useState(20)
@@ -42,15 +42,20 @@ export default function TakeSurveyPage({ params }: { params: Promise<{ id: strin
     const a = answers[q.id]
     switch (q.type) {
       case "single":
-        return typeof a === "string" && a.length > 0
+        return a && a.length > 0
       case "multi":
-        return Array.isArray(a) && a.length > 0
+        return a && a.split(',').length > 0
       case "text":
-        return typeof a === "string" && a.trim().length >= 2
+        return a && a.trim().length >= 2
       case "rating":
-        return typeof a === "number" && a > 0
+        return a && parseInt(a, 10) > 0
       case "matrix":
-        return a && typeof a === "object" && q.rows.every((r) => a[r])
+        try {
+          const matrix = JSON.parse(a || '{}')
+          return q.rows.every((r) => matrix[r])
+        } catch {
+          return false
+        }
     }
   }
 
@@ -65,7 +70,10 @@ export default function TakeSurveyPage({ params }: { params: Promise<{ id: strin
   const renderQuestion = (q: Q) => {
     if (q.type === "single") {
       return (
-        <RadioGroup value={answers[q.id] ?? ""} onValueChange={(v) => setAnswers((a) => ({ ...a, [q.id]: v }))}>
+        <RadioGroup 
+          value={String(answers[q.id] ?? "")} 
+          onValueChange={(v: string) => setAnswers((a) => ({ ...a, [q.id]: v }))}
+        >
           {q.options.map((opt) => (
             <div key={opt} className="flex items-center space-x-2">
               <RadioGroupItem id={`${q.id}-${opt}`} value={opt} />
@@ -76,7 +84,7 @@ export default function TakeSurveyPage({ params }: { params: Promise<{ id: strin
       )
     }
     if (q.type === "multi") {
-      const arr: string[] = answers[q.id] ?? []
+      const arr = answers[q.id] ? answers[q.id].split(',') : []
       return (
         <div className="grid gap-2">
           {q.options.map((opt) => (
@@ -84,12 +92,10 @@ export default function TakeSurveyPage({ params }: { params: Promise<{ id: strin
               <Checkbox
                 checked={arr.includes(opt)}
                 onCheckedChange={(checked) => {
-                  setAnswers((a) => {
-                    const next = new Set<string>(arr)
-                    if (checked) next.add(opt)
-                    else next.delete(opt)
-                    return { ...a, [q.id]: Array.from(next) }
-                  })
+                  const next = new Set<string>(arr)
+                  if (checked) next.add(opt)
+                  else next.delete(opt)
+                  setAnswers((a) => ({ ...a, [q.id]: Array.from(next).join(',') }))
                 }}
               />
               <span>{opt}</span>
@@ -102,14 +108,14 @@ export default function TakeSurveyPage({ params }: { params: Promise<{ id: strin
       return (
         <Textarea
           placeholder={q.placeholder ?? "Type your answer"}
-          value={answers[q.id] ?? ""}
+          value={String(answers[q.id] ?? "")}
           onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
         />
       )
     }
     if (q.type === "rating") {
       const scale = q.scale ?? 5
-      const val: number = answers[q.id] ?? 0
+      const val = parseInt(answers[q.id] ?? '0', 10)
       return (
         <div className="flex items-center gap-2">
           {Array.from({ length: scale }).map((_, i) => {
@@ -117,7 +123,7 @@ export default function TakeSurveyPage({ params }: { params: Promise<{ id: strin
             return (
               <button
                 key={n}
-                onClick={() => setAnswers((a) => ({ ...a, [q.id]: n }))}
+                onClick={() => setAnswers((a) => ({ ...a, [q.id]: String(n) }))}
                 className="p-1"
                 aria-label={`Rate ${n}`}
               >
@@ -129,7 +135,7 @@ export default function TakeSurveyPage({ params }: { params: Promise<{ id: strin
       )
     }
     if (q.type === "matrix") {
-      const matrix = (answers[q.id] as Record<string, string>) ?? {}
+      const matrix = answers[q.id] ? JSON.parse(answers[q.id]) : {}
       return (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -152,12 +158,10 @@ export default function TakeSurveyPage({ params }: { params: Promise<{ id: strin
                         name={`row-${q.id}-${r}`}
                         aria-label={`${r} - ${c}`}
                         checked={matrix[r] === c}
-                        onChange={() =>
-                          setAnswers((a) => ({
-                            ...a,
-                            [q.id]: { ...(a[q.id] ?? {}), [r]: c },
-                          }))
-                        }
+                        onChange={() => {
+                          const newMatrix = { ...matrix, [r]: c }
+                          setAnswers((a) => ({ ...a, [q.id]: JSON.stringify(newMatrix) }))
+                        }}
                       />
                     </td>
                   ))}
@@ -176,7 +180,7 @@ export default function TakeSurveyPage({ params }: { params: Promise<{ id: strin
       <div className="container mx-auto p-4 md:p-6">
         <Card className="rounded-2xl border border-border/40 bg-background/60 backdrop-blur-xl">
           <CardHeader>
-            <CardTitle>Loading survey…</CardTitle>
+            <CardTitle>Loading survey&hellip;</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <SurveyProgress value={progress} />
