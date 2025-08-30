@@ -1,4 +1,4 @@
-export type User = {
+export interface User {
   id: string
   name: string
   email?: string
@@ -6,4 +6,6 @@ export type User = {
   nin?: string
   bvn?: string
   avatarUrl?: string
+  role?: "filler" | "creator" | "admin" | "super_admin"
+  isVerified?: boolean
 }
