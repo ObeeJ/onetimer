@@ -53,7 +53,7 @@ export function AdminSidebar() {
                     <SidebarMenuButton asChild tooltip={item.title}>
                       <Link 
                         href={item.url}
-                        className={`${isActive ? "bg-[#013F5C] text-white font-bold rounded-lg" : "hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-all duration-200"}`}
+                        className={`${isActive ? "bg-[#004AAD] text-white font-bold rounded-lg" : "hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-all duration-200"}`}
                       >
                         <item.icon />
                         <span>{item.title}</span>

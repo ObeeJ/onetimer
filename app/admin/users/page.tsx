@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { ResponsiveTable } from "@/components/ui/responsive-table"
 import { 
   Search, 
   Filter, 
@@ -80,13 +81,13 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">User Management</h1>
           <p className="text-slate-600">Manage users, KYC approvals, and account status</p>
         </div>
-        <Button className="bg-red-600 hover:bg-red-700">
+        <Button variant="default">
           <Download className="h-4 w-4 mr-2" />
           Export Users
         </Button>
@@ -114,69 +115,65 @@ export default function UsersPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-slate-600">User</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-600">Role</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-600">Status</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-600">KYC</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-600">Joined</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-600">Earnings/Surveys</th>
-                  <th className="text-right py-3 px-4 font-medium text-slate-600">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-b hover:bg-slate-50">
-                    <td className="py-4 px-4">
-                      <div>
-                        <p className="font-medium text-slate-900">{user.name}</p>
-                        <p className="text-sm text-slate-600">{user.email}</p>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <Badge variant={user.role === "Creator" ? "default" : "secondary"}>
-                        {user.role}
-                      </Badge>
-                    </td>
-                    <td className="py-4 px-4">
-                      {getStatusBadge(user.status)}
-                    </td>
-                    <td className="py-4 px-4">
-                      {getKycBadge(user.kycStatus)}
-                    </td>
-                    <td className="py-4 px-4 text-slate-600">
-                      {new Date(user.joinDate).toLocaleDateString()}
-                    </td>
-                    <td className="py-4 px-4 text-slate-600">
-                      {user.earnings || `${user.surveys} surveys`}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-3 w-3" />
+          <ResponsiveTable
+            columns={[
+              { key: "user", label: "User", mobileLabel: "User" },
+              { key: "role", label: "Role", mobileLabel: "Role" },
+              { key: "status", label: "Status", mobileLabel: "Status" },
+              { key: "kyc", label: "KYC", mobileLabel: "KYC Status" },
+              { key: "joined", label: "Joined", mobileLabel: "Join Date" },
+              { key: "earnings", label: "Earnings/Surveys", mobileLabel: "Earnings" },
+              { key: "actions", label: "Actions", className: "text-right", mobileLabel: "Actions" },
+            ]}
+            data={users}
+            renderCell={(user, column) => {
+              switch (column.key) {
+                case "user":
+                  return (
+                    <div>
+                      <p className="font-medium text-slate-900">{user.name}</p>
+                      <p className="text-sm text-slate-600">{user.email}</p>
+                    </div>
+                  )
+                case "role":
+                  return (
+                    <Badge variant={user.role === "Creator" ? "default" : "secondary"}>
+                      {user.role}
+                    </Badge>
+                  )
+                case "status":
+                  return getStatusBadge(user.status)
+                case "kyc":
+                  return getKycBadge(user.kycStatus)
+                case "joined":
+                  return <span className="text-slate-600">{new Date(user.joinDate).toLocaleDateString()}</span>
+                case "earnings":
+                  return <span className="text-slate-600">{user.earnings || `${user.surveys} surveys`}</span>
+                case "actions":
+                  return (
+                    <div className="flex items-center justify-end gap-2">
+                      <Button size="sm" variant="outline">
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                      {user.status === "Active" ? (
+                        <Button size="sm" variant="outline" className="text-yellow-600">
+                          <Ban className="h-3 w-3" />
                         </Button>
-                        {user.status === "Active" ? (
-                          <Button size="sm" variant="outline" className="text-yellow-600">
-                            <Ban className="h-3 w-3" />
-                          </Button>
-                        ) : (
-                          <Button size="sm" variant="outline" className="text-green-600">
-                            <CheckCircle className="h-3 w-3" />
-                          </Button>
-                        )}
-                        <Button size="sm" variant="outline">
-                          <MoreHorizontal className="h-3 w-3" />
+                      ) : (
+                        <Button size="sm" variant="outline" className="text-green-600">
+                          <CheckCircle className="h-3 w-3" />
                         </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      )}
+                      <Button size="sm" variant="outline">
+                        <MoreHorizontal className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )
+                default:
+                  return null
+              }
+            }}
+          />
         </CardContent>
       </Card>
     </div>
