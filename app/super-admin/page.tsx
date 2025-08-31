@@ -20,7 +20,7 @@ import {
 export default function SuperAdminDashboard() {
   const globalStats = [
     { title: "Total Users", value: "12,847", change: "+18%", icon: Users, color: "blue" },
-    { title: "Active Admins", value: "8", change: "+1", icon: Shield, color: "purple" },
+    { title: "Active Admins", value: "8", change: "+1", icon: Shield, color: "blue" },
     { title: "Total Surveys", value: "3,456", change: "+24%", icon: ListChecks, color: "green" },
     { title: "Total Revenue", value: "₦24.8M", change: "+32%", icon: CreditCard, color: "orange" },
   ]
@@ -168,12 +168,12 @@ export default function SuperAdminDashboard() {
                   activity.type === "approval" ? "bg-green-100" :
                   activity.type === "payout" ? "bg-blue-100" :
                   activity.type === "moderation" ? "bg-red-100" :
-                  "bg-purple-100"
+                  "bg-blue-100"
                 }`}>
                   {activity.type === "approval" ? <CheckCircle className="h-4 w-4 text-green-600" /> :
                    activity.type === "payout" ? <CreditCard className="h-4 w-4 text-blue-600" /> :
                    activity.type === "moderation" ? <Shield className="h-4 w-4 text-red-600" /> :
-                   <Settings className="h-4 w-4 text-purple-600" />}
+                   <Settings className="h-4 w-4 text-blue-600" />}
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-slate-900">{activity.admin}</p>

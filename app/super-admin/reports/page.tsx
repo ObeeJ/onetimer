@@ -80,9 +80,9 @@ export default function SuperAdminReportsPage() {
               <div>
                 <p className="text-sm text-slate-600">Total Surveys</p>
                 <p className="text-2xl font-bold">3,456</p>
-                <p className="text-xs text-purple-600">+24% from last month</p>
+                <p className="text-xs text-blue-600">+24% from last month</p>
               </div>
-              <Activity className="h-8 w-8 text-purple-600" />
+              <Activity className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
