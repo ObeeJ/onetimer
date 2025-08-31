@@ -19,7 +19,7 @@ export default function AdminDashboard() {
     { title: "Total Users", value: "2,847", change: "+12%", icon: Users, color: "blue" },
     { title: "Active Surveys", value: "156", change: "+8%", icon: ListChecks, color: "green" },
     { title: "Pending Payouts", value: "₦847,200", change: "-3%", icon: CreditCard, color: "orange" },
-    { title: "Revenue (30d)", value: "₦2.4M", change: "+24%", icon: TrendingUp, color: "purple" },
+    { title: "Revenue (30d)", value: "₦2.4M", change: "+24%", icon: TrendingUp, color: "blue" },
   ]
 
   const pendingTasks = [

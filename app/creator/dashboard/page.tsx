@@ -91,11 +91,11 @@ export default function CreatorDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-xl border border-slate-200/60 bg-gradient-to-br from-white/90 to-purple-50/30 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-300 group">
+          <Card className="rounded-xl border border-slate-200/60 bg-gradient-to-br from-white/90 to-blue-50/30 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-300 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-sm font-medium text-slate-600">Total Responses</CardTitle>
-              <div className="p-2 rounded-lg bg-purple-100/80 group-hover:bg-purple-200/80 transition-colors">
-                <Users className="h-4 w-4 text-purple-600" />
+              <div className="p-2 rounded-lg bg-blue-100/80 group-hover:bg-blue-200/80 transition-colors">
+                <Users className="h-4 w-4 text-blue-600" />
               </div>
             </CardHeader>
             <CardContent>
