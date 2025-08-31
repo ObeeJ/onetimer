@@ -11,8 +11,18 @@ import {
   Calendar,
   BarChart3
 } from "lucide-react"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
 
 export default function ReportsPage() {
+  const revenueData = [
+    { month: "Jan", revenue: 180000, users: 1200 },
+    { month: "Feb", revenue: 210000, users: 1450 },
+    { month: "Mar", revenue: 240000, users: 1680 },
+    { month: "Apr", revenue: 280000, users: 1920 },
+    { month: "May", revenue: 320000, users: 2150 },
+    { month: "Jun", revenue: 360000, users: 2380 },
+  ]
+
   const metrics = [
     { title: "Total Revenue", value: "₦2.4M", change: "+24%", period: "This month" },
     { title: "Active Users", value: "2,847", change: "+12%", period: "This month" },
@@ -80,13 +90,15 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center bg-slate-50 rounded-lg">
-              <div className="text-center">
-                <BarChart3 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                <p className="text-slate-600">Revenue chart would be displayed here</p>
-                <p className="text-sm text-slate-500">Integration with charting library needed</p>
-              </div>
-            </div>
+            <ResponsiveContainer width="100%" height={256}>
+              <BarChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="revenue" fill="#2563eb" radius={4} />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
@@ -98,13 +110,15 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center bg-slate-50 rounded-lg">
-              <div className="text-center">
-                <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                <p className="text-slate-600">User growth chart would be displayed here</p>
-                <p className="text-sm text-slate-500">Integration with charting library needed</p>
-              </div>
-            </div>
+            <ResponsiveContainer width="100%" height={256}>
+              <LineChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="users" stroke="#10b981" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>

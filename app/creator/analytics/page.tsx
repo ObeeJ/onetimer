@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BarChart3, TrendingUp, Users, Eye, Download, Calendar } from "lucide-react"
 import { useCreatorAuth } from "@/hooks/use-creator-auth"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts"
 
 export default function CreatorAnalyticsPage() {
   console.log("CreatorAnalyticsPage rendering")
@@ -137,7 +138,7 @@ export default function CreatorAnalyticsPage() {
           <Card className="rounded-xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-600">Completion Rate</CardTitle>
-              <Eye className="h-4 w-4 text-purple-600" />
+              <Eye className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">{overviewStats.completionRate}%</div>
@@ -173,13 +174,15 @@ export default function CreatorAnalyticsPage() {
                 <CardTitle>Response Trends</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-80 flex items-center justify-center bg-slate-50 rounded-lg">
-                  <div className="text-center">
-                    <BarChart3 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                    <p className="text-slate-600">Response trend chart would be displayed here</p>
-                    <p className="text-sm text-slate-500">Integration with charting library needed</p>
-                  </div>
-                </div>
+                <ResponsiveContainer width="100%" height={320}>
+                  <LineChart data={responseData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="responses" stroke="#2563eb" strokeWidth={3} />
+                  </LineChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
           </TabsContent>
