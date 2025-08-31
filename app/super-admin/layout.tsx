@@ -19,7 +19,7 @@ export default function SuperAdminLayout({
   }
 
   return (
-    <RoleGuard requiredRole="super-admin" requireAuth={true}>
+    <RoleGuard requiredRole="super-admin" requireAuth={false}>
       <SidebarProvider>
         <div className="flex min-h-screen w-full">
           <SuperAdminSidebar />

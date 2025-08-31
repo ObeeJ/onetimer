@@ -16,7 +16,7 @@ export default function SuperAdminSettingsPage() {
           <h1 className="text-3xl font-bold text-slate-900">System Settings</h1>
           <p className="text-slate-600">Configure platform-wide settings</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button>
           <Save className="h-4 w-4 mr-2" />
           Save Changes
         </Button>

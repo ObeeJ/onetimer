@@ -33,7 +33,7 @@ export default function CreatorDashboardPage() {
           <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-slate-900 mb-2">Sign in to access creator dashboard</h2>
           <p className="text-slate-600 mb-6">Create an account or sign in to start creating surveys and collecting insights.</p>
-          <Button asChild className="bg-[#C1654B] hover:bg-[#b25a43]">
+          <Button asChild variant="accent">
             <Link href="/creator/auth/sign-up">Sign up</Link>
           </Button>
         </div>
@@ -135,7 +135,7 @@ export default function CreatorDashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button asChild className="w-full h-12 bg-gradient-to-r from-[#C1654B] to-[#b25a43] hover:from-[#b25a43] hover:to-[#a04d39] text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+              <Button asChild variant="accent" className="w-full h-12">
                 <Link href="/creator/surveys/create" className="flex items-center justify-center gap-2">
                   <Plus className="h-4 w-4" />
                   Create New Survey
@@ -168,7 +168,7 @@ export default function CreatorDashboardPage() {
                   </div>
                   <h3 className="font-semibold text-slate-900 mb-2">No surveys yet</h3>
                   <p className="text-sm text-slate-500 mb-4">Create your first survey to start collecting insights.</p>
-                  <Button asChild size="sm" className="bg-[#C1654B] hover:bg-[#b25a43] rounded-lg">
+                  <Button asChild size="sm" variant="accent">
                     <Link href="/creator/surveys/create">Get Started</Link>
                   </Button>
                 </div>

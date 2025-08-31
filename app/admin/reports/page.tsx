@@ -54,7 +54,7 @@ export default function ReportsPage() {
             <Calendar className="h-4 w-4 mr-2" />
             Date Range
           </Button>
-          <Button className="bg-red-600 hover:bg-red-700">
+          <Button>
             <Download className="h-4 w-4 mr-2" />
             Export Report
           </Button>
