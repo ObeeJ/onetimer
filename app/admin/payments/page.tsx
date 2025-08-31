@@ -34,7 +34,7 @@ export default function AdminPaymentsPage() {
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button>
             <CreditCard className="h-4 w-4 mr-2" />
             Process Payouts
           </Button>

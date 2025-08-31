@@ -23,7 +23,7 @@ export default function SuperAdminSurveysPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline">Export Data</Button>
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button>
             <ListChecks className="h-4 w-4 mr-2" />
             Review Queue
           </Button>

@@ -23,7 +23,7 @@ export default function LoginPage() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" placeholder="Enter your password" />
           </div>
-          <Button className="w-full bg-blue-600 hover:bg-blue-700">
+          <Button className="w-full">
             Sign In
           </Button>
           <div className="text-center space-y-2">
@@ -32,7 +32,7 @@ export default function LoginPage() {
               <Link href="/filler" className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Filler</Link>
               <Link href="/creator" className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">Creator</Link>
               <Link href="/admin" className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Admin</Link>
-              <Link href="/super-admin" className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Super Admin</Link>
+              <Link href="/super-admin" className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">Super Admin</Link>
             </div>
           </div>
         </CardContent>

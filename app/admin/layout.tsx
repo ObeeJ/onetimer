@@ -19,7 +19,7 @@ export default function AdminLayout({
   }
 
   return (
-    <RoleGuard requiredRole="admin" requireAuth={true}>
+    <RoleGuard requiredRole="admin" requireAuth={false}>
       {renderLayout()}
     </RoleGuard>
   )

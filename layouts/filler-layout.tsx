@@ -23,7 +23,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <RoleGuard requiredRole="filler" requireAuth={true}>
+    <RoleGuard requiredRole="filler" requireAuth={false}>
       <SidebarProvider>
         <AppSidebar />
         <div className="flex min-h-svh flex-1 flex-col bg-white">

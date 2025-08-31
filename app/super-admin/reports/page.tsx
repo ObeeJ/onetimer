@@ -42,7 +42,7 @@ export default function SuperAdminReportsPage() {
             <Download className="h-4 w-4 mr-2" />
             Export PDF
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button>
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>

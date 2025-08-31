@@ -29,64 +29,7 @@ function useMockAuth() {
   return { user, isLoading, isAuthenticated: !!user }
 }
 
-export function RoleGuard({ children, requiredRole, requireAuth = true }: RoleGuardProps) {
-  const { user, isLoading, isAuthenticated } = useMockAuth()
-  const router = useRouter()
-  const pathname = usePathname()
-
-  useEffect(() => {
-    if (isLoading) return
-
-    // If auth required but user not authenticated
-    if (requireAuth && !isAuthenticated) {
-      router.push("/login")
-      return
-    }
-
-    // If user authenticated but wrong role
-    if (isAuthenticated && user?.role !== requiredRole) {
-      router.push("/unauthorized")
-      return
-    }
-  }, [isLoading, isAuthenticated, user, requireAuth, requiredRole, router])
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
-  // Not authenticated
-  if (requireAuth && !isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <EmptyState
-          icon={Lock}
-          title="Authentication required"
-          description="Please sign in to access this area."
-          action={{ label: "Sign in", href: "/login" }}
-        />
-      </div>
-    )
-  }
-
-  // Wrong role
-  if (isAuthenticated && user?.role !== requiredRole) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <EmptyState
-          icon={Shield}
-          title="Access denied"
-          description={`This area requires ${requiredRole} access.`}
-          action={{ label: "Go back", href: "/" }}
-        />
-      </div>
-    )
-  }
-
-  // Authorized - render children
+export function RoleGuard({ children, requiredRole, requireAuth = false }: RoleGuardProps) {
+  // Allow direct access to all dashboards - no auth required for now
   return <>{children}</>
 }

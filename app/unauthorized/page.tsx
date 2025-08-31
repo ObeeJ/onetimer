@@ -16,7 +16,7 @@ export default function UnauthorizedPage() {
         <CardContent className="space-y-4">
           <p className="text-slate-600">You don't have permission to access this area.</p>
           <div className="space-y-2">
-            <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
+            <Button asChild className="w-full">
               <Link href="/">Go Home</Link>
             </Button>
             <Button asChild variant="outline" className="w-full">

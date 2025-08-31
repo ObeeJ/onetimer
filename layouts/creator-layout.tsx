@@ -14,7 +14,7 @@ export default function CreatorLayout({
   
   return (
     <ErrorBoundary>
-      <RoleGuard requiredRole="creator" requireAuth={true}>
+      <RoleGuard requiredRole="creator" requireAuth={false}>
         <SidebarProvider>
           <div className="flex min-h-screen w-full bg-slate-50">
             <CreatorSidebar />
