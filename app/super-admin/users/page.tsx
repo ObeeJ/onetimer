@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ResponsiveTable } from "@/components/ui/responsive-table"
 import { Users, Search, Filter, MoreHorizontal, Shield, Ban } from "lucide-react"
 
 export default function SuperAdminUsersPage() {
@@ -15,13 +16,13 @@ export default function SuperAdminUsersPage() {
   ]
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">User Management</h1>
           <p className="text-slate-600">Manage all platform users</p>
         </div>
-        <Button>
+        <Button variant="default">
           <Users className="h-4 w-4 mr-2" />
           Add User
         </Button>
@@ -44,55 +45,56 @@ export default function SuperAdminUsersPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-4">User</th>
-                  <th className="text-left p-4">Role</th>
-                  <th className="text-left p-4">Status</th>
-                  <th className="text-left p-4">Surveys</th>
-                  <th className="text-left p-4">Earnings</th>
-                  <th className="text-left p-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-b hover:bg-slate-50">
-                    <td className="p-4">
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-slate-600">{user.email}</p>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <Badge variant="outline">{user.role}</Badge>
-                    </td>
-                    <td className="p-4">
-                      <Badge className={user.status === "active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
-                        {user.status}
-                      </Badge>
-                    </td>
-                    <td className="p-4">{user.surveys}</td>
-                    <td className="p-4">{user.earnings}</td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline">
-                          <Shield className="h-3 w-3" />
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Ban className="h-3 w-3" />
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <MoreHorizontal className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResponsiveTable
+            columns={[
+              { key: "user", label: "User", mobileLabel: "User" },
+              { key: "role", label: "Role", mobileLabel: "Role" },
+              { key: "status", label: "Status", mobileLabel: "Status" },
+              { key: "surveys", label: "Surveys", mobileLabel: "Surveys" },
+              { key: "earnings", label: "Earnings", mobileLabel: "Earnings" },
+              { key: "actions", label: "Actions", mobileLabel: "Actions" },
+            ]}
+            data={users}
+            renderCell={(user, column) => {
+              switch (column.key) {
+                case "user":
+                  return (
+                    <div>
+                      <p className="font-medium">{user.name}</p>
+                      <p className="text-sm text-slate-600">{user.email}</p>
+                    </div>
+                  )
+                case "role":
+                  return <Badge variant="outline">{user.role}</Badge>
+                case "status":
+                  return (
+                    <Badge className={user.status === "active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
+                      {user.status}
+                    </Badge>
+                  )
+                case "surveys":
+                  return <span>{user.surveys}</span>
+                case "earnings":
+                  return <span>{user.earnings}</span>
+                case "actions":
+                  return (
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline">
+                        <Shield className="h-3 w-3" />
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Ban className="h-3 w-3" />
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <MoreHorizontal className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )
+                default:
+                  return null
+              }
+            }}
+          />
         </CardContent>
       </Card>
     </div>

@@ -42,7 +42,7 @@ export default function CreatorDashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-4 md:p-6 max-w-7xl mx-auto">
       <div className="space-y-6">
         <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-gradient-to-r from-white/90 via-slate-50/50 to-white/90 backdrop-blur-sm p-8 shadow-sm">
           <div className="absolute inset-0 bg-gradient-to-r from-[#C1654B]/5 to-transparent"></div>

@@ -30,6 +30,6 @@ function useMockAuth() {
 }
 
 export function RoleGuard({ children, requiredRole, requireAuth = false }: RoleGuardProps) {
-  // Allow direct access to all dashboards - no auth required for now
+  // Allow direct access to all dashboards for testing - no auth blockers
   return <>{children}</>
 }
