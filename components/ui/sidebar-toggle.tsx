@@ -1,6 +1,6 @@
 "use client"
 
-import { ToggleLeft, ToggleRight } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useSidebarStore } from "@/lib/sidebar-store"
 import { cn } from "@/lib/utils"
@@ -18,14 +18,14 @@ export function SidebarToggle({ className }: SidebarToggleProps) {
       size="icon"
       onClick={toggle}
       className={cn(
-        "h-8 w-8 rounded-lg hover:bg-[#013e5c]/10 text-[#013e5c] focus-visible:ring-2 focus-visible:ring-[#013e5c]/50 focus-visible:ring-offset-2 transition-colors",
+        "h-8 w-8 rounded-md hover:bg-slate-100 text-slate-600 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-0 transition-all duration-200 border border-transparent hover:border-slate-200",
         className
       )}
     >
       {isOpen ? (
-        <ToggleRight className="h-4 w-4" />
+        <ChevronLeft className="h-4 w-4" />
       ) : (
-        <ToggleLeft className="h-4 w-4" />
+        <ChevronRight className="h-4 w-4" />
       )}
     </Button>
   )
