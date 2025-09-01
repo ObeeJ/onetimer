@@ -68,7 +68,7 @@ export default function SurveysSection() {
         </div>
         <h3 className="text-lg font-semibold text-slate-900 mb-2">No surveys available</h3>
         <p className="text-slate-600 mb-6 max-w-sm">Sign up to access our latest surveys and start earning money today.</p>
-        <Button asChild variant="filler">
+        <Button asChild variant="default">
           <Link href="/filler/auth/sign-up">Sign up now</Link>
         </Button>
       </div>
@@ -83,7 +83,7 @@ export default function SurveysSection() {
         </div>
         <h3 className="text-lg font-semibold text-slate-900 mb-2">No surveys available right now</h3>
         <p className="text-slate-600 mb-6 max-w-sm">New surveys are added regularly. Check back soon or complete your profile to get more targeted surveys.</p>
-        <Button asChild variant="filler">
+        <Button asChild variant="default">
           <Link href="/filler/profile">Complete profile</Link>
         </Button>
       </div>
@@ -125,7 +125,7 @@ export default function SurveysSection() {
 
             <Button 
               asChild 
-              variant="filler"
+              variant="default"
               className="w-full rounded-xl"
               disabled={!isAuthenticated}
             >
