@@ -8,9 +8,9 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-brand-blue hover:bg-brand-blue/90 text-white focus-visible:ring-brand-blue/50",
+        default: "bg-brand-blue hover:bg-brand-orange text-white focus-visible:ring-brand-blue/50",
         accent: "bg-brand-orange hover:bg-brand-orange/90 text-white focus-visible:ring-brand-orange/50",
-        filler: "bg-brand-blue hover:bg-brand-blue/90 text-white focus-visible:ring-brand-blue/50",
+        filler: "bg-brand-blue hover:bg-brand-orange text-white focus-visible:ring-brand-blue/50",
         destructive: "bg-red-600 hover:bg-red-700 text-white focus-visible:ring-red-600/50",
         outline: "border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 focus-visible:ring-slate-600/50",
         secondary: "bg-slate-100 hover:bg-slate-200 text-slate-900 focus-visible:ring-slate-600/50",

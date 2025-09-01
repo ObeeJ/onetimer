@@ -45,7 +45,7 @@ export default function CreatorDashboardPage() {
     <div className="space-y-8">
       <div className="space-y-6">
         <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-gradient-to-r from-white/90 via-slate-50/50 to-white/90 backdrop-blur-sm p-8 shadow-sm">
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-orange/5 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-accent-500/5 to-transparent"></div>
           <div className="relative">
             <h1 className="text-3xl font-bold text-slate-900 mb-3">
               Welcome back, {creator?.name}!
@@ -129,8 +129,8 @@ export default function CreatorDashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-                <div className="p-2 rounded-lg bg-brand-orange/10">
-                  <Plus className="h-5 w-5 text-brand-orange" />
+                <div className="p-2 rounded-lg bg-accent-500/10">
+                  <Plus className="h-5 w-5 text-accent-500" />
                 </div>
               </div>
             </CardHeader>
@@ -180,7 +180,7 @@ export default function CreatorDashboardPage() {
                         <p className="font-semibold text-slate-900 truncate mb-1">{survey.title}</p>
                         <div className="flex items-center gap-2">
                           <div className="w-full bg-slate-200 rounded-full h-1.5 max-w-24">
-                            <div className="bg-brand-orange h-1.5 rounded-full" style={{ width: `${(survey.responses / survey.target) * 100}%` }}></div>
+                            <div className="bg-accent-500 h-1.5 rounded-full" style={{ width: `${(survey.responses / survey.target) * 100}%` }}></div>
                           </div>
                           <p className="text-xs text-slate-500 whitespace-nowrap">{survey.responses}/{survey.target}</p>
                         </div>

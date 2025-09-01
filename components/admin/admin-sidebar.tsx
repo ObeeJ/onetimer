@@ -36,7 +36,7 @@ export function AdminSidebar() {
       <SidebarHeader className="flex items-center justify-between px-3">
         <div className="flex items-center justify-between w-full">
           <Link href="/admin" className="hover:opacity-80 transition-opacity group-data-[collapsible=icon]:hidden">
-            <img src="/Logo.png" alt="Survey Platform" className="h-10 sm:h-14 md:h-12 w-auto" />
+            <img src="/Logo.png" alt="OneTime Survey" className="h-10 sm:h-14 md:h-12 w-auto" />
           </Link>
           <SidebarTrigger className="rounded-xl group-data-[collapsible=icon]:mx-auto" />
         </div>
@@ -53,7 +53,7 @@ export function AdminSidebar() {
                     <SidebarMenuButton asChild tooltip={item.title}>
                       <Link 
                         href={item.url}
-                        className={`${isActive ? "bg-brand-orange text-white font-bold rounded-lg" : "hover:bg-brand-orange/10 hover:text-slate-700 rounded-lg transition-all duration-200"}`}
+                        className={`${isActive ? "bg-primary-600 text-white font-bold rounded-lg" : "hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-all duration-200"}`}
                       >
                         <item.icon />
                         <span>{item.title}</span>
