@@ -8,14 +8,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-brand-blue hover:bg-brand-blue/90 text-white focus-visible:ring-brand-blue/50",
-        accent: "bg-brand-orange hover:bg-brand-orange/90 text-white focus-visible:ring-brand-orange/50",
-        filler: "bg-brand-blue hover:bg-brand-blue/90 text-white focus-visible:ring-brand-blue/50",
-        destructive: "bg-red-600 hover:bg-red-700 text-white focus-visible:ring-red-600/50",
-        outline: "border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 focus-visible:ring-slate-600/50",
-        secondary: "bg-slate-100 hover:bg-slate-200 text-slate-900 focus-visible:ring-slate-600/50",
-        ghost: "hover:bg-slate-100 text-slate-900 focus-visible:ring-slate-600/50",
-        link: "text-brand-blue underline-offset-4 hover:underline focus-visible:ring-brand-blue/50",
+        default: "bg-[#013f5d] hover:bg-[#012d45] active:bg-[#011e2f] text-white focus-visible:ring-[#013f5d]/50",
+        accent: "bg-[#c0684a] hover:bg-[#a85a40] active:bg-[#8f4c36] text-white focus-visible:ring-[#c0684a]/50",
+        secondary: "bg-[#c0684a] hover:bg-[#a85a40] active:bg-[#8f4c36] text-white focus-visible:ring-[#c0684a]/50",
+        destructive: "bg-red-600 hover:bg-red-700 active:bg-red-800 text-white focus-visible:ring-red-600/50",
+        outline: "border-2 border-[#013f5d] bg-transparent hover:bg-[#013f5d] hover:text-white text-[#013f5d] focus-visible:ring-[#013f5d]/50",
+        ghost: "bg-transparent hover:bg-[#013f5d]/10 text-[#013f5d] focus-visible:ring-[#013f5d]/50",
+        link: "bg-transparent text-[#013f5d] underline-offset-4 hover:underline hover:text-[#012d45] focus-visible:ring-[#013f5d]/50",
       },
       size: {
         default: "h-9 px-4 py-2",
