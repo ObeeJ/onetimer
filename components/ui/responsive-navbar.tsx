@@ -23,24 +23,24 @@ interface ResponsiveNavbarProps {
 
 const roleThemes = {
   filler: {
-    primary: "bg-filler-600 hover:bg-filler-700",
-    accent: "text-filler-600",
-    border: "border-filler-600"
+    primary: "bg-[#013F5C] hover:bg-[#0b577a]",
+    accent: "text-[#013F5C]",
+    border: "border-[#013F5C]"
   },
   creator: {
-    primary: "bg-accent-500 hover:bg-accent-600",
-    accent: "text-accent-500",
-    border: "border-accent-500"
+    primary: "bg-[#C1654B] hover:bg-[#b25a43]",
+    accent: "text-[#C1654B]",
+    border: "border-[#C1654B]"
   },
   admin: {
-    primary: "bg-primary-600 hover:bg-primary-700",
-    accent: "text-primary-600",
-    border: "border-primary-600"
+    primary: "bg-[#004AAD] hover:bg-[#003080]",
+    accent: "text-[#004AAD]",
+    border: "border-[#004AAD]"
   },
   "super-admin": {
-    primary: "bg-primary-600 hover:bg-primary-700",
-    accent: "text-primary-600",
-    border: "border-primary-600"
+    primary: "bg-[#004AAD] hover:bg-[#003080]",
+    accent: "text-[#004AAD]",
+    border: "border-[#004AAD]"
   }
 }
 
