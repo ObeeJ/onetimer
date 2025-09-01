@@ -5,8 +5,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Home, Shield, Users, FileText, CreditCard, BarChart3, AlertTriangle, Settings, LogOut, User2 } from "lucide-react"
+import { Home, Shield, Users, FileText, CreditCard, BarChart3, AlertTriangle, Settings, LogOut, User2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { SidebarToggle } from "@/components/ui/sidebar-toggle"
+import { useSidebarStore } from "@/lib/sidebar-store"
 
 const navItems = [
   { title: "Dashboard", url: "/super-admin", icon: Home },
@@ -26,7 +28,7 @@ export default function SuperAdminLayout({
 }) {
   const pathname = usePathname()
   const isAuthPage = pathname?.includes("/auth/")
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { isOpen: sidebarOpen } = useSidebarStore()
 
   if (isAuthPage) {
     return children
@@ -38,14 +40,7 @@ export default function SuperAdminLayout({
         {/* Top bar for super admin */}
         <div className="lg:ml-64 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden"
-            >
-              <Menu className="h-6 w-6" />
-            </Button>
+            <SidebarToggle className="lg:hidden" />
             <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto lg:hidden" />
           </div>
           <div className="flex items-center gap-3">
@@ -76,14 +71,7 @@ export default function SuperAdminLayout({
           {/* Header */}
           <div className="p-4 border-b border-slate-200 flex items-center justify-center gap-3">
             <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto" />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="h-8 w-8"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
+            <SidebarToggle />
           </div>
 
           {/* Navigation */}
@@ -94,7 +82,7 @@ export default function SuperAdminLayout({
                 <Link
                   key={item.title}
                   href={item.url}
-                  onClick={() => setSidebarOpen(false)}
+                  onClick={() => useSidebarStore.getState().setOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                     isActive
@@ -135,7 +123,7 @@ export default function SuperAdminLayout({
         {sidebarOpen && (
           <div
             className="lg:hidden fixed inset-0 z-30 bg-black/50"
-            onClick={() => setSidebarOpen(false)}
+            onClick={() => useSidebarStore.getState().setOpen(false)}
           />
         )}
 
