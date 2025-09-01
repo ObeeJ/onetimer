@@ -135,19 +135,19 @@ export default function CreatorDashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button asChild variant="accent" className="w-full h-12">
+              <Button asChild className="w-full h-12 bg-[#C1654B] hover:bg-[#A0543D] text-white">
                 <Link href="/creator/surveys/create" className="flex items-center justify-center gap-2">
                   <Plus className="h-4 w-4" />
                   Create New Survey
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="w-full h-11 border-slate-200 hover:bg-slate-50 rounded-xl">
+              <Button asChild variant="secondary" className="w-full h-11">
                 <Link href="/creator/analytics" className="flex items-center justify-center gap-2">
                   <BarChart3 className="h-4 w-4" />
                   View Analytics
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="w-full h-11 border-slate-200 hover:bg-slate-50 rounded-xl">
+              <Button asChild variant="secondary" className="w-full h-11">
                 <Link href="/creator/credits" className="flex items-center justify-center gap-2">
                   <DollarSign className="h-4 w-4" />
                   Purchase Credits
