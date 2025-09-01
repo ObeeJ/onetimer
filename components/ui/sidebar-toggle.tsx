@@ -21,9 +21,9 @@ export function SidebarToggle({ className }: SidebarToggleProps) {
       aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
     >
       {isOpen ? (
-        <PanelLeftClose className="w-3.5 h-3.5" />
+        <PanelLeftClose className="w-4 h-4" />
       ) : (
-        <PanelLeft className="w-3.5 h-3.5" />
+        <PanelLeft className="w-4 h-4" />
       )}
     </button>
   )
