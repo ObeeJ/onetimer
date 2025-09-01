@@ -70,7 +70,7 @@ export function CreatorSidebar() {
                     <SidebarMenuButton asChild tooltip={item.title} disabled={isDisabled}>
                       <Link 
                         href={isDisabled ? "#" : item.url}
-                        className={`${isActive ? "bg-accent-500 text-white font-bold rounded-lg" : "hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-all duration-200"} ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                        className={`${isActive ? "bg-[#C1654B] text-white font-bold rounded-lg" : "hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-all duration-200"} ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
                         <item.icon />
                         <span>{item.title}</span>
@@ -87,13 +87,13 @@ export function CreatorSidebar() {
         {!isAuthenticated ? (
           <div className="grid gap-2 p-2">
             <SidebarMenuButton asChild tooltip="Sign in">
-              <Link href="/creator/auth/sign-in" className="flex items-center gap-2 rounded-lg bg-accent-500 text-white hover:bg-accent-600 hover:text-white p-2 transition-all duration-200">
+              <Link href="/creator/auth/sign-in" className="flex items-center gap-2 rounded-lg bg-[#C1654B] text-white hover:bg-[#b25a43] hover:text-white p-2 transition-all duration-200">
                 <LogOut className="h-4 w-4" />
                 <span className="group-data-[collapsible=icon]:hidden">Sign in</span>
               </Link>
             </SidebarMenuButton>
             <SidebarMenuButton asChild tooltip="Sign up">
-              <Link href="/creator/auth/sign-up" className="flex items-center gap-2 rounded-lg border border-accent-500 text-accent-500 bg-transparent hover:bg-accent-500 hover:text-white p-2 transition-all duration-200">
+              <Link href="/creator/auth/sign-up" className="flex items-center gap-2 rounded-lg border border-[#C1654B] text-[#C1654B] bg-transparent hover:bg-[#C1654B] hover:text-white p-2 transition-all duration-200">
                 <User2 className="h-4 w-4" />
                 <span className="group-data-[collapsible=icon]:hidden">Sign up</span>
               </Link>

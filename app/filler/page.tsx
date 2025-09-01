@@ -75,8 +75,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
                   asChild
-                  variant="filler"
-                  className="h-12 rounded-xl font-semibold transition-all hover:shadow-md"
+                  className="h-12 rounded-xl bg-[#013F5C] font-semibold text-white transition-all hover:bg-[#0b577a] hover:shadow-md"
                   size="lg"
                 >
                   <Link href="/filler/surveys" className="flex items-center gap-2">
@@ -86,8 +85,7 @@ export default function DashboardPage() {
                 </Button>
                 <Button
                   asChild
-                  variant="accent"
-                  className="h-12 rounded-xl font-semibold transition-all hover:shadow-md"
+                  className="h-12 rounded-xl bg-[#C1654B] font-semibold text-white transition-all hover:bg-[#b25a43] hover:shadow-md"
                   size="lg"
                 >
                   <Link href="/filler/earnings" className="flex items-center gap-2">
@@ -117,8 +115,7 @@ export default function DashboardPage() {
               </p>
               <Button
                 asChild
-                variant="accent"
-                className="h-12 w-full rounded-xl font-semibold transition-all hover:shadow-md"
+                className="h-12 w-full rounded-xl bg-[#C1654B] font-semibold text-white transition-all hover:bg-[#b25a43] hover:shadow-md"
                 size="lg"
               >
                 <Link href="/creator/auth/sign-up" className="flex items-center justify-center gap-2">
