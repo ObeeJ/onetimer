@@ -38,7 +38,7 @@ export default function AdminLayout({
         {/* Top bar for admin */}
         <div className={cn(
           "bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between transition-all duration-300",
-          sidebarOpen ? "ml-64" : "ml-0"
+          sidebarOpen ? "ml-64" : "ml-16"
         )}>
           <div className="flex items-center gap-4">
             <SidebarToggle />
@@ -65,57 +65,93 @@ export default function AdminLayout({
 
         {/* Sidebar */}
         <div className={cn(
-          "fixed left-0 top-0 z-40 h-full w-64 bg-white border-r border-slate-200 flex flex-col transform transition-transform duration-300 ease-in-out",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed left-0 top-0 z-40 h-full bg-white border-r border-slate-200 flex flex-col transition-all duration-300 ease-in-out shadow-lg",
+          sidebarOpen ? "w-64" : "w-16"
         )}>
           {/* Header */}
-          <div className="p-4 border-b border-slate-200 flex items-center justify-center gap-3">
-            <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto" />
-            <SidebarToggle />
+          <div className="h-16 border-b border-slate-200 flex items-center justify-center px-4">
+            {sidebarOpen ? (
+              <div className="flex items-center gap-3 w-full">
+                <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto" />
+                <div className="ml-auto">
+                  <SidebarToggle />
+                </div>
+              </div>
+            ) : (
+              <SidebarToggle />
+            )}
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
+          <nav className="flex-1 p-2 space-y-1">
             {navItems.map((item) => {
               const isActive = pathname === item.url
               return (
                 <Link
                   key={item.title}
                   href={item.url}
-                  onClick={() => useSidebarStore.getState().setOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center rounded-lg text-sm font-medium transition-all duration-200 group relative",
+                    sidebarOpen ? "gap-3 px-3 py-2.5" : "justify-center p-2.5",
                     isActive
-                      ? "bg-[#013e5c] text-white"
-                      : "text-slate-600 hover:bg-[#0b577a]/10 hover:text-[#0b577a]"
+                      ? "bg-[#013e5c] text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-[#013e5c]"
                   )}
+                  title={!sidebarOpen ? item.title : undefined}
                 >
-                  <item.icon className="h-5 w-5" />
-                  {item.title}
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  {sidebarOpen && (
+                    <span className="truncate">{item.title}</span>
+                  )}
+                  {!sidebarOpen && (
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                      {item.title}
+                    </div>
+                  )}
                 </Link>
               )
             })}
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-slate-200">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
-                <User2 className="h-4 w-4 text-slate-600" />
+          <div className="border-t border-slate-200 p-2">
+            {sidebarOpen ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 px-3 py-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
+                    <User2 className="h-5 w-5 text-slate-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900 truncate">Admin User</p>
+                    <p className="text-xs text-slate-500 truncate">admin@onetime.com</p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => window.location.href = "/admin/auth/login"}
+                  variant="ghost"
+                  className="w-full justify-start text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] px-3 py-2"
+                >
+                  <LogOut className="h-5 w-5 mr-3" />
+                  Sign Out
+                </Button>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-slate-900">Admin User</p>
-                <p className="text-xs text-slate-500">admin@onetime.com</p>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex justify-center p-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
+                    <User2 className="h-5 w-5 text-slate-600" />
+                  </div>
+                </div>
+                <Button
+                  onClick={() => window.location.href = "/admin/auth/login"}
+                  variant="ghost"
+                  className="w-full justify-center text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] p-2"
+                  title="Sign Out"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
               </div>
-            </div>
-            <Button
-              onClick={() => window.location.href = "/admin/auth/login"}
-              variant="ghost"
-              className="w-full justify-start text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c]"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
+            )}
           </div>
         </div>
 
@@ -130,7 +166,7 @@ export default function AdminLayout({
         {/* Main content */}
         <main className={cn(
           "p-6 transition-all duration-300",
-          sidebarOpen ? "ml-64" : "ml-0"
+          sidebarOpen ? "ml-64" : "ml-16"
         )}>
           {children}
         </main>
