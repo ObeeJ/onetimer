@@ -35,33 +35,7 @@ export default function AdminLayout({
   return (
     <RoleGuard requiredRole="admin" requireAuth={false}>
       <div className="min-h-screen bg-gray-50">
-        {/* Top bar for admin */}
-        <div className={cn(
-          "bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between transition-all duration-300",
-          sidebarOpen ? "ml-64" : "ml-16"
-        )}>
-          <div className="flex items-center gap-4">
-            <SidebarToggle />
-            <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto lg:hidden" />
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
-              <User2 className="h-4 w-4 text-slate-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-900">Admin User</p>
-              <p className="text-xs text-slate-500">admin@onetime.com</p>
-            </div>
-            <Button
-              onClick={() => window.location.href = "/admin/auth/login"}
-              variant="ghost"
-              size="sm"
-              className="text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c]"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+
 
         {/* Sidebar */}
         <div className={cn(
