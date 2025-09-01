@@ -1,216 +1,134 @@
-import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+"use client"
+
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import Link from "next/link"
-import { ArrowLeft, Clock, Coins, Users, Calendar, Target, MapPin } from "lucide-react"
+import { Breadcrumb } from "@/components/ui/breadcrumb"
+import { Clock, DollarSign, Users, ArrowLeft, Play } from "lucide-react"
 
-async function getSurvey(id: string) {
-  try {
-    const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3002' : process.env.NEXT_PUBLIC_BASE_URL ?? ''
-    const res = await fetch(`${baseUrl}/api/surveys/${id}`, { cache: "no-store" })
-    if (!res.ok) return null
-    return res.json()
-  } catch {
-    return null
+export default function SurveyDetailPage() {
+  const params = useParams()
+  const router = useRouter()
+  const surveyId = params.id
+
+  // Mock survey data - replace with actual API call
+  const survey = {
+    id: surveyId,
+    title: "Consumer Shopping Habits Survey",
+    description: "Share your shopping preferences and earn rewards. This comprehensive survey covers online and offline shopping behaviors, including your favorite stores, payment methods, and shopping frequency.",
+    reward: "₦550",
+    duration: "8 mins",
+    participants: 234,
+    category: "Shopping",
+    difficulty: "Easy",
+    questions: 15,
+    estimatedTime: "5-10 minutes"
   }
-}
 
-export default async function Page({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const data = await getSurvey(id)
-  if (!data?.data) notFound()
-  const survey = data.data
-  
-  const progressPercentage = Math.round((156 / 500) * 100)
-  const categoryColors = {
-    lifestyle: 'bg-purple-100 text-purple-700 border-purple-200',
-    finance: 'bg-green-100 text-green-700 border-green-200',
-    tech: 'bg-blue-100 text-blue-700 border-blue-200',
-    health: 'bg-red-100 text-red-700 border-red-200'
+  const handleStartSurvey = () => {
+    // Navigate to survey taking interface
+    router.push(`/filler/surveys/${surveyId}/take`)
   }
 
   return (
-    <div className="flex-1 min-w-0 overflow-auto pb-20 lg:pb-8">
-      <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6 lg:p-8">
-        {/* Header */}
-        <div className="space-y-4">
-          <Button
-            asChild
-            variant="ghost"
-            className="rounded-2xl font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200 p-2"
-          >
-            <Link href="/filler/surveys" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Surveys
-            </Link>
-          </Button>
-        </div>
+    <div className="flex-1 min-w-0 overflow-auto">
+      <div className="mx-auto max-w-4xl space-y-8 p-4 sm:p-6 lg:p-8">
+        <Breadcrumb 
+          items={[
+            { label: "Surveys", href: "/filler/surveys" },
+            { label: survey.title }
+          ]} 
+        />
 
-        {/* Main Survey Card */}
-        <Card className="rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader className="pb-6">
-            <div className="space-y-4">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl leading-tight">
-                {survey.title}
-              </h1>
-              <p className="text-slate-600 text-lg leading-relaxed">
+        <div className="space-y-6">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Surveys
+          </Button>
+
+          <Card className="rounded-2xl shadow-sm">
+            <CardHeader className="pb-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Badge variant="secondary" className="rounded-full bg-blue-100 text-blue-700">
+                      {survey.category}
+                    </Badge>
+                    <Badge variant="outline" className="rounded-full">
+                      {survey.difficulty}
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-2xl font-bold text-slate-900">
+                    {survey.title}
+                  </CardTitle>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-green-600">{survey.reward}</div>
+                  <div className="text-sm text-slate-500">Reward</div>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              <p className="text-slate-600 leading-relaxed">
                 {survey.description}
               </p>
-              <Badge
-                className={`w-fit rounded-full px-4 py-2 text-sm font-semibold border ${categoryColors[survey.category as keyof typeof categoryColors] || 'bg-slate-100 text-slate-700 border-slate-200'}`}
-              >
-                {survey.category}
-              </Badge>
-            </div>
-          </CardHeader>
 
-          <CardContent className="space-y-8">
-            {/* Survey Metadata Grid */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-slate-50 to-slate-100/50 p-4 hover:from-slate-100 hover:to-slate-50 transition-all duration-200">
-                <div className="rounded-xl bg-[#013F5C]/10 p-3">
-                  <Clock className="h-6 w-6 text-[#013F5C]" aria-hidden="true" />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-slate-50 rounded-lg">
+                  <Clock className="h-6 w-6 mx-auto mb-2 text-slate-600" />
+                  <div className="font-semibold text-slate-900">{survey.duration}</div>
+                  <div className="text-xs text-slate-500">Duration</div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Estimated Time</p>
-                  <p className="text-xl font-bold text-slate-900">{survey.estimatedTime} min</p>
+                <div className="text-center p-4 bg-slate-50 rounded-lg">
+                  <Users className="h-6 w-6 mx-auto mb-2 text-slate-600" />
+                  <div className="font-semibold text-slate-900">{survey.participants}</div>
+                  <div className="text-xs text-slate-500">Participants</div>
+                </div>
+                <div className="text-center p-4 bg-slate-50 rounded-lg">
+                  <div className="text-2xl font-bold text-slate-900 mb-2">{survey.questions}</div>
+                  <div className="text-xs text-slate-500">Questions</div>
+                </div>
+                <div className="text-center p-4 bg-slate-50 rounded-lg">
+                  <DollarSign className="h-6 w-6 mx-auto mb-2 text-slate-600" />
+                  <div className="font-semibold text-slate-900">Easy</div>
+                  <div className="text-xs text-slate-500">Difficulty</div>
                 </div>
               </div>
 
-              <div className="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-amber-50 to-amber-100/50 p-4 hover:from-amber-100 hover:to-amber-50 transition-all duration-200">
-                <div className="rounded-xl bg-amber-500/10 p-3">
-                  <Coins className="h-6 w-6 text-amber-600" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Reward</p>
-                  <p className="text-xl font-bold text-amber-700">{survey.reward} points</p>
-                </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-900 mb-2">Survey Instructions</h3>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• Answer all questions honestly and completely</li>
+                  <li>• You can pause and resume the survey at any time</li>
+                  <li>• Reward will be credited after survey completion</li>
+                  <li>• Estimated completion time: {survey.estimatedTime}</li>
+                </ul>
               </div>
 
-              <div className="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-blue-50 to-blue-100/50 p-4 hover:from-blue-100 hover:to-blue-50 transition-all duration-200">
-                <div className="rounded-xl bg-blue-500/10 p-3">
-                  <Users className="h-6 w-6 text-blue-600" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Target Audience</p>
-                  <p className="text-lg font-semibold text-slate-900">Adults 18-65</p>
-                </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleStartSurvey}
+                  className="flex-1 bg-[#013F5C] hover:bg-[#0b577a] rounded-xl h-12 text-base font-semibold"
+                >
+                  <Play className="h-5 w-5 mr-2" />
+                  Start Survey
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.back()}
+                  className="px-6 rounded-xl h-12"
+                >
+                  Cancel
+                </Button>
               </div>
-
-              <div className="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-green-50 to-green-100/50 p-4 hover:from-green-100 hover:to-green-50 transition-all duration-200">
-                <div className="rounded-xl bg-green-500/10 p-3">
-                  <Target className="h-6 w-6 text-green-600" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Questions</p>
-                  <p className="text-lg font-semibold text-slate-900">{survey.questions?.length || 8} questions</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Progress Section */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900">Survey Progress</h2>
-              <div className="rounded-2xl bg-slate-50 p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-600">Responses Collected</span>
-                  <span className="text-sm font-bold text-slate-900">156 / 500</span>
-                </div>
-                <Progress 
-                  value={progressPercentage} 
-                  className="h-3" 
-                  aria-label={`Survey progress: ${progressPercentage}% complete`}
-                />
-                <p className="text-xs text-slate-500">{progressPercentage}% complete • {500 - 156} responses needed</p>
-              </div>
-            </div>
-
-            {/* Eligibility Status */}
-            <div className={`rounded-2xl border p-6 ${
-              survey.eligible 
-                ? 'bg-green-50 border-green-200' 
-                : 'bg-red-50 border-red-200'
-            }`}>
-              <div className="flex items-start gap-3">
-                <div className={`mt-1 h-3 w-3 rounded-full ${
-                  survey.eligible ? 'bg-green-500' : 'bg-red-500'
-                }`} />
-                <div>
-                  <p className={`font-semibold ${
-                    survey.eligible ? 'text-green-900' : 'text-red-900'
-                  }`}>
-                    {survey.eligible ? '✓ You are eligible for this survey' : '✗ You are not eligible for this survey'}
-                  </p>
-                  <p className={`mt-1 text-sm ${
-                    survey.eligible ? 'text-green-700' : 'text-red-700'
-                  }`}>
-                    {survey.eligible 
-                      ? `Complete this survey to earn ${survey.reward} points and help reach the response goal.`
-                      : 'This survey may not match your demographic profile or previous responses.'
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Sticky Bottom CTAs */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 p-4 lg:hidden">
-        <div className="flex gap-3 max-w-md mx-auto">
-          <Button
-            asChild
-            variant="outline"
-            className="flex-1 h-12 rounded-2xl border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 transition-all duration-200"
-          >
-            <Link href="/filler/surveys">Back</Link>
-          </Button>
-          <Button
-            asChild
-            className={`flex-1 h-12 rounded-2xl font-semibold transition-all duration-200 hover:scale-105 ${
-              survey.eligible 
-                ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg' 
-                : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-            }`}
-            disabled={!survey.eligible}
-          >
-            <Link href={survey.eligible ? `/filler/surveys/${survey.id}/take` : "#"}>
-              {survey.eligible ? 'Take Survey' : 'Not Eligible'}
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {/* Desktop CTAs */}
-      <div className="hidden lg:block">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-4">
-            <Button
-              asChild
-              variant="outline"
-              className="h-14 px-8 rounded-2xl border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200"
-              size="lg"
-            >
-              <Link href="/filler/surveys">Back to Surveys</Link>
-            </Button>
-            <Button
-              asChild
-              className={`flex-1 h-14 px-8 rounded-2xl font-semibold transition-all duration-200 hover:scale-105 ${
-                survey.eligible 
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg' 
-                  : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-              }`}
-              size="lg"
-              disabled={!survey.eligible}
-            >
-              <Link href={survey.eligible ? `/filler/surveys/${survey.id}/take` : "#"}>
-                {survey.eligible ? 'Take Survey' : 'Not Eligible'}
-              </Link>
-            </Button>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

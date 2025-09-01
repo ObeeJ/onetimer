@@ -15,15 +15,15 @@ export function SidebarToggle({ className }: SidebarToggleProps) {
     <button
       onClick={toggle}
       className={cn(
-        "w-6 h-6 text-[#013e5c] hover:text-[#c0684a] transition-colors duration-200 cursor-pointer flex items-center justify-center",
+        "w-8 h-8 text-[#013f5d] hover:text-[#c0684a] transition-colors duration-200 cursor-pointer flex items-center justify-center rounded-lg hover:bg-slate-100",
         className
       )}
       aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
     >
       {isOpen ? (
-        <PanelLeftClose className="w-4 h-4" />
+        <PanelLeftClose className="w-5 h-5" />
       ) : (
-        <PanelLeft className="w-4 h-4" />
+        <PanelLeft className="w-5 h-5" />
       )}
     </button>
   )
