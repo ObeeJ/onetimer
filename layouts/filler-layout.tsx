@@ -6,9 +6,11 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Home, ListChecks, Wallet, Users, Settings, LogOut, User2 } from "lucide-react"
+import { Home, ListChecks, Wallet, Users, Settings, LogOut, User2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
+import { SidebarToggle } from "@/components/ui/sidebar-toggle"
+import { useSidebarStore } from "@/lib/sidebar-store"
 
 const navItems = [
   { title: "Dashboard", url: "/filler", icon: Home },
@@ -21,7 +23,7 @@ const navItems = [
 export default function FillerLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth()
   const pathname = usePathname()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { isOpen: sidebarOpen } = useSidebarStore()
 
   const isAuthFlow = pathname?.startsWith("/filler/auth") || pathname?.startsWith("/filler/onboarding")
 
@@ -34,14 +36,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
       <div className="min-h-screen bg-gray-50">
         {/* Mobile menu button */}
         <div className="lg:hidden fixed top-4 left-4 z-50">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="bg-white shadow-md hover:bg-gray-50"
-          >
-            {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
+          <SidebarToggle className="bg-white shadow-md hover:bg-gray-50" />
         </div>
 
         {/* Sidebar */}
@@ -53,14 +48,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
           {/* Header */}
           <div className="p-4 border-b border-slate-200 flex items-center justify-center gap-3">
             <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto" />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="h-8 w-8"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
+            <SidebarToggle />
           </div>
 
           {/* Navigation */}
@@ -71,7 +59,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
                 <Link
                   key={item.title}
                   href={item.url}
-                  onClick={() => setSidebarOpen(false)}
+                  onClick={() => useSidebarStore.getState().setOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                     isActive
@@ -115,7 +103,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
         {sidebarOpen && (
           <div
             className="lg:hidden fixed inset-0 z-30 bg-black/50"
-            onClick={() => setSidebarOpen(false)}
+            onClick={() => useSidebarStore.getState().setOpen(false)}
           />
         )}
 
