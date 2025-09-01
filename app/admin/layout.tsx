@@ -36,9 +36,12 @@ export default function AdminLayout({
     <RoleGuard requiredRole="admin" requireAuth={false}>
       <div className="min-h-screen bg-gray-50">
         {/* Top bar for admin */}
-        <div className="lg:ml-64 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+        <div className={cn(
+          "bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between transition-all duration-300",
+          sidebarOpen ? "ml-64" : "ml-0"
+        )}>
           <div className="flex items-center gap-4">
-            <SidebarToggle className="lg:hidden" />
+            <SidebarToggle />
             <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto lg:hidden" />
           </div>
           <div className="flex items-center gap-3">
@@ -63,7 +66,6 @@ export default function AdminLayout({
         {/* Sidebar */}
         <div className={cn(
           "fixed left-0 top-0 z-40 h-full w-64 bg-white border-r border-slate-200 flex flex-col transform transition-transform duration-300 ease-in-out",
-          "lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
           {/* Header */}
@@ -126,7 +128,10 @@ export default function AdminLayout({
         )}
 
         {/* Main content */}
-        <main className="lg:ml-64 p-6">
+        <main className={cn(
+          "p-6 transition-all duration-300",
+          sidebarOpen ? "ml-64" : "ml-0"
+        )}>
           {children}
         </main>
       </div>
