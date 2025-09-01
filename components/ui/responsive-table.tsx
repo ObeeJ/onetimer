@@ -22,7 +22,7 @@ export function ResponsiveTable({ columns, data, renderCell, className }: Respon
   return (
     <>
       {/* Desktop Table */}
-      <div className={cn("hidden lg:block overflow-x-auto", className)}>
+      <div className={cn("hidden md:block overflow-x-auto", className)}>
         <table className="w-full text-sm text-left">
           <thead>
             <tr className="border-b border-slate-200">
@@ -51,7 +51,7 @@ export function ResponsiveTable({ columns, data, renderCell, className }: Respon
       </div>
 
       {/* Mobile Cards */}
-      <div className="lg:hidden space-y-4">
+      <div className="md:hidden space-y-4">
         {data.map((item, index) => (
           <Card key={index} className="rounded-lg">
             <CardContent className="p-4 space-y-3">
