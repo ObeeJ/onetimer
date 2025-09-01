@@ -36,7 +36,7 @@ export default function HomePage() {
                 <li>• KYC verification required</li>
               </ul>
               <Link href="/filler" className="block">
-                <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
+                <Button className="w-full bg-[#013f5d] hover:bg-[#012d45]">
                   Enter as Filler
                 </Button>
               </Link>
@@ -59,7 +59,7 @@ export default function HomePage() {
                 <li>• Credit-based pricing</li>
               </ul>
               <Link href="/creator" className="block">
-                <Button className="w-full bg-brand-orange hover:bg-brand-orange/90">
+                <Button className="w-full bg-[#c0684a] hover:bg-[#a85a40]">
                   Enter as Creator
                 </Button>
               </Link>
@@ -82,7 +82,7 @@ export default function HomePage() {
                 <li>• Platform analytics</li>
               </ul>
               <Link href="/admin" className="block">
-                <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
+                <Button className="w-full bg-[#013f5d] hover:bg-[#012d45]">
                   Admin Access
                 </Button>
               </Link>
@@ -105,7 +105,7 @@ export default function HomePage() {
                 <li>• Audit logs & security</li>
               </ul>
               <Link href="/super-admin" className="block">
-                <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
+                <Button className="w-full bg-[#013f5d] hover:bg-[#012d45]">
                   Super Admin Access
                 </Button>
               </Link>
@@ -118,10 +118,10 @@ export default function HomePage() {
             New to OneTime Survey? Learn more about our platform
           </p>
           <div className="flex justify-center gap-4">
-            <Button variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
+            <Button variant="outline" className="border-[#013f5d] text-[#013f5d] hover:bg-[#013f5d] hover:text-white">
               How it Works
             </Button>
-            <Button variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
+            <Button variant="outline" className="border-[#013f5d] text-[#013f5d] hover:bg-[#013f5d] hover:text-white">
               Contact Support
             </Button>
           </div>
