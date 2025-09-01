@@ -1,6 +1,8 @@
 "use client"
 
-import { GlobalSidebar } from "@/components/ui/global-sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
+import { CreatorSidebar } from "@/components/creator/creator-sidebar"
+import { ResponsiveNavbar } from "@/components/ui/responsive-navbar"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { usePathname } from "next/navigation"
@@ -30,17 +32,32 @@ export default function CreatorLayout({
   return (
     <ErrorBoundary>
       <RoleGuard requiredRole="creator" requireAuth={false}>
-        <div className="min-h-screen bg-gray-50">
-          <GlobalSidebar 
-            role="creator"
+        <div className="min-h-screen bg-slate-50">
+          <ResponsiveNavbar 
+            role="creator" 
             navItems={navItems}
-            dashboardTitle="Creator Dashboard"
+            user={{ name: "Creator User", email: "creator@onetime.com" }}
+            onSignOut={() => window.location.href = "/creator/auth/sign-in"}
           />
-          <main className="md:ml-64 p-6">
-            <ErrorBoundary>
-              {children}
-            </ErrorBoundary>
-          </main>
+          <div className="lg:hidden">
+            <SidebarProvider>
+              <div className="flex min-h-screen w-full">
+                <CreatorSidebar />
+                <main className="flex-1 overflow-auto">
+                  <ErrorBoundary>
+                    {children}
+                  </ErrorBoundary>
+                </main>
+              </div>
+            </SidebarProvider>
+          </div>
+          <div className="hidden lg:block">
+            <main className="container mx-auto px-4 py-6">
+              <ErrorBoundary>
+                {children}
+              </ErrorBoundary>
+            </main>
+          </div>
         </div>
       </RoleGuard>
     </ErrorBoundary>

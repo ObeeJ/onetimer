@@ -1,6 +1,8 @@
 "use client"
 
-import { GlobalSidebar } from "@/components/ui/global-sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
+import { AdminSidebar } from "@/components/admin/admin-sidebar"
+import { ResponsiveNavbar } from "@/components/ui/responsive-navbar"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { usePathname } from "next/navigation"
 import { Home, Users, ListChecks, CreditCard, BarChart3, Settings } from "lucide-react"
@@ -28,15 +30,28 @@ export default function AdminLayout({
 
   return (
     <RoleGuard requiredRole="admin" requireAuth={false}>
-      <div className="min-h-screen bg-gray-50">
-        <GlobalSidebar 
-          role="admin"
+      <div className="min-h-screen bg-slate-50">
+        <ResponsiveNavbar 
+          role="admin" 
           navItems={navItems}
-          dashboardTitle="Admin Dashboard"
+          user={{ name: "Admin User", email: "admin@onetime.com" }}
+          onSignOut={() => window.location.href = "/admin/auth/login"}
         />
-        <main className="md:ml-64 p-6">
-          {children}
-        </main>
+        <div className="lg:hidden">
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full">
+              <AdminSidebar />
+              <main className="flex-1 overflow-auto">
+                {children}
+              </main>
+            </div>
+          </SidebarProvider>
+        </div>
+        <div className="hidden lg:block">
+          <main className="container mx-auto px-4 py-6">
+            {children}
+          </main>
+        </div>
       </div>
     </RoleGuard>
   )
