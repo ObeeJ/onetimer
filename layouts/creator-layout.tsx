@@ -54,8 +54,16 @@ export default function CreatorLayout({
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}>
             {/* Header */}
-            <div className="p-2 border-b border-slate-200">
-              <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto" />
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+              <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto mx-auto" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden"
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
 
             {/* Navigation */}
