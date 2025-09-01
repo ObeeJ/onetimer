@@ -34,10 +34,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
   return (
     <RoleGuard requiredRole="filler" requireAuth={false}>
       <div className="min-h-screen bg-gray-50">
-        {/* Mobile menu button */}
-        <div className="lg:hidden fixed top-4 left-4 z-50">
-          <SidebarToggle className="bg-white shadow-md hover:bg-gray-50" />
-        </div>
+
 
         {/* Sidebar */}
         <div className={cn(
