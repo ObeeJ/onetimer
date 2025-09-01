@@ -66,7 +66,7 @@ export default function DashboardPage() {
           <Card className="min-w-0 w-full overflow-hidden rounded-2xl shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-[#013F5C] flex-shrink-0" />
+                <TrendingUp className="h-5 w-5 text-[#013e5c] flex-shrink-0" />
                 <CardTitle className="text-lg font-bold text-slate-900 truncate">Quick Actions</CardTitle>
               </div>
             </CardHeader>
@@ -75,7 +75,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
                   asChild
-                  className="h-12 rounded-xl bg-[#013F5C] font-semibold text-white transition-all hover:bg-[#0b577a] hover:shadow-md"
+                  className="h-12 rounded-xl bg-[#013e5c] font-semibold text-white transition-all hover:bg-[#012a47] hover:shadow-md"
                   size="lg"
                 >
                   <Link href="/filler/surveys" className="flex items-center gap-2">
@@ -85,7 +85,7 @@ export default function DashboardPage() {
                 </Button>
                 <Button
                   asChild
-                  className="h-12 rounded-xl bg-[#C1654B] font-semibold text-white transition-all hover:bg-[#b25a43] hover:shadow-md"
+                  className="h-12 rounded-xl bg-[#c0694b] font-semibold text-white transition-all hover:bg-[#a85a40] hover:shadow-md"
                   size="lg"
                 >
                   <Link href="/filler/earnings" className="flex items-center gap-2">
@@ -101,7 +101,7 @@ export default function DashboardPage() {
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <Plus className="h-5 w-5 text-[#C1654B] flex-shrink-0" />
+                  <Plus className="h-5 w-5 text-[#c0694b] flex-shrink-0" />
                   <CardTitle className="text-lg font-bold text-slate-900 truncate">Become a Creator</CardTitle>
                 </div>
                 <Badge variant="secondary" className="rounded-full bg-orange-100 text-orange-700 flex-shrink-0">
@@ -115,7 +115,7 @@ export default function DashboardPage() {
               </p>
               <Button
                 asChild
-                className="h-12 w-full rounded-xl bg-[#C1654B] font-semibold text-white transition-all hover:bg-[#b25a43] hover:shadow-md"
+                className="h-12 w-full rounded-xl bg-[#c0694b] font-semibold text-white transition-all hover:bg-[#a85a40] hover:shadow-md"
                 size="lg"
               >
                 <Link href="/creator/auth/sign-up" className="flex items-center justify-center gap-2">
