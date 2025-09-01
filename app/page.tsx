@@ -81,11 +81,11 @@ export default function HomePage() {
                 <li>• Payment processing</li>
                 <li>• Platform analytics</li>
               </ul>
-              <a href="http://localhost:3001/admin" className="block">
+              <Link href="/admin" className="block">
                 <Button className="w-full bg-[#013F5C] hover:bg-[#0b577a]">
                   Admin Access
                 </Button>
-              </a>
+              </Link>
             </CardContent>
           </Card>
 
@@ -104,11 +104,11 @@ export default function HomePage() {
                 <li>• Financial oversight</li>
                 <li>• Audit logs & security</li>
               </ul>
-              <a href="http://localhost:3002/super-admin" className="block">
+              <Link href="/super-admin" className="block">
                 <Button className="w-full bg-[#013F5C] hover:bg-[#0b577a]">
                   Super Admin Access
                 </Button>
-              </a>
+              </Link>
             </CardContent>
           </Card>
         </div>
