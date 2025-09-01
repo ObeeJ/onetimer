@@ -39,7 +39,7 @@ export function AppSidebar() {
         <SidebarHeader className="flex items-center justify-between px-3">
           <div className="flex items-center justify-between w-full">
             <Link href="/filler" className="hover:opacity-80 transition-opacity group-data-[collapsible=icon]:hidden">
-              <img src="/Logo.png" alt="Survey Platform" className="h-10 sm:h-14 md:h-12 w-auto" />
+              <img src="/Logo.png" alt="OneTime Survey" className="h-10 sm:h-14 md:h-12 w-auto" />
             </Link>
             <SidebarTrigger className="rounded-xl group-data-[collapsible=icon]:mx-auto" />
           </div>
@@ -57,7 +57,7 @@ export function AppSidebar() {
       <SidebarHeader className="flex items-center justify-between px-3">
         <div className="flex items-center justify-between w-full">
           <Link href="/filler" className="hover:opacity-80 transition-opacity group-data-[collapsible=icon]:hidden">
-            <img src="/Logo.png" alt="Survey Platform" className="h-10 sm:h-14 md:h-12 w-auto" />
+            <img src="/Logo.png" alt="OneTime Survey" className="h-10 sm:h-14 md:h-12 w-auto" />
           </Link>
           <SidebarTrigger className="rounded-xl group-data-[collapsible=icon]:mx-auto" />
         </div>
@@ -75,7 +75,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild tooltip={isLocked ? "Complete verification to unlock" : item.title} disabled={isLocked}>
                       <Link 
                         href={isLocked ? "#" : item.url}
-                        className={`${isActive ? "bg-brand-orange text-white font-bold rounded-lg" : "hover:bg-brand-orange/10 hover:text-slate-700 rounded-lg transition-all duration-200"} ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
+                        className={`${isActive ? "bg-filler-600 text-white font-bold rounded-lg" : "hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-all duration-200"} ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
                         <item.icon />
                         <span>{item.title}</span>
@@ -94,13 +94,13 @@ export function AppSidebar() {
           <div className="grid gap-2 p-2">
             <div className="grid gap-2 p-0">
               <SidebarMenuButton asChild tooltip="Sign in">
-                <Link href="/filler/auth/sign-in" className="flex items-center gap-2 rounded-lg bg-brand-blue text-white hover:bg-brand-blue/90 hover:text-white p-2 transition-all duration-200">
+                <Link href="/filler/auth/sign-in" className="flex items-center gap-2 rounded-lg bg-filler-600 text-white hover:bg-filler-700 hover:text-white p-2 transition-all duration-200">
                   <LogOut className="h-4 w-4" />
                   <span className="group-data-[collapsible=icon]:hidden">Sign in</span>
                 </Link>
               </SidebarMenuButton>
               <SidebarMenuButton asChild tooltip="Sign up">
-                <Link href="/filler/auth/sign-up" className="flex items-center gap-2 rounded-lg border border-brand-blue text-brand-blue bg-transparent hover:bg-brand-blue hover:text-white p-2 transition-all duration-200">
+                <Link href="/filler/auth/sign-up" className="flex items-center gap-2 rounded-lg border border-filler-600 text-filler-600 bg-transparent hover:bg-filler-600 hover:text-white p-2 transition-all duration-200">
                   <User2 className="h-4 w-4" />
                   <span className="group-data-[collapsible=icon]:hidden">Sign up</span>
                 </Link>

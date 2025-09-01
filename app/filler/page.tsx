@@ -75,7 +75,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
                   asChild
-                  variant="default"
+                  variant="filler"
                   className="h-12 rounded-xl font-semibold transition-all hover:shadow-md"
                   size="lg"
                 >
