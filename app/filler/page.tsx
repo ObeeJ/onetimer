@@ -62,24 +62,24 @@ export default function DashboardPage() {
           <StatsCards isAuthenticated={isAuthenticated} isVerified={isVerified} />
         </motion.div>
 
-        <motion.div variants={itemVariants} className="grid grid-cols-1 gap-6 lg:grid-cols-2 auto-rows-fr">
+        <motion.div variants={itemVariants} className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6 auto-rows-fr">
           <Card className="min-w-0 w-full overflow-hidden rounded-2xl shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-3 px-4 lg:px-6">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-[#c0694b] flex-shrink-0" />
-                <CardTitle className="text-lg font-bold text-slate-900 truncate">Quick Actions</CardTitle>
+                <CardTitle className="text-base lg:text-lg font-bold text-slate-900 truncate">Quick Actions</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-slate-600 font-medium break-words">Jump into surveys and start earning immediately.</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <CardContent className="space-y-3 px-4 lg:px-6">
+              <p className="text-xs lg:text-sm text-slate-600 font-medium break-words">Jump into surveys and start earning immediately.</p>
+              <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2 lg:gap-3">
                 <Button
                   asChild
                   variant="accent"
-                  className="h-12 rounded-xl font-semibold transition-all hover:shadow-md"
+                  className="h-10 lg:h-12 rounded-xl font-semibold transition-all hover:shadow-md text-sm lg:text-base"
                   size="lg"
                 >
-                  <Link href="/filler/surveys" className="flex items-center gap-2">
+                  <Link href="/filler/surveys" className="flex items-center justify-center gap-2">
                     <Users className="h-4 w-4 flex-shrink-0" />
                     <span className="truncate">Check Surveys</span>
                   </Link>
@@ -87,10 +87,10 @@ export default function DashboardPage() {
                 <Button
                   asChild
                   variant="default"
-                  className="h-12 rounded-xl font-semibold transition-all hover:shadow-md"
+                  className="h-10 lg:h-12 rounded-xl font-semibold transition-all hover:shadow-md text-sm lg:text-base"
                   size="lg"
                 >
-                  <Link href="/filler/earnings" className="flex items-center gap-2">
+                  <Link href="/filler/earnings" className="flex items-center justify-center gap-2">
                     <Wallet className="h-4 w-4 flex-shrink-0" />
                     <span className="truncate">View Earnings</span>
                   </Link>
@@ -100,25 +100,25 @@ export default function DashboardPage() {
           </Card>
 
           <Card className="min-w-0 w-full overflow-hidden rounded-2xl shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-3 px-4 lg:px-6">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <Plus className="h-5 w-5 text-[#c0694b] flex-shrink-0" />
-                  <CardTitle className="text-lg font-bold text-slate-900 truncate">Become a Creator</CardTitle>
+                  <CardTitle className="text-base lg:text-lg font-bold text-slate-900 truncate">Become a Creator</CardTitle>
                 </div>
-                <Badge variant="secondary" className="rounded-full bg-orange-100 text-orange-700 flex-shrink-0">
+                <Badge variant="secondary" className="rounded-full bg-orange-100 text-orange-700 flex-shrink-0 text-xs">
                   New
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-slate-600 font-medium break-words">
+            <CardContent className="space-y-3 px-4 lg:px-6">
+              <p className="text-xs lg:text-sm text-slate-600 font-medium break-words">
                 Launch your own surveys and collect valuable data from our community.
               </p>
               <Button
                 asChild
                 variant="default"
-                className="h-12 w-full rounded-xl font-semibold transition-all hover:shadow-md"
+                className="h-10 lg:h-12 w-full rounded-xl font-semibold transition-all hover:shadow-md text-sm lg:text-base"
                 size="lg"
               >
                 <Link href="/creator/auth/sign-up" className="flex items-center justify-center gap-2">
@@ -130,13 +130,13 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900">Available Surveys</h2>
+        <motion.div variants={itemVariants} className="space-y-3 lg:space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-lg lg:text-xl font-bold text-slate-900">Available Surveys</h2>
             <Button
               asChild
               variant="outline"
-              className="rounded-xl border-slate-300 bg-white font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-xl border-slate-300 bg-white font-semibold text-slate-700 hover:bg-slate-50 h-8 lg:h-10 text-xs lg:text-sm px-3 lg:px-4"
             >
               <Link href="/filler/surveys">View All</Link>
             </Button>
