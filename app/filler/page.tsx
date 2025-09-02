@@ -75,7 +75,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
                   asChild
-                  variant="secondary"
+                  variant="accent"
                   className="h-12 rounded-xl font-semibold transition-all hover:shadow-md"
                   size="lg"
                 >
@@ -86,6 +86,7 @@ export default function DashboardPage() {
                 </Button>
                 <Button
                   asChild
+                  variant="default"
                   className="h-12 rounded-xl font-semibold transition-all hover:shadow-md"
                   size="lg"
                 >
@@ -116,6 +117,7 @@ export default function DashboardPage() {
               </p>
               <Button
                 asChild
+                variant="default"
                 className="h-12 w-full rounded-xl font-semibold transition-all hover:shadow-md"
                 size="lg"
               >
