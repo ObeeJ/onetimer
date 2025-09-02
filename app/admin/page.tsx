@@ -49,17 +49,17 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {stats.map((stat) => (
           <Card key={stat.title} className="rounded-xl bg-white/80 backdrop-blur-sm border-0 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">{stat.title}</CardTitle>
+              <CardTitle className="text-xs lg:text-sm font-medium text-slate-600">{stat.title}</CardTitle>
               <div className={`p-2 rounded-lg bg-${stat.color}-100`}>
                 <stat.icon className={`h-4 w-4 text-${stat.color}-600`} />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
+              <div className="text-xl lg:text-2xl font-bold text-slate-900">{stat.value}</div>
               <p className={`text-xs mt-1 ${stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
                 {stat.change} from last month
               </p>
@@ -68,7 +68,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         <Card className="rounded-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
                   >
                     {task.priority}
                   </Badge>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" className="text-xs lg:text-sm h-7 lg:h-8 px-2 lg:px-3">
                     <Eye className="h-3 w-3 mr-1" />
                     View
                   </Button>

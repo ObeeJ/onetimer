@@ -58,7 +58,7 @@ export default function CreatorDashboardPage() {
 
 
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           <Card className="rounded-xl border border-slate-200/60 bg-gradient-to-br from-white/90 to-slate-50/50 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-300 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-sm font-medium text-slate-600">Total Surveys</CardTitle>
@@ -124,7 +124,7 @@ export default function CreatorDashboardPage() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
           <Card className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -134,20 +134,20 @@ export default function CreatorDashboardPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button asChild className="w-full h-12 bg-[#C1654B] hover:bg-[#A0543D] text-white">
+            <CardContent className="space-y-3 px-4 lg:px-6">
+              <Button asChild className="w-full h-10 lg:h-12 bg-[#C1654B] hover:bg-[#A0543D] text-white text-sm lg:text-base">
                 <Link href="/creator/surveys/create" className="flex items-center justify-center gap-2">
                   <Plus className="h-4 w-4" />
                   Create New Survey
                 </Link>
               </Button>
-              <Button asChild variant="secondary" className="w-full h-11">
+              <Button asChild variant="secondary" className="w-full h-9 lg:h-11 text-sm lg:text-base">
                 <Link href="/creator/analytics" className="flex items-center justify-center gap-2">
                   <BarChart3 className="h-4 w-4" />
                   View Analytics
                 </Link>
               </Button>
-              <Button asChild variant="secondary" className="w-full h-11">
+              <Button asChild variant="secondary" className="w-full h-9 lg:h-11 text-sm lg:text-base">
                 <Link href="/creator/credits" className="flex items-center justify-center gap-2">
                   <DollarSign className="h-4 w-4" />
                   Purchase Credits
