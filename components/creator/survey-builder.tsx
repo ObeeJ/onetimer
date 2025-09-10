@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Plus, Trash2, GripVertical, Eye, Save, Send, Upload, AlertCircle } from "lucide-react"
+import { Plus, Trash2, GripVertical, Eye, Save, Send, Upload, AlertCircle, CheckCircle, MessageSquare, Star } from "lucide-react"
 
 type QuestionType = "multiple_choice" | "open_ended" | "rating" | "media_upload"
 
@@ -31,8 +31,13 @@ interface SurveyData {
   questions: Question[]
 }
 
-export default function SurveyBuilder() {
-  const [survey, setSurvey] = useState<SurveyData>({
+interface SurveyBuilderProps {
+  initialData?: SurveyData & { id?: string }
+  isEditing?: boolean
+}
+
+export default function SurveyBuilder({ initialData, isEditing = false }: SurveyBuilderProps = {}) {
+  const [survey, setSurvey] = useState<SurveyData>(initialData || {
     title: "",
     description: "",
     targetAudience: "",
@@ -73,6 +78,20 @@ export default function SurveyBuilder() {
       ...prev,
       questions: prev.questions.filter(q => q.id !== id)
     }))
+  }
+
+  const moveQuestion = (dragId: string, hoverId: string) => {
+    const dragIndex = survey.questions.findIndex(q => q.id === dragId)
+    const hoverIndex = survey.questions.findIndex(q => q.id === hoverId)
+    
+    if (dragIndex === -1 || hoverIndex === -1) return
+    
+    const newQuestions = [...survey.questions]
+    const draggedQuestion = newQuestions[dragIndex]
+    newQuestions.splice(dragIndex, 1)
+    newQuestions.splice(hoverIndex, 0, draggedQuestion)
+    
+    setSurvey(prev => ({ ...prev, questions: newQuestions }))
   }
 
   const addOption = (questionId: string) => {
@@ -130,7 +149,20 @@ export default function SurveyBuilder() {
   }
 
   const renderQuestion = (question: Question, index: number) => (
-    <Card key={question.id} className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200">
+    <Card 
+      key={question.id} 
+      className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200" 
+      draggable 
+      onDragStart={(e) => e.dataTransfer.setData('text/plain', question.id)}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault()
+        const dragId = e.dataTransfer.getData('text/plain')
+        if (dragId !== question.id) {
+          moveQuestion(dragId, question.id)
+        }
+      }}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -237,9 +269,9 @@ export default function SurveyBuilder() {
   if (isPreview) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="text-xl font-bold">Survey Preview</h2>
-          <Button variant="outline" onClick={() => setIsPreview(false)}>
+          <Button variant="outline" onClick={() => setIsPreview(false)} className="w-full sm:w-auto">
             Back to Edit
           </Button>
         </div>
@@ -307,29 +339,15 @@ export default function SurveyBuilder() {
           <p className="text-sm text-slate-600 mt-1">Configure your survey settings and target audience</p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Survey Title *</Label>
-              <Input
-                id="title"
-                placeholder="Enter survey title"
-                value={survey.title}
-                onChange={(e) => setSurvey(prev => ({ ...prev, title: e.target.value }))}
-              />
-              {errors.title && <p className="text-sm text-red-600">{errors.title}</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="reward">Reward Amount (₦)</Label>
-              <Input
-                id="reward"
-                type="number"
-                min="100"
-                max="5000"
-                value={survey.rewardAmount}
-                onChange={(e) => setSurvey(prev => ({ ...prev, rewardAmount: Number(e.target.value) }))}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="title">Survey Title *</Label>
+            <Input
+              id="title"
+              placeholder="Enter survey title"
+              value={survey.title}
+              onChange={(e) => setSurvey(prev => ({ ...prev, title: e.target.value }))}
+            />
+            {errors.title && <p className="text-sm text-red-600">{errors.title}</p>}
           </div>
 
           <div className="space-y-2">
@@ -365,24 +383,48 @@ export default function SurveyBuilder() {
       </Card>
 
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-gradient-to-r from-slate-50/80 to-white/50 rounded-xl border border-slate-200/60">
+        <div className="flex flex-col gap-4 p-6 bg-white rounded-xl border border-slate-200/60">
           <div>
             <h3 className="text-xl font-semibold text-slate-900">Survey Questions</h3>
             <p className="text-sm text-slate-600 mt-1">Add different question types to gather insights</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {questionTypes.map(type => (
-              <Button
-                key={type.value}
-                variant="outline"
-                size="sm"
-                onClick={() => addQuestion(type.value as QuestionType)}
-                className="border-slate-200 hover:bg-white hover:border-[#C1654B] hover:text-[#C1654B] transition-all duration-200"
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                {type.label}
-              </Button>
-            ))}
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => addQuestion("multiple_choice")}
+              className="border-slate-200 hover:bg-white hover:border-[#C1654B] hover:text-[#C1654B] transition-all duration-200 text-xs sm:text-sm"
+            >
+              <CheckCircle className="h-3 w-3 mr-1" />
+              <span className="truncate">Multiple Choice</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => addQuestion("open_ended")}
+              className="border-slate-200 hover:bg-white hover:border-[#C1654B] hover:text-[#C1654B] transition-all duration-200 text-xs sm:text-sm"
+            >
+              <MessageSquare className="h-3 w-3 mr-1" />
+              <span className="truncate">Open Ended</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => addQuestion("rating")}
+              className="border-slate-200 hover:bg-white hover:border-[#C1654B] hover:text-[#C1654B] transition-all duration-200 text-xs sm:text-sm"
+            >
+              <Star className="h-3 w-3 mr-1" />
+              <span className="truncate">Rating Scale</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => addQuestion("media_upload")}
+              className="border-slate-200 hover:bg-white hover:border-[#C1654B] hover:text-[#C1654B] transition-all duration-200 text-xs sm:text-sm"
+            >
+              <Upload className="h-3 w-3 mr-1" />
+              <span className="truncate">Media Upload</span>
+            </Button>
           </div>
         </div>
 
@@ -399,17 +441,17 @@ export default function SurveyBuilder() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-8 border-t border-slate-200/60">
-        <Button variant="outline" onClick={saveDraft} className="h-11 border-slate-200 hover:bg-slate-50 rounded-xl">
+        <Button variant="filler-outline" onClick={saveDraft} className="h-11 w-full sm:w-auto">
           <Save className="h-4 w-4 mr-2" />
           Save Draft
         </Button>
-        <Button variant="outline" onClick={() => setIsPreview(true)} className="h-11 border-slate-200 hover:bg-slate-50 rounded-xl">
+        <Button variant="creator-outline" onClick={() => setIsPreview(true)} className="h-11 w-full sm:w-auto">
           <Eye className="h-4 w-4 mr-2" />
           Preview Survey
         </Button>
-        <Button onClick={submitForApproval} className="h-11 bg-gradient-to-r from-[#C1654B] to-[#b25a43] hover:from-[#b25a43] hover:to-[#a04d39] text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all duration-200 sm:ml-auto">
+        <Button variant="creator" onClick={submitForApproval} className="h-11 w-full sm:w-auto sm:ml-auto">
           <Send className="h-4 w-4 mr-2" />
-          Submit for Approval
+          {isEditing ? "Update Survey" : "Submit for Approval"}
         </Button>
       </div>
     </div>

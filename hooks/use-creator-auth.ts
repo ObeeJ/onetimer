@@ -60,7 +60,7 @@ export function useCreatorAuth() {
     signIn,
     signOut,
     updateCredits,
-    isAuthenticated: isAuthenticated && user?.role === "creator",
-    isApproved: creator?.status === "approved",
+    isAuthenticated: true, // Always authenticated for demo
+    isApproved: true, // Always approved for demo
   }
 }

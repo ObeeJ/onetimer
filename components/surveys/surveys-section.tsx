@@ -69,8 +69,10 @@ export default function SurveysSection() {
         </div>
         <h3 className="text-lg font-semibold text-slate-900 mb-2">No surveys available</h3>
         <p className="text-slate-600 mb-6 max-w-sm">Sign up to access our latest surveys and start earning money today.</p>
-        <Button asChild className="bg-[#013F5C] hover:bg-[#0b577a]">
-          <Link href="/filler/auth/sign-up">Sign up now</Link>
+        <Button asChild variant="filler">
+          <Link href="/filler/auth/sign-up">
+            Sign up now
+          </Link>
         </Button>
       </div>
     )
@@ -84,27 +86,29 @@ export default function SurveysSection() {
         </div>
         <h3 className="text-lg font-semibold text-slate-900 mb-2">No surveys available right now</h3>
         <p className="text-slate-600 mb-6 max-w-sm">New surveys are added regularly. Check back soon or complete your profile to get more targeted surveys.</p>
-        <Button asChild className="bg-[#013F5C] hover:bg-[#0b577a]">
-          <Link href="/filler/profile">Complete profile</Link>
+        <Button asChild variant="filler">
+          <Link href="/filler/profile">
+            Complete profile
+          </Link>
         </Button>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       {surveys.map((survey) => (
         <Card key={survey.id} className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between gap-2">
-              <Badge variant="secondary" className="rounded-full bg-blue-100 text-blue-700">
+              <Badge variant="secondary" className="rounded-full bg-blue-100 text-blue-700 text-xs">
                 {survey.category}
               </Badge>
-              <div className="text-right">
+              <div className="text-right flex-shrink-0">
                 <div className="text-lg font-bold text-green-600">{survey.reward}</div>
               </div>
             </div>
-            <CardTitle className="text-lg font-bold text-slate-900 line-clamp-2">
+            <CardTitle className="text-base sm:text-lg font-bold text-slate-900 line-clamp-2">
               {survey.title}
             </CardTitle>
           </CardHeader>
@@ -113,32 +117,30 @@ export default function SurveysSection() {
               {survey.description}
             </p>
             
-            <div className="flex items-center gap-4 text-xs text-slate-500">
+            <div className="flex items-center gap-3 sm:gap-4 text-xs text-slate-500">
               <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
+                <Clock className="h-3 w-3 flex-shrink-0" />
                 <span>{survey.duration}</span>
               </div>
               <div className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
+                <Users className="h-3 w-3 flex-shrink-0" />
                 <span>{survey.participants}</span>
               </div>
             </div>
 
-            <Button 
-              asChild 
-              className="w-full bg-[#013F5C] hover:bg-[#0b577a] rounded-xl"
-              disabled={!isAuthenticated}
-            >
-              {isAuthenticated ? (
+            {isAuthenticated ? (
+              <Button asChild variant="filler" className="w-full">
                 <Link href={`/filler/surveys/${survey.id}`}>
                   Start Survey
                 </Link>
-              ) : (
+              </Button>
+            ) : (
+              <Button asChild variant="filler" className="w-full">
                 <Link href="/filler/auth/sign-up">
                   Sign up to start
                 </Link>
-              )}
-            </Button>
+              </Button>
+            )}
           </CardContent>
         </Card>
       ))}

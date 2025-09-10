@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -105,9 +105,9 @@ export default function FillerSettingsPage() {
                   </div>
                 </div>
 
-                <Button onClick={handleProfileUpdate} disabled={isLoading} className="bg-[#013F5C] hover:bg-[#0b577a]">
+                <button onClick={handleProfileUpdate} disabled={isLoading} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] bg-[#013F5C] hover:bg-[#012d42] text-white px-6 py-2">
                   {isLoading ? "Updating..." : "Update Profile"}
-                </Button>
+                </button>
               </CardContent>
             </Card>
 
@@ -209,9 +209,9 @@ export default function FillerSettingsPage() {
                   </div>
                 </div>
 
-                <Button className="bg-[#013F5C] hover:bg-[#0b577a]">
+                <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] bg-[#013F5C] hover:bg-[#012d42] text-white px-6 py-2">
                   Save Preferences
-                </Button>
+                </button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -234,9 +234,9 @@ export default function FillerSettingsPage() {
                   <Label htmlFor="confirmPassword">Confirm New Password</Label>
                   <Input id="confirmPassword" type="password" placeholder="Confirm new password" />
                 </div>
-                <Button className="bg-[#013F5C] hover:bg-[#0b577a]">
+                <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] bg-[#013F5C] hover:bg-[#012d42] text-white px-6 py-2">
                   Update Password
-                </Button>
+                </button>
               </CardContent>
             </Card>
           </TabsContent>

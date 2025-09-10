@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { EmptyState } from "@/components/ui/empty-state"
-import { Clock, DollarSign, Users, Search, Filter, ListChecks } from "lucide-react"
+import { Clock, Users, Search, Filter, ListChecks } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { useState } from "react"
@@ -191,7 +191,7 @@ export default function SurveysPage() {
                         </div>
                       </div>
 
-                      <Button asChild className="w-full bg-[#013F5C] hover:bg-[#0b577a] rounded-xl">
+                      <Button asChild variant="filler" className="w-full">
                         <Link href={`/filler/surveys/${survey.id}`}>
                           Start Survey
                         </Link>

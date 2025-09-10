@@ -33,12 +33,9 @@ export default function CreateSurveyPage() {
       <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
         <Breadcrumb items={[{ label: "Surveys", href: "/creator/surveys" }, { label: "Create" }]} />
         
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-gradient-to-r from-white/90 via-slate-50/50 to-white/90 backdrop-blur-sm p-8 shadow-sm mb-8">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#C1654B]/5 to-transparent"></div>
-          <div className="relative">
-            <h1 className="text-3xl font-bold text-slate-900 mb-3">Create New Survey</h1>
-            <p className="text-lg text-slate-600">Build your survey and start collecting valuable insights from our community.</p>
-          </div>
+        <div className="rounded-2xl border border-slate-200/60 bg-white p-8 shadow-sm mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-3">Create New Survey</h1>
+          <p className="text-lg text-slate-600">Build your survey and start collecting valuable insights from our community.</p>
         </div>
 
         <SurveyBuilder />

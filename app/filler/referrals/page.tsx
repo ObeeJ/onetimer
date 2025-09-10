@@ -87,9 +87,9 @@ export default function ReferralsPage() {
                   <p className="text-sm text-yellow-700 mt-1">
                     Please complete your account verification to unlock the referral program and start earning bonuses.
                   </p>
-                  <Button className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white">
+                  <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] mt-4 bg-[#013F5C] hover:bg-[#012d42] text-white px-6 py-2">
                     Complete Verification
-                  </Button>
+                  </button>
                 </div>
               </div>
             </CardContent>
@@ -189,10 +189,10 @@ export default function ReferralsPage() {
                   </div>
                 </div>
 
-                <Button className="w-full bg-[#013F5C] hover:bg-[#0b577a]">
+                <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] w-full bg-[#013F5C] hover:bg-[#012d42] text-white px-6 py-2">
                   <Share2 className="h-4 w-4 mr-2" />
                   Share Link
-                </Button>
+                </button>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="font-semibold text-blue-900 mb-2">How it works</h4>

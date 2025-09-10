@@ -11,15 +11,14 @@ import {
   Filter, 
   Eye, 
   Ban, 
-  CheckCircle, 
-  XCircle,
+  CheckCircle,
   MoreHorizontal,
   Download
 } from "lucide-react"
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedFilter, setSelectedFilter] = useState("all")
+
 
   const users = [
     {

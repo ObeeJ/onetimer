@@ -1,65 +1,89 @@
 "use client"
 
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { BarChart3, Users, Eye, DollarSign, Plus, Clock } from "lucide-react"
+import { BarChart3, Users, Eye, DollarSign, Plus } from "lucide-react"
 import Link from "next/link"
-import { useCreatorAuth } from "@/hooks/use-creator-auth"
+import { useAuth } from "@/providers/auth-provider"
 
 export default function CreatorDashboardPage() {
-  console.log("CreatorDashboardPage rendering")
-  const { creator, isAuthenticated, isApproved } = useCreatorAuth()
-  console.log("Creator auth state:", { creator, isAuthenticated, isApproved })
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
 
-  // TODO: Replace with actual API data
-  const stats = {
-    totalSurveys: 12,
-    activeSurveys: 3,
-    totalResponses: 1247,
-    creditsRemaining: creator?.credits || 0
-  }
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || user?.role !== "creator")) {
+      router.push("/auth/login")
+    }
+  }, [isAuthenticated, isLoading, user?.role, router])
 
-  const recentSurveys = [
-    { id: "1", title: "Consumer Behavior Study", status: "active", responses: 89, target: 100 },
-    { id: "2", title: "Product Feedback Survey", status: "pending", responses: 0, target: 50 },
-    { id: "3", title: "Market Research Q4", status: "completed", responses: 156, target: 150 }
-  ]
-
-  if (!isAuthenticated) {
+  if (isLoading) {
     return (
-      <div className="space-y-8">
-        <div className="text-center py-12">
-          <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">Sign in to access creator dashboard</h2>
-          <p className="text-slate-600 mb-6">Create an account or sign in to start creating surveys and collecting insights.</p>
-          <Button asChild variant="accent">
-            <Link href="/creator/auth/sign-up">Sign up</Link>
-          </Button>
+      <div className="flex-1 min-w-0 overflow-auto">
+        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-slate-200 rounded w-1/3"></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-32 bg-slate-200 rounded-xl"></div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     )
   }
 
+  if (!isAuthenticated || user?.role !== "creator") {
+    return null
+  }
+
+  // Use current user data
+  const currentCreator = {
+    name: user?.name || "Creator",
+    email: user?.email || "creator@example.com",
+    organizationType: "Business",
+    organizationName: "Tech Solutions Inc",
+    industry: "Technology",
+    role: "Product Manager",
+    credits: 100,
+    hasCreatedSurvey: false
+  }
+  const isNewUser = true // Always show as new user for demo
+  const stats = {
+    totalSurveys: 0,
+    activeSurveys: 0,
+    totalResponses: 0,
+    creditsRemaining: 100
+  }
+
+  const recentSurveys = isNewUser ? [] : [
+    { id: "1", title: "Consumer Behavior Study", status: "active", responses: 89, target: 100 },
+    { id: "2", title: "Product Feedback Survey", status: "pending", responses: 0, target: 50 },
+    { id: "3", title: "Market Research Q4", status: "completed", responses: 156, target: 150 }
+  ]
+
   return (
-    <div className="space-y-8 p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="flex-1 min-w-0 overflow-auto">
+      <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
       <div className="space-y-6">
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-gradient-to-r from-white/90 via-slate-50/50 to-white/90 backdrop-blur-sm p-8 shadow-sm">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#C1654B]/5 to-transparent"></div>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white p-8 shadow-sm">
           <div className="relative">
             <h1 className="text-3xl font-bold text-slate-900 mb-3">
-              Welcome back, {creator?.name}!
+              {isNewUser ? `Welcome to Onetime Survey, ${currentCreator?.name}!` : `Welcome back, ${currentCreator?.name}!`}
             </h1>
             <p className="text-slate-600 text-lg">
-              Ready to create surveys and collect insights.
+              {isNewUser ? `As a ${currentCreator?.role} at ${currentCreator?.organizationName}, you're ready to create surveys and collect valuable insights from the ${currentCreator?.industry} industry.` : 'Ready to create surveys and collect insights.'}
             </p>
           </div>
         </div>
 
 
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          <Card className="rounded-xl border border-slate-200/60 bg-gradient-to-br from-white/90 to-slate-50/50 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-300 group">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="rounded-xl border border-slate-200/60 bg-white shadow-sm hover:shadow-lg transition-all duration-300 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-sm font-medium text-slate-600">Total Surveys</CardTitle>
               <div className="p-2 rounded-lg bg-blue-100/80 group-hover:bg-blue-200/80 transition-colors">
@@ -69,13 +93,13 @@ export default function CreatorDashboardPage() {
             <CardContent>
               <div className="text-3xl font-bold text-slate-900 mb-1">{stats.totalSurveys}</div>
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <p className="text-xs text-slate-500">+2 this month</p>
+                <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                <p className="text-xs text-slate-500">{isNewUser ? 'Start creating' : '+2 this month'}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-xl border border-slate-200/60 bg-gradient-to-br from-white/90 to-green-50/30 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-300 group">
+          <Card className="rounded-xl border border-slate-200/60 bg-white shadow-sm hover:shadow-lg transition-all duration-300 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-sm font-medium text-slate-600">Active Surveys</CardTitle>
               <div className="p-2 rounded-lg bg-green-100/80 group-hover:bg-green-200/80 transition-colors">
@@ -85,13 +109,13 @@ export default function CreatorDashboardPage() {
             <CardContent>
               <div className="text-3xl font-bold text-slate-900 mb-1">{stats.activeSurveys}</div>
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <p className="text-xs text-slate-500">Currently collecting</p>
+                <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                <p className="text-xs text-slate-500">{isNewUser ? 'No active surveys' : 'Currently collecting'}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-xl border border-slate-200/60 bg-gradient-to-br from-white/90 to-blue-50/30 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-300 group">
+          <Card className="rounded-xl border border-slate-200/60 bg-white shadow-sm hover:shadow-lg transition-all duration-300 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-sm font-medium text-slate-600">Total Responses</CardTitle>
               <div className="p-2 rounded-lg bg-blue-100/80 group-hover:bg-blue-200/80 transition-colors">
@@ -101,13 +125,13 @@ export default function CreatorDashboardPage() {
             <CardContent>
               <div className="text-3xl font-bold text-slate-900 mb-1">{stats.totalResponses}</div>
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <p className="text-xs text-slate-500">+89 this week</p>
+                <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                <p className="text-xs text-slate-500">{isNewUser ? 'No responses yet' : '+89 this week'}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-xl border border-slate-200/60 bg-gradient-to-br from-white/90 to-orange-50/30 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-300 group">
+          <Card className="rounded-xl border border-slate-200/60 bg-white shadow-sm hover:shadow-lg transition-all duration-300 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-sm font-medium text-slate-600">Credits</CardTitle>
               <div className="p-2 rounded-lg bg-orange-100/80 group-hover:bg-orange-200/80 transition-colors">
@@ -124,7 +148,29 @@ export default function CreatorDashboardPage() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+        {isNewUser && (
+          <Card className="rounded-xl border border-slate-200/60 bg-white shadow-sm">
+            <CardContent className="p-8">
+              <div className="text-center">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg">
+                  <Plus className="h-8 w-8 text-[#C1654B]" />
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-3">Ready to create your first {currentCreator?.industry} survey?</h2>
+                <p className="text-slate-600 mb-6 max-w-md mx-auto">
+                  Perfect for {currentCreator?.role}s like you! Start collecting valuable insights from our community. You have {stats.creditsRemaining} free credits to get started!
+                </p>
+                <Button asChild variant="creator" size="lg" className="px-8">
+                  <Link href="/creator/surveys/create" className="flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    Create Your First Survey
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -135,20 +181,20 @@ export default function CreatorDashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-3 px-4 lg:px-6">
-              <Button asChild className="w-full h-10 lg:h-12 bg-[#C1654B] hover:bg-[#A0543D] text-white text-sm lg:text-base">
-                <Link href="/creator/surveys/create" className="flex items-center justify-center gap-2">
+              <Button asChild variant="creator" className="w-full h-10 lg:h-12 text-sm lg:text-base">
+                <Link href="/creator/surveys/create">
                   <Plus className="h-4 w-4" />
                   Create New Survey
                 </Link>
               </Button>
-              <Button asChild variant="secondary" className="w-full h-9 lg:h-11 text-sm lg:text-base">
-                <Link href="/creator/analytics" className="flex items-center justify-center gap-2">
+              <Button asChild variant="accent" className="w-full h-9 lg:h-11 text-sm lg:text-base">
+                <Link href="/creator/analytics">
                   <BarChart3 className="h-4 w-4" />
                   View Analytics
                 </Link>
               </Button>
-              <Button asChild variant="secondary" className="w-full h-9 lg:h-11 text-sm lg:text-base">
-                <Link href="/creator/credits" className="flex items-center justify-center gap-2">
+              <Button asChild variant="accent" className="w-full h-9 lg:h-11 text-sm lg:text-base">
+                <Link href="/creator/credits">
                   <DollarSign className="h-4 w-4" />
                   Purchase Credits
                 </Link>
@@ -156,7 +202,7 @@ export default function CreatorDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
+          <Card className="rounded-xl border border-slate-200/60 bg-white shadow-sm hover:shadow-md transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Recent Surveys</CardTitle>
             </CardHeader>
@@ -175,7 +221,7 @@ export default function CreatorDashboardPage() {
               ) : (
                 <div className="space-y-3">
                   {recentSurveys.map((survey) => (
-                    <div key={survey.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50/80 to-white/50 rounded-xl border border-slate-100 hover:shadow-sm transition-all duration-200">
+                    <div key={survey.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:shadow-sm transition-all duration-200">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-slate-900 truncate mb-1">{survey.title}</p>
                         <div className="flex items-center gap-2">
@@ -198,6 +244,7 @@ export default function CreatorDashboardPage() {
           </Card>
         </div>
       </div>
+    </div>
     </div>
   )
 }
