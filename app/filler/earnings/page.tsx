@@ -75,7 +75,7 @@ export default function EarningsPage() {
                   <p className="text-sm text-yellow-700 mt-1">
                     Please complete your account verification to unlock earnings tracking and withdrawals.
                   </p>
-                  <Button className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white">
+                  <Button variant="filler" className="mt-4">
                     Complete Verification
                   </Button>
                 </div>
@@ -175,6 +175,7 @@ export default function EarningsPage() {
               <TabsList>
                 <TabsTrigger value="transactions">Transaction History</TabsTrigger>
                 <TabsTrigger value="breakdown">Earnings Breakdown</TabsTrigger>
+                <TabsTrigger value="referrals">Referrals</TabsTrigger>
               </TabsList>
 
               <TabsContent value="transactions" className="space-y-4">
@@ -244,10 +245,54 @@ export default function EarningsPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <p className="text-sm text-slate-600">Available balance: ₦{(earningsData.total - earningsData.withdrawn).toLocaleString()}</p>
-                      <Button className="w-full bg-[#013F5C] hover:bg-[#0b577a]">
+                      <Button variant="filler" className="w-full">
                         Request Withdrawal
                       </Button>
                       <p className="text-xs text-slate-500">Minimum withdrawal: ₦5,000</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="referrals" className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card className="rounded-xl">
+                    <CardHeader>
+                      <CardTitle>Referral Stats</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Total Referrals</span>
+                        <span className="font-semibold text-2xl">8</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Active Referrals</span>
+                        <span className="font-semibold text-2xl">5</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Referral Earnings</span>
+                        <span className="font-semibold text-2xl">₦6,250</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="rounded-xl">
+                    <CardHeader>
+                      <CardTitle>Share Your Link</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-slate-600">Earn ₦1,000 for each friend who joins and completes their first survey!</p>
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          value="https://onetime.com/ref/USER123" 
+                          readOnly 
+                          className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50"
+                        />
+                        <Button variant="filler" size="sm">
+                          Copy
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>

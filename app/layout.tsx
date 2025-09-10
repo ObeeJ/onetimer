@@ -8,6 +8,11 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "OneTime Survey Platform",
   description: "Comprehensive survey platform connecting creators with respondents",
+  icons: {
+    icon: ['/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png'],
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({

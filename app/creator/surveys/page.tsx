@@ -8,16 +8,15 @@ import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { BarChart3, Plus, Search, Eye, Users, Calendar, MoreHorizontal } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { BarChart3, Plus, Search, Eye, Users, Calendar, MoreHorizontal, Edit, Copy, Pause, Play, Trash2, Share, Upload } from "lucide-react"
 import Link from "next/link"
 import { useCreatorAuth } from "@/hooks/use-creator-auth"
 
 export default function CreatorSurveysPage() {
-  console.log("CreatorSurveysPage rendering")
-  const { isAuthenticated, isApproved } = useCreatorAuth()
+  const { isAuthenticated } = useCreatorAuth()
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  console.log("Surveys page auth state:", { isAuthenticated, isApproved })
 
   // Mock surveys data
   const surveys = [
@@ -98,17 +97,23 @@ export default function CreatorSurveysPage() {
       <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
         <Breadcrumb items={[{ label: "Surveys" }]} />
         
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">My Surveys</h1>
             <p className="text-slate-600">Manage and track your survey campaigns</p>
           </div>
-          <Button asChild className="bg-[#C1654B] hover:bg-[#b25a43]">
-            <Link href="/creator/surveys/create">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Survey
-            </Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="creator-outline" className="w-full sm:w-auto">
+              <Upload className="h-4 w-4 mr-2" />
+              Import Survey
+            </Button>
+            <Button asChild variant="creator" className="w-full sm:w-auto">
+              <Link href="/creator/surveys/create">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Survey
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
@@ -149,17 +154,52 @@ export default function CreatorSurveysPage() {
             {filteredSurveys.map((survey) => (
               <Card key={survey.id} className="rounded-xl hover:shadow-md transition-shadow">
                 <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <CardTitle className="text-lg">{survey.title}</CardTitle>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                        <CardTitle className="text-lg truncate">{survey.title}</CardTitle>
                         {getStatusBadge(survey.status)}
                       </div>
-                      <p className="text-slate-600 text-sm">{survey.description}</p>
+                      <p className="text-slate-600 text-sm line-clamp-2">{survey.description}</p>
                     </div>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                    <div className="flex-shrink-0">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/creator/surveys/${survey.id}/edit`}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Survey
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Share className="h-4 w-4 mr-2" />
+                          Share
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                          {survey.status === "active" ? (
+                            <><Pause className="h-4 w-4 mr-2" />Pause Survey</>
+                          ) : (
+                            <><Play className="h-4 w-4 mr-2" />Resume Survey</>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-red-600">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -171,13 +211,7 @@ export default function CreatorSurveysPage() {
                         <p className="text-xs text-slate-500">Responses</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-slate-500" />
-                      <div>
-                        <p className="text-sm font-medium">₦{survey.reward}</p>
-                        <p className="text-xs text-slate-500">Reward</p>
-                      </div>
-                    </div>
+
                     <div className="flex items-center gap-2">
                       <Eye className="h-4 w-4 text-slate-500" />
                       <div>
@@ -188,20 +222,20 @@ export default function CreatorSurveysPage() {
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-slate-500" />
                       <div>
-                        <p className="text-sm font-medium">{new Date(survey.expiresAt).toLocaleDateString()}</p>
+                        <p className="text-sm font-medium">{survey.expiresAt}</p>
                         <p className="text-xs text-slate-500">Expires</p>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex gap-2">
-                    <Button asChild variant="outline" size="sm">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button asChild variant="creator-outline" size="sm" className="w-full sm:w-auto">
                       <Link href={`/creator/surveys/${survey.id}`}>
                         <Eye className="h-4 w-4 mr-2" />
                         View Details
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" size="sm">
+                    <Button asChild variant="creator" size="sm" className="w-full sm:w-auto">
                       <Link href={`/creator/analytics?survey=${survey.id}`}>
                         <BarChart3 className="h-4 w-4 mr-2" />
                         Analytics

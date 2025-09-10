@@ -8,13 +8,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-[#c0694b] to-[#a6583d] hover:from-[#a6583d] hover:to-[#8a4631] text-white shadow-lg hover:shadow-xl focus-visible:ring-[#c0694b]/50 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity",
-        secondary: "bg-gradient-to-r from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 shadow-md hover:shadow-lg focus-visible:ring-slate-400/50 border border-slate-200/50",
-        destructive: "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl focus-visible:ring-red-500/50",
+        default: "bg-[#C1654B] hover:bg-[#a55440] text-white shadow-lg hover:shadow-xl focus-visible:ring-[#C1654B]/50",
+        secondary: "bg-slate-100 hover:bg-slate-200 text-slate-700 shadow-md hover:shadow-lg focus-visible:ring-slate-400/50 border border-slate-200/50",
+        destructive: "bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl focus-visible:ring-red-500/50",
         outline: "border-2 border-slate-200 bg-white/80 backdrop-blur-sm hover:bg-slate-50 hover:border-slate-300 text-slate-700 focus-visible:ring-slate-400/50 shadow-sm hover:shadow-md",
         ghost: "bg-transparent hover:bg-slate-100/80 text-slate-600 hover:text-slate-900 focus-visible:ring-slate-400/50 backdrop-blur-sm",
-        link: "bg-transparent text-[#013e5c] underline-offset-4 hover:underline hover:text-[#012f46] focus-visible:ring-[#013e5c]/50",
-        accent: "bg-gradient-to-r from-[#013e5c] to-[#012f46] hover:from-[#012f46] hover:to-[#011e33] text-white shadow-lg hover:shadow-xl focus-visible:ring-[#013e5c]/50 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity",
+        link: "bg-transparent text-[#013F5C] underline-offset-4 hover:underline hover:text-[#012d42] focus-visible:ring-[#013F5C]/50",
+        accent: "bg-[#013F5C] hover:bg-[#012d42] text-white shadow-lg hover:shadow-xl focus-visible:ring-[#013F5C]/50",
+        filler: "bg-[#013F5C] hover:bg-[#012d42] text-white shadow-lg hover:shadow-xl focus-visible:ring-[#013F5C]/50",
+        creator: "bg-[#C1654B] hover:bg-[#a55440] text-white shadow-lg hover:shadow-xl focus-visible:ring-[#C1654B]/50",
+        "creator-outline": "border-2 border-[#013F5C] bg-white hover:bg-[#013F5C] text-[#013F5C] hover:text-white shadow-sm hover:shadow-md focus-visible:ring-[#013F5C]/50",
+        "filler-outline": "border-2 border-[#013F5C] bg-white hover:bg-[#013F5C] text-[#013F5C] hover:text-white shadow-sm hover:shadow-md focus-visible:ring-[#013F5C]/50",
       },
       size: {
         default: "h-10 px-6 py-2",

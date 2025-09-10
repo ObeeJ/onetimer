@@ -147,3 +147,111 @@
 
   /* Removed problematic btn-primary and btn-accent classes that were causing CSS concatenation issues */
 }
+
+/* Global animations and transitions */
+* {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Subtle button animations */
+button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover {
+  transform: translateY(-0.5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Logo subtle animation */
+img[alt*="logo"], img[alt*="Logo"] {
+  transition: transform 0.2s ease;
+}
+
+img[alt*="logo"]:hover, img[alt*="Logo"]:hover {
+  transform: scale(1.02);
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Navbar animations */
+.navbar-item {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.navbar-item::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #013F5C, #C1654B);
+  transition: width 0.2s ease;
+}
+
+.navbar-item:hover::after {
+  width: 100%;
+}
+
+/* Fade in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+/* Subtle pulse for CTAs */
+@keyframes subtlePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.01);
+  }
+}
+
+.pulse-cta {
+  animation: subtlePulse 3s infinite;
+}
+
+/* Icon hover animations */
+svg {
+  transition: transform 0.15s ease;
+}
+
+button:hover svg {
+  transform: scale(1.05);
+}
+
+/* Link hover effects */
+a {
+  transition: color 0.15s ease;
+}

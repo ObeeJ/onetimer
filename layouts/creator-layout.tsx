@@ -27,9 +27,10 @@ export default function CreatorLayout({
 }) {
   const pathname = usePathname()
   const isAuthPage = pathname?.includes("/auth/")
+  const isOnboardingPage = pathname?.includes("/onboarding")
   const { isOpen: sidebarOpen } = useSidebarStore()
 
-  if (isAuthPage) {
+  if (isAuthPage || isOnboardingPage) {
     return children
   }
   
@@ -103,7 +104,7 @@ export default function CreatorLayout({
                     </div>
                   </div>
                   <Button
-                    onClick={() => window.location.href = "/creator/auth/sign-in"}
+                    onClick={() => window.location.href = "/auth/login"}
                     variant="ghost"
                     className="w-full justify-start text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] px-3 py-2"
                   >
@@ -119,7 +120,7 @@ export default function CreatorLayout({
                     </div>
                   </div>
                   <Button
-                    onClick={() => window.location.href = "/creator/auth/sign-in"}
+                    onClick={() => window.location.href = "/auth/login"}
                     variant="ghost"
                     className="w-full justify-center text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] p-2"
                     title="Sign Out"
@@ -178,7 +179,7 @@ export default function CreatorLayout({
                   </div>
                 </div>
                 <Button
-                  onClick={() => window.location.href = "/creator/auth/sign-in"}
+                  onClick={() => window.location.href = "/auth/login"}
                   variant="ghost"
                   className="w-full justify-start text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] px-3 py-2"
                 >

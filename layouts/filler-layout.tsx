@@ -6,7 +6,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { Button } from "@/components/ui/button"
-import { Home, ListChecks, Wallet, Users, Settings, LogOut, User2 } from "lucide-react"
+import { Home, ListChecks, Wallet, Settings, LogOut, User2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
 import { SidebarToggle } from "@/components/ui/sidebar-toggle"
@@ -16,7 +16,6 @@ const navItems = [
   { title: "Dashboard", url: "/filler", icon: Home },
   { title: "Surveys", url: "/filler/surveys", icon: ListChecks },
   { title: "Earnings", url: "/filler/earnings", icon: Wallet },
-  { title: "Referrals", url: "/filler/referrals", icon: Users },
   { title: "Settings", url: "/filler/settings", icon: Settings },
 ]
 

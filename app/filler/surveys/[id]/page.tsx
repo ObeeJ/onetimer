@@ -112,13 +112,13 @@ export default function SurveyDetailPage() {
               </div>
 
               <div className="flex gap-3">
-                <Button
+                <button
                   onClick={handleStartSurvey}
-                  className="flex-1 bg-[#013F5C] hover:bg-[#0b577a] rounded-xl h-12 text-base font-semibold"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] flex-1 bg-[#013F5C] hover:bg-[#012d42] text-white h-12 text-base font-semibold px-6"
                 >
                   <Play className="h-5 w-5 mr-2" />
                   Start Survey
-                </Button>
+                </button>
                 <Button
                   variant="outline"
                   onClick={() => router.back()}

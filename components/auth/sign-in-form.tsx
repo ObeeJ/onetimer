@@ -117,8 +117,8 @@ export default function SignInForm() {
           
           <div className="text-center text-sm text-slate-600">
             Don't have an account?{" "}
-            <Link href="/filler/auth/sign-up" className="text-[#013F5C] hover:underline">
-              Sign up
+            <Link href="/filler/onboarding" className="text-[#013F5C] hover:underline">
+              Get started
             </Link>
           </div>
         </form>

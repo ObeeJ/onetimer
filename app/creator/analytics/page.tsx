@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
-import { EmptyState } from "@/components/ui/empty-state"
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BarChart3, TrendingUp, Users, Eye, Download, Calendar } from "lucide-react"
 import { useCreatorAuth } from "@/hooks/use-creator-auth"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 export default function CreatorAnalyticsPage() {
   console.log("CreatorAnalyticsPage rendering")
@@ -48,22 +48,7 @@ export default function CreatorAnalyticsPage() {
     { category: "45+", percentage: 16, count: 200 }
   ]
 
-  if (!isAuthenticated) {
-    return (
-      <div className="flex-1 min-w-0 overflow-auto">
-        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
-          <EmptyState
-            icon={BarChart3}
-            title="Sign in required"
-            description="Please sign in to view analytics."
-            action={{ label: "Sign in", href: "/creator/auth/sign-in" }}
-          />
-        </div>
-      </div>
-    )
-  }
-
-  // All authenticated users can access analytics
+  // All users can access analytics for demo
 
   return (
     <div className="flex-1 min-w-0 overflow-auto">
