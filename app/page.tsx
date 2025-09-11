@@ -1,11 +1,17 @@
+"use client"
+
 import Link from "next/link"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Users, Wallet, CheckCircle } from "lucide-react"
+import { ArrowRight, Users, Wallet, CheckCircle, Menu, X } from "lucide-react"
 import { AnimatedLogo } from "@/components/ui/animated-logo"
 import { AnimatedBackground } from "@/components/ui/animated-background"
 import { Footer } from "@/components/ui/footer"
+import { cn } from "@/lib/utils"
 
 export default function HomePage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
       <AnimatedBackground />
@@ -14,9 +20,11 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <AnimatedLogo />
+              <AnimatedLogo className="h-10 w-auto sm:h-8" />
             </div>
-            <div className="flex items-center space-x-4">
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
               <Link href="/pricing">
                 <Button variant="ghost" className="navbar-item text-slate-600 hover:text-slate-900">
                   Pricing
@@ -29,6 +37,46 @@ export default function HomePage() {
               </Link>
               <Link href="/auth/role-selection">
                 <Button className="bg-[#013F5C] hover:bg-[#012d42] text-white hover:shadow-lg">
+                  Get started
+                </Button>
+              </Link>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2"
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Mobile Navigation */}
+          <div className={cn(
+            "md:hidden transition-all duration-300 ease-in-out overflow-hidden",
+            mobileMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+          )}>
+            <div className="py-4 space-y-2 border-t border-slate-200 mt-4">
+              <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-slate-900">
+                  Pricing
+                </Button>
+              </Link>
+              <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-slate-900">
+                  Sign in
+                </Button>
+              </Link>
+              <Link href="/auth/role-selection" onClick={() => setMobileMenuOpen(false)}>
+                <Button className="w-full bg-[#013F5C] hover:bg-[#012d42] text-white hover:shadow-lg mt-2">
                   Get started
                 </Button>
               </Link>
@@ -121,16 +169,16 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-[#013F5C]">
+      <section className="py-16 bg-slate-50">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white mb-4">
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">
             Ready to start earning?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-slate-600 mb-8">
             Join Nigeria's most trusted survey platform today
           </p>
           <Link href="/auth/role-selection">
-            <Button size="lg" className="bg-[#C1654B] hover:bg-[#a55440] text-white px-8 py-4 text-lg font-semibold group hover:shadow-xl pulse-cta">
+            <Button size="lg" className="bg-[#013F5C] hover:bg-[#012d42] text-white px-8 py-4 text-lg font-semibold group hover:shadow-xl pulse-cta">
               Get started for free
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>

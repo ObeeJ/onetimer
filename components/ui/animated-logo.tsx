@@ -30,7 +30,7 @@ export function AnimatedLogo({ className = "", size = "md" }: AnimatedLogoProps)
       <img 
         src="/Logo.png" 
         alt="Onetime Survey" 
-        className={`${sizeClasses[size]} transition-all duration-300`}
+        className={`${className || sizeClasses[size]} transition-all duration-300`}
       />
     </motion.div>
   )
