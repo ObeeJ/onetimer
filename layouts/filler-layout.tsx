@@ -133,18 +133,22 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
           </div>
         </div>
 
-        {/* Mobile toggle button */}
-        <div className="lg:hidden fixed top-4 left-4 z-50">
-          <SidebarToggle className="bg-white shadow-lg" />
-        </div>
+
+
+        {/* Mobile toggle button when sidebar is closed */}
+        {!sidebarOpen && (
+          <div className="lg:hidden fixed top-4 left-4 z-50">
+            <SidebarToggle className="bg-white shadow-lg" />
+          </div>
+        )}
 
         {/* Mobile sidebar */}
         <div className={cn(
           "lg:hidden fixed left-0 top-0 z-40 h-full w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ease-in-out shadow-lg",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
-          <div className="h-16 border-b border-slate-200 flex items-center justify-between px-4">
-            <Link href="/filler">
+          <div className="h-16 border-b border-slate-200 flex items-center px-4">
+            <Link href="/filler" className="flex-1">
               <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto cursor-pointer" />
             </Link>
             <SidebarToggle />
