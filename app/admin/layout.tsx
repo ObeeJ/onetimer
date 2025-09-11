@@ -202,7 +202,7 @@ export default function AdminLayout({
 
         {/* Main content */}
         <main className={cn(
-          "p-6 transition-all duration-300",
+          "px-4 py-6 lg:p-6 transition-all duration-300",
           sidebarOpen ? "lg:ml-64" : "lg:ml-16"
         )}>
           {children}
