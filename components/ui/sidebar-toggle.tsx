@@ -20,7 +20,7 @@ export function SidebarToggle({ className }: SidebarToggleProps) {
       )}
       aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
     >
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
       {isOpen ? (
         <PanelLeftClose className="w-5 h-5 relative z-10" />
       ) : (
