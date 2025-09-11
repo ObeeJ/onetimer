@@ -205,7 +205,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
         {/* Main content */}
         <main className={cn(
           "px-4 py-6 lg:p-6 transition-all duration-300",
-          sidebarOpen ? "ml-64" : "ml-16"
+          sidebarOpen ? "lg:ml-64" : "lg:ml-16"
         )}>
           {children}
         </main>
