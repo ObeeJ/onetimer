@@ -136,6 +136,14 @@
     @apply mx-auto px-4 sm:px-6 lg:px-8;
   }
 
+  /* Mobile-specific improvements */
+  @media (max-width: 640px) {
+    .text-4xl { font-size: 2rem; }
+    .text-5xl { font-size: 2.5rem; }
+    .text-6xl { font-size: 3rem; }
+    .px-8 { padding-left: 1.5rem; padding-right: 1.5rem; }
+  }
+
   /* Glass morphism utility classes for consistent styling */
   .glass-card {
     @apply bg-white/80 backdrop-blur-xl border border-slate-200/60;
