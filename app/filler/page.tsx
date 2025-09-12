@@ -19,7 +19,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/auth/login")
+      router.push("/filler/auth/sign-in")
     }
   }, [isAuthenticated, isLoading, router])
 
