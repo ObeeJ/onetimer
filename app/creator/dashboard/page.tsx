@@ -15,7 +15,7 @@ export default function CreatorDashboardPage() {
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== "creator")) {
-      router.push("/auth/login")
+      router.push("/creator/auth/sign-in")
     }
   }, [isAuthenticated, isLoading, user?.role, router])
 
