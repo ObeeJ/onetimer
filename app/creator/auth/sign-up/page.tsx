@@ -1,6 +1,6 @@
 "use client"
 
-import { CreatorSignUpForm } from "@/components/creator/creator-sign-up-form"
+import CreatorSignUpForm from "@/components/creator/creator-sign-up-form"
 import { AuthLayout } from "@/components/auth/auth-layout"
 
 export default function CreatorSignUpPage() {
