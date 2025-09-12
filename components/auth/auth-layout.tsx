@@ -9,6 +9,7 @@ interface AuthLayoutProps {
   subtitle?: string
   showBackButton?: boolean
   backHref?: string
+  role?: string
 }
 
 export function AuthLayout({ 
@@ -16,7 +17,8 @@ export function AuthLayout({
   title, 
   subtitle, 
   showBackButton = false, 
-  backHref = "/filler" 
+  backHref = "/filler",
+  role = "filler"
 }: AuthLayoutProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-white to-slate-100">
