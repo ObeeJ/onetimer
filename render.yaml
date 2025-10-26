@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: onetimer-app
+    env: docker
+    dockerfilePath: ./Dockerfile.multi
+    plan: starter
+    region: oregon
+    branch: main
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: onetimer-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+
+databases:
+  - name: onetimer-db
+    databaseName: onetimer
+    user: onetimer_user
+    plan: starter

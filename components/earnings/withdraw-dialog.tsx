@@ -99,14 +99,14 @@ export default function WithdrawDialog({
     setErrors({})
 
     try {
-      const response = await fetch("/api/payments/withdraw", {
+      const response = await fetch("/api/v1/payments/withdraw", {
         method: "POST",
+        credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          accountName: formData.accountName,
-          bankCode: formData.bankCode,
-          bankName: formData.bankName,
-          accountNumber: formData.accountNumber,
+          account_name: formData.accountName,
+          bank_code: formData.bankCode,
+          account_number: formData.accountNumber,
           amount: Number(formData.amount),
         }),
       })

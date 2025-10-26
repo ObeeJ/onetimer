@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Plus, Trash2, GripVertical, Eye, Save, Send, Upload, AlertCircle, CheckCircle, MessageSquare, Star } from "lucide-react"
+import { useCreateSurvey, useUpdateSurvey } from "@/hooks/use-creator"
+import { toast } from "sonner"
 
 type QuestionType = "multiple_choice" | "open_ended" | "rating" | "media_upload"
 
@@ -37,6 +40,9 @@ interface SurveyBuilderProps {
 }
 
 export default function SurveyBuilder({ initialData, isEditing = false }: SurveyBuilderProps = {}) {
+  const router = useRouter()
+  const createSurvey = useCreateSurvey()
+  const updateSurvey = useUpdateSurvey()
   const [survey, setSurvey] = useState<SurveyData>(initialData || {
     title: "",
     description: "",
@@ -46,6 +52,7 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isPreview, setIsPreview] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   const questionTypes = [
     { value: "multiple_choice", label: "Multiple Choice" },
@@ -138,14 +145,51 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
   }
 
   const saveDraft = async () => {
-    // TODO: Save to API
-    console.log("Saving draft:", survey)
+    setIsSaving(true)
+    try {
+      const surveyData = {
+        ...survey,
+        status: 'draft'
+      }
+      
+      if (isEditing && initialData?.id) {
+        await updateSurvey.mutateAsync({ id: initialData.id, data: surveyData })
+        toast.success('Draft saved successfully')
+      } else {
+        await createSurvey.mutateAsync(surveyData)
+        toast.success('Draft saved successfully')
+      }
+    } catch (error) {
+      toast.error('Failed to save draft')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const submitForApproval = async () => {
     if (!validateSurvey()) return
-    // TODO: Submit to API for approval
-    console.log("Submitting for approval:", survey)
+    
+    setIsSaving(true)
+    try {
+      const surveyData = {
+        ...survey,
+        status: 'pending'
+      }
+      
+      if (isEditing && initialData?.id) {
+        await updateSurvey.mutateAsync({ id: initialData.id, data: surveyData })
+        toast.success('Survey updated successfully')
+      } else {
+        await createSurvey.mutateAsync(surveyData)
+        toast.success('Survey submitted for approval')
+      }
+      
+      router.push('/creator/surveys')
+    } catch (error) {
+      toast.error('Failed to submit survey')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const renderQuestion = (question: Question, index: number) => (
@@ -441,17 +485,27 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-8 border-t border-slate-200/60">
-        <Button variant="filler-outline" onClick={saveDraft} className="h-11 w-full sm:w-auto">
+        <Button 
+          variant="filler-outline" 
+          onClick={saveDraft} 
+          disabled={isSaving}
+          className="h-11 w-full sm:w-auto"
+        >
           <Save className="h-4 w-4 mr-2" />
-          Save Draft
+          {isSaving ? 'Saving...' : 'Save Draft'}
         </Button>
         <Button variant="creator-outline" onClick={() => setIsPreview(true)} className="h-11 w-full sm:w-auto">
           <Eye className="h-4 w-4 mr-2" />
           Preview Survey
         </Button>
-        <Button variant="creator" onClick={submitForApproval} className="h-11 w-full sm:w-auto sm:ml-auto">
+        <Button 
+          variant="creator" 
+          onClick={submitForApproval} 
+          disabled={isSaving}
+          className="h-11 w-full sm:w-auto sm:ml-auto"
+        >
           <Send className="h-4 w-4 mr-2" />
-          {isEditing ? "Update Survey" : "Submit for Approval"}
+          {isSaving ? 'Submitting...' : (isEditing ? "Update Survey" : "Submit for Approval")}
         </Button>
       </div>
     </div>

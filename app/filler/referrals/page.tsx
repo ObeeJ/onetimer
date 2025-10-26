@@ -10,29 +10,19 @@ import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Users, Copy, Share2, Gift, Lock, CheckCircle, AlertCircle } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { useReferrals } from "@/hooks/use-referrals"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { ErrorMessage } from "@/components/ui/error-message"
 
 export default function ReferralsPage() {
   const { isAuthenticated, isVerified } = useAuth()
+  const { data: referralData, isLoading, error, refetch } = useReferrals()
   const reduceMotion = useReducedMotion()
   const [copied, setCopied] = useState(false)
 
-  // TODO: Replace with actual API data
-  const referralData = {
-    totalReferrals: 8,
-    activeReferrals: 5,
-    totalEarnings: 8000,
-    pendingEarnings: 2000
-  }
-
-  const referralCode = "SURVEY2024"
-  const referralLink = `https://onetimesurvey.com/join?ref=${referralCode}`
-
-  const referrals = [
-    { id: "1", name: "John D.", status: "active", earnings: 1000, joinDate: "2024-01-15" },
-    { id: "2", name: "Sarah M.", status: "active", earnings: 1500, joinDate: "2024-01-12" },
-    { id: "3", name: "Mike O.", status: "pending", earnings: 0, joinDate: "2024-01-10" },
-    { id: "4", name: "Grace A.", status: "active", earnings: 2500, joinDate: "2024-01-08" }
-  ]
+  const referralCode = referralData?.code || ""
+  const referralLink = referralData?.link || `https://onetimesurvey.com/join?ref=${referralCode}`
+  const referrals = referralData?.users || []
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -55,6 +45,33 @@ export default function ReferralsPage() {
     } catch (err) {
       console.error("Failed to copy:", err)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 min-w-0 overflow-auto">
+        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
+          <Breadcrumb items={[{ label: "Referrals" }]} />
+          <div className="flex items-center justify-center py-12">
+            <LoadingSpinner size="lg" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 min-w-0 overflow-auto">
+        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
+          <Breadcrumb items={[{ label: "Referrals" }]} />
+          <ErrorMessage 
+            message="Failed to load referral data" 
+            onRetry={refetch}
+          />
+        </div>
+      </div>
+    )
   }
 
   if (!isAuthenticated) {
@@ -123,7 +140,7 @@ export default function ReferralsPage() {
                   <Users className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-slate-900">{referralData.totalReferrals}</div>
+                  <div className="text-2xl font-bold text-slate-900">{referralData?.total_referrals || 0}</div>
                   <p className="text-xs text-slate-500 mt-1">Friends joined</p>
                 </CardContent>
               </Card>
@@ -134,7 +151,7 @@ export default function ReferralsPage() {
                   <CheckCircle className="h-4 w-4 text-green-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-slate-900">{referralData.activeReferrals}</div>
+                  <div className="text-2xl font-bold text-slate-900">{referralData?.active_referrals || 0}</div>
                   <p className="text-xs text-slate-500 mt-1">Currently earning</p>
                 </CardContent>
               </Card>
@@ -145,7 +162,7 @@ export default function ReferralsPage() {
                   <Gift className="h-4 w-4 text-purple-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-slate-900">₦{referralData.totalEarnings.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-slate-900">₦{referralData?.total_earnings?.toLocaleString() || '0'}</div>
                   <p className="text-xs text-slate-500 mt-1">From referrals</p>
                 </CardContent>
               </Card>
@@ -156,7 +173,7 @@ export default function ReferralsPage() {
                   <AlertCircle className="h-4 w-4 text-orange-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-slate-900">₦{referralData.pendingEarnings.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-slate-900">₦{referralData?.pending_earnings?.toLocaleString() || '0'}</div>
                   <p className="text-xs text-slate-500 mt-1">Awaiting completion</p>
                 </CardContent>
               </Card>
@@ -222,11 +239,11 @@ export default function ReferralsPage() {
                       <div key={referral.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-slate-900">{referral.name}</p>
-                          <p className="text-sm text-slate-500">Joined {referral.joinDate}</p>
+                          <p className="text-sm text-slate-500">Joined {new Date(referral.joined_at).toLocaleDateString()}</p>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="text-right">
-                            <p className="font-semibold text-slate-900">₦{referral.earnings}</p>
+                            <p className="font-semibold text-slate-900">₦{referral.points}</p>
                             <Badge 
                               variant={referral.status === "active" ? "default" : "secondary"}
                               className={referral.status === "active" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}

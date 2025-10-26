@@ -6,8 +6,10 @@ README.md
 .env
 .env.local
 .env.production.local
-.env.local
-.next
+.env.development.local
 .git
 .gitignore
-*.md
+.next
+.vercel
+coverage
+__tests__

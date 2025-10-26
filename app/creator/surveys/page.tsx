@@ -11,49 +11,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BarChart3, Plus, Search, Eye, Users, Calendar, MoreHorizontal, Edit, Copy, Pause, Play, Trash2, Share, Upload } from "lucide-react"
 import Link from "next/link"
-import { useCreatorAuth } from "@/hooks/use-creator-auth"
+import { useAuth } from "@/providers/auth-provider"
+import { useCreatorSurveys, useDeleteSurvey } from "@/hooks/use-creator"
+import { toast } from "sonner"
 
 export default function CreatorSurveysPage() {
-  const { isAuthenticated } = useCreatorAuth()
+  const { isAuthenticated, user } = useAuth()
+  const { data: surveysData, isLoading } = useCreatorSurveys()
+  const deleteSurvey = useDeleteSurvey()
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
 
-  // Mock surveys data
-  const surveys = [
-    {
-      id: "1",
-      title: "Consumer Behavior Study",
-      description: "Understanding shopping patterns in urban areas",
-      status: "active",
-      responses: 89,
-      target: 100,
-      reward: 500,
-      createdAt: "2024-01-15",
-      expiresAt: "2024-02-15"
-    },
-    {
-      id: "2", 
-      title: "Product Feedback Survey",
-      description: "Collecting feedback on new mobile app features",
-      status: "pending",
-      responses: 0,
-      target: 50,
-      reward: 300,
-      createdAt: "2024-01-20",
-      expiresAt: "2024-02-20"
-    },
-    {
-      id: "3",
-      title: "Market Research Q4",
-      description: "Quarterly market analysis for tech products",
-      status: "completed",
-      responses: 156,
-      target: 150,
-      reward: 750,
-      createdAt: "2024-01-10",
-      expiresAt: "2024-01-31"
+  const surveys = surveysData?.surveys || []
+
+  const handleDeleteSurvey = async (surveyId: string) => {
+    try {
+      await deleteSurvey.mutateAsync(surveyId)
+      toast.success('Survey deleted successfully')
+    } catch (error) {
+      toast.error('Failed to delete survey')
     }
-  ]
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -77,7 +55,7 @@ export default function CreatorSurveysPage() {
     return matchesSearch && matchesStatus
   })
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || user?.role !== 'creator') {
     return (
       <div className="flex-1 min-w-0 overflow-auto">
         <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
@@ -142,7 +120,33 @@ export default function CreatorSurveysPage() {
 
         {/* All authenticated users have full access */}
 
-        {filteredSurveys.length === 0 ? (
+        {isLoading ? (
+          <div className="grid gap-6">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="rounded-xl">
+                <CardHeader>
+                  <div className="animate-pulse space-y-2">
+                    <div className="h-6 bg-slate-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="animate-pulse space-y-3">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="h-4 bg-slate-200 rounded"></div>
+                      <div className="h-4 bg-slate-200 rounded"></div>
+                      <div className="h-4 bg-slate-200 rounded"></div>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="h-8 bg-slate-200 rounded w-24"></div>
+                      <div className="h-8 bg-slate-200 rounded w-24"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filteredSurveys.length === 0 ? (
           <EmptyState
             icon={BarChart3}
             title={searchQuery || statusFilter !== "all" ? "No surveys found" : "No surveys yet"}
@@ -193,7 +197,10 @@ export default function CreatorSurveysPage() {
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem 
+                          className="text-red-600"
+                          onClick={() => handleDeleteSurvey(survey.id)}
+                        >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete
                         </DropdownMenuItem>

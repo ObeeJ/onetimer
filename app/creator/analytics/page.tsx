@@ -5,50 +5,51 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BarChart3, TrendingUp, Users, Eye, Download, Calendar } from "lucide-react"
-import { useCreatorAuth } from "@/hooks/use-creator-auth"
+import { useAuth } from "@/providers/auth-provider"
+import { useCreatorDashboard, useCreatorSurveys, useSurveyAnalytics } from "@/hooks/use-creator"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 export default function CreatorAnalyticsPage() {
-  console.log("CreatorAnalyticsPage rendering")
-  const { isAuthenticated, isApproved } = useCreatorAuth()
+  const { isAuthenticated, user } = useAuth()
+  const { data: dashboard } = useCreatorDashboard()
+  const { data: surveysData } = useCreatorSurveys()
   const [selectedSurvey, setSelectedSurvey] = useState("all")
   const [timeRange, setTimeRange] = useState("30d")
-  console.log("Analytics page auth state:", { isAuthenticated, isApproved })
+  const { data: analytics } = useSurveyAnalytics(selectedSurvey !== "all" ? selectedSurvey : "")
 
-  // Mock analytics data
-  const surveys = [
-    { id: "1", title: "Consumer Behavior Study" },
-    { id: "2", title: "Product Feedback Survey" },
-    { id: "3", title: "Market Research Q4" }
-  ]
-
+  const surveys = surveysData?.surveys || []
+  
   const overviewStats = {
-    totalResponses: 1247,
-    activesurveys: 3,
-    completionRate: 87,
-    avgResponseTime: "4.2 min"
+    totalResponses: dashboard?.total_responses || 0,
+    activesurveys: dashboard?.active_surveys || 0,
+    completionRate: analytics?.completion_rate || 0,
+    avgResponseTime: analytics?.avg_time || "0 min"
   }
 
-  const responseData = [
-    { date: "Jan 1", responses: 45 },
-    { date: "Jan 8", responses: 67 },
-    { date: "Jan 15", responses: 89 },
-    { date: "Jan 22", responses: 123 },
-    { date: "Jan 29", responses: 156 }
-  ]
+  const responseData = analytics?.response_trends || []
 
-  const demographicData = [
-    { category: "18-24", percentage: 32, count: 399 },
-    { category: "25-34", percentage: 28, count: 349 },
-    { category: "35-44", percentage: 24, count: 299 },
-    { category: "45+", percentage: 16, count: 200 }
-  ]
+  const demographicData = analytics?.demographics?.age_groups ? 
+    Object.entries(analytics.demographics.age_groups).map(([category, count]) => ({
+      category,
+      count: count as number,
+      percentage: Math.round((count as number / analytics.total_responses) * 100)
+    })) : []
 
-  // All users can access analytics for demo
+  if (!isAuthenticated || user?.role !== 'creator') {
+    return (
+      <div className="flex-1 min-w-0 overflow-auto">
+        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h1>
+            <p className="text-slate-600">You need to be signed in as a creator to view analytics.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex-1 min-w-0 overflow-auto">

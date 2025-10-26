@@ -11,26 +11,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { EmptyState } from "@/components/ui/empty-state"
 import { DollarSign, TrendingUp, Calendar, Download, Lock, CheckCircle } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { useEarnings } from "@/hooks/use-earnings"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { ErrorMessage } from "@/components/ui/error-message"
+import WithdrawDialog from "@/components/earnings/withdraw-dialog"
 
 export default function EarningsPage() {
   const { isAuthenticated, isVerified } = useAuth()
+  const { data: earnings, isLoading, error, refetch } = useEarnings()
   const reduceMotion = useReducedMotion()
   const [timeRange, setTimeRange] = useState("lifetime")
+  const [withdrawOpen, setWithdrawOpen] = useState(false)
 
-  // TODO: Replace with actual API data
   const earningsData = {
-    total: 24750,
-    thisMonth: 8250,
-    pending: 1500,
-    withdrawn: 23250
+    total: earnings?.total_earned || 0,
+    available: earnings?.balance || 0,
+    pending: earnings?.pending || 0,
+    withdrawn: earnings?.withdrawn || 0,
+    transactions: earnings?.history || []
   }
 
-  const transactions = [
-    { id: "1", type: "survey", title: "Consumer Behavior Study", amount: 550, date: "2024-01-15", status: "completed" },
-    { id: "2", type: "survey", title: "Product Feedback", amount: 325, date: "2024-01-14", status: "completed" },
-    { id: "3", type: "referral", title: "Friend Referral Bonus", amount: 1000, date: "2024-01-13", status: "completed" },
-    { id: "4", type: "survey", title: "Market Research", amount: 475, date: "2024-01-12", status: "pending" }
-  ]
+  const thisMonth = earnings?.this_month || 0
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -43,6 +44,31 @@ export default function EarningsPage() {
   const itemVariants = {
     hidden: { opacity: 0, y: reduceMotion ? 0 : 20 },
     visible: { opacity: 1, y: 0, transition: { duration: reduceMotion ? 0.1 : 0.4, ease: easeOut } }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 min-w-0 overflow-auto">
+        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
+          <div className="flex items-center justify-center py-12">
+            <LoadingSpinner size="lg" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 min-w-0 overflow-auto">
+        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
+          <ErrorMessage 
+            message="Failed to load earnings data" 
+            onRetry={refetch}
+          />
+        </div>
+      </div>
+    )
   }
 
   if (!isAuthenticated) {
@@ -141,7 +167,7 @@ export default function EarningsPage() {
                   <TrendingUp className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-slate-900">₦{earningsData.thisMonth.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-slate-900">₦{thisMonth.toLocaleString()}</div>
                   <p className="text-xs text-slate-500 mt-1">+15% from last month</p>
                 </CardContent>
               </Card>
@@ -184,7 +210,7 @@ export default function EarningsPage() {
                     <CardTitle>Recent Transactions</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {transactions.length === 0 ? (
+                    {!earningsData.transactions || earningsData.transactions.length === 0 ? (
                       <EmptyState
                         icon={DollarSign}
                         title="No transactions yet"
@@ -192,7 +218,7 @@ export default function EarningsPage() {
                       />
                     ) : (
                       <div className="space-y-4">
-                        {transactions.map((transaction) => (
+                        {earningsData.transactions.map((transaction) => (
                           <div key={transaction.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-slate-900 truncate">{transaction.title}</p>
@@ -245,7 +271,12 @@ export default function EarningsPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <p className="text-sm text-slate-600">Available balance: ₦{(earningsData.total - earningsData.withdrawn).toLocaleString()}</p>
-                      <Button variant="filler" className="w-full">
+                      <Button 
+                        variant="filler" 
+                        className="w-full"
+                        onClick={() => setWithdrawOpen(true)}
+                        disabled={earningsData.available < 1000}
+                      >
                         Request Withdrawal
                       </Button>
                       <p className="text-xs text-slate-500">Minimum withdrawal: ₦5,000</p>
@@ -300,6 +331,12 @@ export default function EarningsPage() {
             </Tabs>
           </motion.div>
         </motion.div>
+        
+        <WithdrawDialog 
+          open={withdrawOpen}
+          onOpenChange={setWithdrawOpen}
+          balance={earningsData.available}
+        />
       </div>
     </div>
   )

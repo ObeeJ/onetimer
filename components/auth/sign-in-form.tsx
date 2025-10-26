@@ -26,21 +26,19 @@ export default function SignInForm() {
     setError("")
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const user = await signIn(email, password)
       
-      // Mock successful sign in - user is fully verified after sign in
-      signIn({
-        id: "1",
-        name: "John Doe",
-        email: email,
-        role: "filler",
-        isVerified: true
-      })
+      // Redirect based on user role
+      const roleRoutes = {
+        filler: '/filler',
+        creator: '/creator',
+        admin: '/admin',
+        super_admin: '/super-admin'
+      }
       
-      router.push("/filler")
-    } catch (err) {
-      setError("Invalid email or password. Please try again.")
+      router.push(roleRoutes[user.role as keyof typeof roleRoutes] || '/filler')
+    } catch (err: any) {
+      setError(err.message || "Invalid email or password. Please try again.")
     } finally {
       setIsLoading(false)
     }

@@ -2,14 +2,16 @@
 
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@/types/user"
+import { api } from "@/hooks/use-api"
 
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isVerified: boolean
-  signIn: (user: User) => void
-  signOut: () => void
+  signIn: (email: string, password: string) => Promise<User>
+  signOut: () => Promise<void>
   isLoading: boolean
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -19,20 +21,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
 
+  const refreshUser = async () => {
+    try {
+      const response = await api.get<{ user: User }>('/api/v1/users/profile')
+      setUser(response.user)
+    } catch {
+      setUser(null)
+    }
+  }
+
   useEffect(() => {
     setIsMounted(true)
-    try {
-      const stored = localStorage.getItem("onetime_user")
-      if (stored) {
-        setUser(JSON.parse(stored))
-      }
-    } catch (error) {
-      console.error("Failed to load user from localStorage:", error)
-    }
-    setIsLoading(false)
+    refreshUser().finally(() => setIsLoading(false))
   }, [])
 
-  // Prevent hydration mismatch by not rendering auth-dependent content until mounted
   if (!isMounted) {
     return (
       <AuthContext.Provider
@@ -40,9 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           user: null,
           isAuthenticated: false,
           isVerified: false,
-          signIn: () => {},
-          signOut: () => {},
+          signIn: async () => ({} as User),
+          signOut: async () => {},
           isLoading: true,
+          refreshUser: async () => {}
         }}
       >
         {children}
@@ -50,14 +53,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
   }
 
-  const signIn = (userData: User) => {
-    setUser(userData)
-    localStorage.setItem("onetime_user", JSON.stringify(userData))
+  const signIn = async (email: string, password: string): Promise<User> => {
+    const response = await api.post<{ user: User }>('/api/v1/auth/login', { email, password })
+    setUser(response.user)
+    return response.user
   }
 
-  const signOut = () => {
-    setUser(null)
-    localStorage.removeItem("onetime_user")
+  const signOut = async () => {
+    try {
+      await api.post('/api/v1/auth/logout')
+    } finally {
+      setUser(null)
+    }
   }
 
   return (
@@ -69,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signOut,
         isLoading,
+        refreshUser
       }}
     >
       {children}

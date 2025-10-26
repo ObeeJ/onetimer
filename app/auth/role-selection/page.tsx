@@ -2,13 +2,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { Users, Building2 } from "lucide-react"
+import Image from "next/image"
 
 export default function RoleSelectionPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-5xl">
         <div className="text-center mb-12">
-          <img src="/Logo.png" alt="Onetime Survey" className="h-20 w-auto mx-auto mb-8" />
+          <Image src="/Logo.png" alt="Onetime Survey" width={320} height={80} className="mx-auto mb-8" />
           <h1 className="text-4xl font-bold text-slate-900 mb-4">Choose your path</h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">Select how you want to use Onetime Survey and start your journey with us</p>
         </div>

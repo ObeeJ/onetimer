@@ -10,7 +10,7 @@ import { ArrowLeft } from "lucide-react"
 import { useAuth } from "@/providers/auth-provider"
 import { authenticateUser } from "@/lib/mock-users"
 import { AnimatedBackground } from "@/components/ui/animated-background"
-
+import Image from "next/image"
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -70,7 +70,7 @@ export default function LoginPage() {
       </div>
       <Card className="w-full max-w-md shadow-xl border-0 bg-white/90 backdrop-blur-sm relative z-10">
         <CardHeader className="text-center space-y-4 pb-6">
-          <img src="/Logo.png" alt="Onetime Survey" className="h-12 w-auto mx-auto" />
+          <Image src="/Logo.png" alt="Onetime Survey" width={192} height={48} className="mx-auto" />
           <CardTitle className="text-2xl font-bold text-slate-900">Welcome back</CardTitle>
           <p className="text-slate-600">Sign in to your account</p>
         </CardHeader>

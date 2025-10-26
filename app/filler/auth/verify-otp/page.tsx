@@ -14,20 +14,24 @@ function VerifyOTPContent() {
 
   const handleVerify = async (otp: string) => {
     try {
-      // TODO: Replace with actual API call to verify OTP
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Mock successful verification and sign in - user is verified after OTP
-      signIn({
-        id: "1",
-        name: "New User",
-        email: email || undefined,
-        phone: phone || undefined,
-        role: "filler",
-        isVerified: true
+      const response = await fetch('/api/v1/auth/verify-otp', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          otp: otp, 
+          email: email || undefined,
+          phone: phone || undefined 
+        })
       })
       
-      router.push("/filler/onboarding")
+      if (response.ok) {
+        const data = await response.json()
+        await signIn(email || '', '') // Will get user data from backend
+        router.push("/filler/onboarding")
+      } else {
+        throw new Error("Invalid verification code")
+      }
     } catch (error) {
       throw new Error("Invalid verification code")
     }
@@ -35,8 +39,15 @@ function VerifyOTPContent() {
 
   const handleResend = async () => {
     try {
-      // TODO: Replace with actual API call to resend OTP
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await fetch('/api/v1/auth/send-otp', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: email || undefined,
+          phone: phone || undefined 
+        })
+      })
     } catch (error) {
       console.error("Failed to resend OTP")
     }

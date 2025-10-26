@@ -8,9 +8,12 @@ import { Badge } from "@/components/ui/badge"
 import { BarChart3, Users, Eye, DollarSign, Plus } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/providers/auth-provider"
+import { useCreatorDashboard, useCreatorSurveys } from "@/hooks/use-creator"
 
 export default function CreatorDashboardPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
+  const { data: dashboard, isLoading: dashboardLoading } = useCreatorDashboard()
+  const { data: surveysData, isLoading: surveysLoading } = useCreatorSurveys()
   const router = useRouter()
 
   useEffect(() => {
@@ -19,7 +22,7 @@ export default function CreatorDashboardPage() {
     }
   }, [isAuthenticated, isLoading, user?.role, router])
 
-  if (isLoading) {
+  if (isLoading || dashboardLoading) {
     return (
       <div className="flex-1 min-w-0 overflow-auto">
         <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
@@ -48,22 +51,24 @@ export default function CreatorDashboardPage() {
     organizationName: "Tech Solutions Inc",
     industry: "Technology",
     role: "Product Manager",
-    credits: 100,
-    hasCreatedSurvey: false
+    credits: dashboard?.credits_balance || 100,
+    hasCreatedSurvey: (dashboard?.total_surveys || 0) > 0
   }
-  const isNewUser = true // Always show as new user for demo
+  const isNewUser = (dashboard?.total_surveys || 0) === 0
   const stats = {
-    totalSurveys: 0,
-    activeSurveys: 0,
-    totalResponses: 0,
-    creditsRemaining: 100
+    totalSurveys: dashboard?.total_surveys || 0,
+    activeSurveys: dashboard?.active_surveys || 0,
+    totalResponses: dashboard?.total_responses || 0,
+    creditsRemaining: dashboard?.credits_balance || 100
   }
 
-  const recentSurveys = isNewUser ? [] : [
-    { id: "1", title: "Consumer Behavior Study", status: "active", responses: 89, target: 100 },
-    { id: "2", title: "Product Feedback Survey", status: "pending", responses: 0, target: 50 },
-    { id: "3", title: "Market Research Q4", status: "completed", responses: 156, target: 150 }
-  ]
+  const recentSurveys = surveysData?.surveys?.slice(0, 3).map(survey => ({
+    id: survey.id,
+    title: survey.title,
+    status: survey.status,
+    responses: survey.current_responses,
+    target: survey.max_responses
+  })) || []
 
   return (
     <div className="flex-1 min-w-0 overflow-auto">

@@ -2,42 +2,63 @@
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState } from "react"
 
 export default function KYCUpload() {
   const [nin, setNin] = useState("")
-  const [bvn, setBvn] = useState("")
-  const [fileName, setFileName] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    
+    try {
+      const response = await fetch('/api/kyc/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nin })
+      })
+      
+      if (response.ok) {
+        setStatus("success")
+      } else {
+        setStatus("error")
+      }
+    } catch {
+      setStatus("error")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div className="grid gap-4">
+    <form onSubmit={handleSubmit} className="grid gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="nin" className="font-semibold">
-          NIN
-        </Label>
-        <Input id="nin" placeholder="12345678901" value={nin} onChange={(e) => setNin(e.target.value)} />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="bvn" className="font-semibold">
-          BVN
-        </Label>
-        <Input id="bvn" placeholder="12345678901" value={bvn} onChange={(e) => setBvn(e.target.value)} />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="doc" className="font-semibold">
-          Upload ID document
-        </Label>
-        <Input
-          id="doc"
-          type="file"
-          accept="image/*,application/pdf"
-          onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
+        <Label htmlFor="nin" className="font-semibold">NIN (National Identification Number)</Label>
+        <Input 
+          id="nin" 
+          placeholder="12345678901"
+          value={nin} 
+          onChange={(e) => setNin(e.target.value)}
+          maxLength={11}
+          required 
         />
-        {/* S3 placeholder:
-            When integrating, upload to S3 (or Blob storage) from the backend.
-            Keep client uploads minimal for security; use signed URLs if needed. */}
-        {fileName ? <p className="text-xs text-slate-500">Selected: {fileName}</p> : null}
+        <p className="text-xs text-gray-500">Enter your 11-digit NIN for verification</p>
       </div>
-    </div>
+      
+      <Button type="submit" disabled={loading} className="mt-4">
+        {loading ? "Verifying..." : "Verify Identity"}
+      </Button>
+      
+      {status === "success" && (
+        <p className="text-green-600 text-sm">KYC verification successful!</p>
+      )}
+      {status === "error" && (
+        <p className="text-red-600 text-sm">Verification failed. Please try again.</p>
+      )}
+    </form>
   )
 }
