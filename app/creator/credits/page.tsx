@@ -7,12 +7,14 @@ import { Badge } from "@/components/ui/badge"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
 import { CreditCard, Plus, History, Zap, Info } from "lucide-react"
-import { useCreatorAuth } from "@/hooks/use-creator-auth"
+import { useAuth } from "@/providers/auth-provider"
+import { useCreatorCredits } from "@/hooks/use-creator"
+import { toast } from "sonner"
 
 export default function CreatorCreditsPage() {
-  const { creator, updateCredits } = useCreatorAuth()
+  const { isAuthenticated, user } = useAuth()
+  const { data: credits, isLoading: creditsLoading } = useCreatorCredits()
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
   const [customAmount, setCustomAmount] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -44,65 +46,70 @@ export default function CreatorCreditsPage() {
     }
   ]
 
-  const transactionHistory = [
-    {
-      id: "1",
-      type: "purchase",
-      credits: 100,
-      date: "2024-01-20",
-      description: "Credit purchase"
-    },
-    {
-      id: "2", 
-      type: "usage",
-      credits: -25,
-      date: "2024-01-18",
-      description: "Survey: Consumer Behavior Study"
-    },
-    {
-      id: "3",
-      type: "purchase",
-      credits: 50,
-      date: "2024-01-15",
-      description: "Credit purchase"
-    }
-  ]
+  const transactionHistory = credits?.transactions || []
 
   const handlePurchase = async (packageId: string) => {
     setIsLoading(true)
     setSelectedPackage(packageId)
     
     try {
+      // TODO: Integrate with Paystack API
       await new Promise(resolve => setTimeout(resolve, 2000))
-      const selectedPkg = creditPackages.find(pkg => pkg.id === packageId)
-      if (selectedPkg && creator) {
-        updateCredits(creator.credits + selectedPkg.credits)
-      }
+      toast.success('Credits purchased successfully!')
       setSelectedPackage(null)
     } catch (error) {
-      console.error("Payment failed:", error)
+      toast.error('Payment failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleCustomPurchase = async () => {
-    const credits = parseInt(customAmount)
-    if (credits < 10) return
+    const creditAmount = parseInt(customAmount)
+    if (creditAmount < 10) return
     
     setIsLoading(true)
     
     try {
+      // TODO: Integrate with Paystack API
       await new Promise(resolve => setTimeout(resolve, 2000))
-      if (creator) {
-        updateCredits(creator.credits + credits)
-      }
+      toast.success('Credits purchased successfully!')
       setCustomAmount("")
     } catch (error) {
-      console.error("Payment failed:", error)
+      toast.error('Payment failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (!isAuthenticated || user?.role !== 'creator') {
+    return (
+      <div className="flex-1 min-w-0 overflow-auto">
+        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h1>
+            <p className="text-slate-600">You need to be signed in as a creator to manage credits.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (creditsLoading) {
+    return (
+      <div className="flex-1 min-w-0 overflow-auto">
+        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-slate-200 rounded w-1/3"></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-32 bg-slate-200 rounded-xl"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -127,7 +134,7 @@ export default function CreatorCreditsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900 mb-1">100</div>
+              <div className="text-3xl font-bold text-slate-900 mb-1">{credits?.balance || 0}</div>
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-orange-500"></div>
                 <p className="text-xs text-slate-500">Available credits</p>
@@ -143,7 +150,7 @@ export default function CreatorCreditsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900 mb-1">25</div>
+              <div className="text-3xl font-bold text-slate-900 mb-1">{credits?.spent || 0}</div>
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                 <p className="text-xs text-slate-500">This month</p>
@@ -159,7 +166,7 @@ export default function CreatorCreditsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900 mb-1">150</div>
+              <div className="text-3xl font-bold text-slate-900 mb-1">{(credits?.balance || 0) + (credits?.spent || 0)}</div>
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
                 <p className="text-xs text-slate-500">All time</p>

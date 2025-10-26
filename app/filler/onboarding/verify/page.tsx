@@ -23,15 +23,17 @@ export default function VerifyPage() {
 
     setVerifying(true)
     try {
-      // AWS SES mock verify endpoint
-      const response = await fetch("/api/auth/verify-otp", {
+      const response = await fetch("/api/v1/auth/verify-otp", {
         method: "POST",
+        credentials: 'include',
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: otpCode, email }),
+        body: JSON.stringify({ otp: otpCode, email }),
       })
 
       if (response.ok) {
-        router.push("/filler/onboarding")
+        router.push("/filler")
+      } else {
+        throw new Error('Verification failed')
       }
     } catch (error) {
       console.error("Verification failed:", error)
@@ -43,9 +45,9 @@ export default function VerifyPage() {
   const resend = async () => {
     setResending(true)
     try {
-      // AWS SES mock send OTP
-      await fetch("/api/auth/send-otp", {
+      await fetch("/api/v1/auth/send-otp", {
         method: "POST",
+        credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       })

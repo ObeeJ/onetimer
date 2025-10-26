@@ -4,9 +4,10 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import Image from "next/image"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { Button } from "@/components/ui/button"
-import { Home, ListChecks, Wallet, Settings, LogOut, User2 } from "lucide-react"
+import { Home, ListChecks, Wallet, Users, Settings, LogOut, User2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
 import { SidebarToggle } from "@/components/ui/sidebar-toggle"
@@ -16,6 +17,7 @@ const navItems = [
   { title: "Dashboard", url: "/filler", icon: Home },
   { title: "Surveys", url: "/filler/surveys", icon: ListChecks },
   { title: "Earnings", url: "/filler/earnings", icon: Wallet },
+  { title: "Referrals", url: "/filler/referrals", icon: Users },
   { title: "Settings", url: "/filler/settings", icon: Settings },
 ]
 
@@ -43,7 +45,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
             {sidebarOpen ? (
               <div className="flex items-center gap-3 w-full">
                 <Link href="/filler">
-                  <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto cursor-pointer" />
+                  <Image src="/Logo.png" alt="OneTime Survey" width={128} height={32} className="cursor-pointer" />
                 </Link>
                 <div className="ml-auto">
                   <SidebarToggle />
@@ -149,7 +151,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
         )}>
           <div className="h-16 border-b border-slate-200 flex items-center px-4">
             <Link href="/filler" className="flex-1">
-              <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto cursor-pointer" />
+              <Image src="/Logo.png" alt="OneTime Survey" width={128} height={32} className="cursor-pointer" />
             </Link>
             <SidebarToggle />
           </div>

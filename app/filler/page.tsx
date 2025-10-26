@@ -9,11 +9,15 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, Users, Wallet, ListChecks, Clock } from "lucide-react"
 import { useAuth } from "@/providers/auth-provider"
+import { useSurveys } from "@/hooks/use-surveys"
+import { useEarnings } from "@/hooks/use-earnings"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isVerified, isLoading } = useAuth()
+  const { data: surveys, isLoading: surveysLoading } = useSurveys()
+  const { data: earnings } = useEarnings()
   const router = useRouter()
   const reduceMotion = useReducedMotion()
 
@@ -95,8 +99,8 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-slate-600 mb-1">Surveys Completed</p>
-                      <p className="text-3xl font-bold text-slate-900">12</p>
-                      <p className="text-xs text-green-600 mt-1">+3 this week</p>
+                      <p className="text-3xl font-bold text-slate-900">{earnings?.transactions?.filter(t => t.type === 'earning').length || 0}</p>
+                      <p className="text-xs text-green-600 mt-1">+{earnings?.transactions?.filter(t => t.type === 'earning' && new Date(t.date) > new Date(Date.now() - 7*24*60*60*1000)).length || 0} this week</p>
                     </div>
                     <div className="p-3 rounded-lg bg-[#013F5C]/10">
                       <ListChecks className="h-6 w-6 text-[#013F5C]" />
@@ -110,8 +114,8 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-slate-600 mb-1">Total Earned</p>
-                      <p className="text-3xl font-bold text-slate-900">₦6,500</p>
-                      <p className="text-xs text-blue-600 mt-1">Available: ₦2,300</p>
+                      <p className="text-3xl font-bold text-slate-900">₦{earnings?.total?.toLocaleString() || '0'}</p>
+                      <p className="text-xs text-blue-600 mt-1">Available: ₦{earnings?.available?.toLocaleString() || '0'}</p>
                     </div>
                     <div className="p-3 rounded-lg bg-green-100">
                       <Wallet className="h-6 w-6 text-green-600" />
@@ -140,8 +144,8 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-slate-600 mb-1">Withdrawn</p>
-                      <p className="text-3xl font-bold text-slate-900">₦4,200</p>
-                      <p className="text-xs text-purple-600 mt-1">Last: Jan 15</p>
+                      <p className="text-3xl font-bold text-slate-900">₦{earnings?.withdrawn?.toLocaleString() || '0'}</p>
+                      <p className="text-xs text-purple-600 mt-1">Last: {earnings?.transactions?.find(t => t.type === 'withdrawal')?.date ? new Date(earnings.transactions.find(t => t.type === 'withdrawal')!.date).toLocaleDateString() : 'Never'}</p>
                     </div>
                     <div className="p-3 rounded-lg bg-purple-100">
                       <TrendingUp className="h-6 w-6 text-purple-600" />
@@ -168,212 +172,43 @@ export default function DashboardPage() {
             </Link>
           </div>
           
-          {/* Change to false to test empty state */}
-          {true ? (
+          {surveys && surveys.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <Badge variant="secondary" className="rounded-full bg-blue-100 text-blue-700 text-xs">
-                      Shopping
-                    </Badge>
-                    <div className="text-lg font-bold text-green-600">₦550</div>
-                  </div>
-                  <CardTitle className="text-lg font-bold text-slate-900">
-                    Consumer Shopping Habits Survey
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-slate-600 line-clamp-2">
-                    Share your shopping preferences and earn rewards
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>8 mins</span>
+              {surveys.slice(0, 6).map((survey) => (
+                <Card key={survey.id} className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <Badge variant="secondary" className="rounded-full bg-blue-100 text-blue-700 text-xs">
+                        {survey.category}
+                      </Badge>
+                      <div className="text-lg font-bold text-green-600">₦{survey.reward}</div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      <span>234</span>
+                    <CardTitle className="text-lg font-bold text-slate-900">
+                      {survey.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-slate-600 line-clamp-2">
+                      {survey.description}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-slate-500">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{survey.estimated_duration} mins</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        <span>{survey.responses_count || 0}</span>
+                      </div>
                     </div>
-                  </div>
-                  <Button asChild variant="filler" className="w-full">
-                    <Link href="/filler/surveys/1">
-                      Start Survey
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <Badge variant="secondary" className="rounded-full bg-purple-100 text-purple-700 text-xs">
-                      Technology
-                    </Badge>
-                    <div className="text-lg font-bold text-green-600">₦325</div>
-                  </div>
-                  <CardTitle className="text-lg font-bold text-slate-900">
-                    Technology Usage Survey
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-slate-600 line-clamp-2">
-                    Help us understand how people use technology
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>5 mins</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      <span>156</span>
-                    </div>
-                  </div>
-                  <Button asChild variant="filler" className="w-full">
-                    <Link href="/filler/surveys/2">
-                      Start Survey
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <Badge variant="secondary" className="rounded-full bg-orange-100 text-orange-700 text-xs">
-                      Food
-                    </Badge>
-                    <div className="text-lg font-bold text-green-600">₦475</div>
-                  </div>
-                  <CardTitle className="text-lg font-bold text-slate-900">
-                    Food & Dining Preferences
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-slate-600 line-clamp-2">
-                    Tell us about your dining and food preferences
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>7 mins</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      <span>89</span>
-                    </div>
-                  </div>
-                  <Button asChild variant="filler" className="w-full">
-                    <Link href="/filler/surveys/3">
-                      Start Survey
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <Badge variant="secondary" className="rounded-full bg-green-100 text-green-700 text-xs">
-                      Healthcare
-                    </Badge>
-                    <div className="text-lg font-bold text-green-600">₦725</div>
-                  </div>
-                  <CardTitle className="text-lg font-bold text-slate-900">
-                    Healthcare & Wellness Survey
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-slate-600 line-clamp-2">
-                    Share insights about healthcare experiences
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>12 mins</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      <span>67</span>
-                    </div>
-                  </div>
-                  <Button asChild variant="filler" className="w-full">
-                    <Link href="/filler/surveys/4">
-                      Start Survey
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <Badge variant="secondary" className="rounded-full bg-pink-100 text-pink-700 text-xs">
-                      Travel
-                    </Badge>
-                    <div className="text-lg font-bold text-green-600">₦600</div>
-                  </div>
-                  <CardTitle className="text-lg font-bold text-slate-900">
-                    Travel & Tourism Preferences
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-slate-600 line-clamp-2">
-                    Help tourism companies understand travel preferences
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>10 mins</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      <span>145</span>
-                    </div>
-                  </div>
-                  <Button asChild variant="filler" className="w-full">
-                    <Link href="/filler/surveys/5">
-                      Start Survey
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <Badge variant="secondary" className="rounded-full bg-indigo-100 text-indigo-700 text-xs">
-                      Education
-                    </Badge>
-                    <div className="text-lg font-bold text-green-600">₦450</div>
-                  </div>
-                  <CardTitle className="text-lg font-bold text-slate-900">
-                    Online Learning Experience
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-slate-600 line-clamp-2">
-                    Share your experience with online education platforms
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>6 mins</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      <span>98</span>
-                    </div>
-                  </div>
-                  <Button asChild variant="filler" className="w-full">
-                    <Link href="/filler/surveys/6">
-                      Start Survey
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
+                    <Button asChild variant="filler" className="w-full">
+                      <Link href={`/filler/surveys/${survey.id}`}>
+                        Start Survey
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ) : (
             /* Empty state when no surveys available */

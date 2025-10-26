@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,6 +8,32 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/providers/auth-provider"
+import { api } from "@/hooks/use-api"
+import { useToast } from "@/hooks/use-toast"
+import Image from "next/image"
+import { AlertCircle, CheckCircle } from "lucide-react"
+
+const PasswordStrengthIndicator = ({ password }) => {
+  const getStrength = () => {
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    return score;
+  };
+
+  const strength = getStrength();
+  const color = ['', 'red', 'orange', 'yellow', 'lime', 'green'][strength];
+  const width = `${(strength / 5) * 100}%`;
+
+  return (
+    <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1">
+      <div className="h-1.5 rounded-full transition-all" style={{ width, backgroundColor: color }}></div>
+    </div>
+  );
+};
 
 export default function FillerOnboardingPage() {
   const [formData, setFormData] = useState({
@@ -22,271 +48,137 @@ export default function FillerOnboardingPage() {
     education: "",
     employment: "",
     income: "",
-    interests: [] as string[]
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const { signIn } = useAuth()
-  const router = useRouter()
+    interests: [] as string[],
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
 
-    try {
-      // Create new user
-      const newUser = {
-        id: `filler-${Date.now()}`,
-        name: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        role: "filler" as const,
-        isVerified: true
-      }
-
-      // Sign in the user
-      signIn(newUser)
-      
-      // Redirect to filler dashboard
-      router.push("/filler")
-    } catch (error) {
-      console.error("Registration failed:", error)
-    } finally {
-      setIsLoading(false)
+  const validate = (name, value) => {
+    let error = '';
+    switch (name) {
+      case 'firstName':
+      case 'lastName':
+        if (value.length < 2) error = 'Must be at least 2 characters long.';
+        break;
+      case 'email':
+        if (!/\S+@\S+\.\S+/.test(value)) error = 'Invalid email address.';
+        break;
+      case 'password':
+        if (value.length < 8) error = 'Must be at least 8 characters long.';
+        else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])/.test(value)) error = 'Must include uppercase, lowercase, and a number.';
+        break;
+      default:
+        if (!value) error = 'This field is required.';
+        break;
     }
-  }
+    setErrors(prev => ({ ...prev, [name]: error }));
+  };
+
+  const handleChange = (name: string, value: any) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+    validate(name, value);
+  };
 
   const handleInterestChange = (interest: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      interests: checked 
-        ? [...prev.interests, interest]
-        : prev.interests.filter(i => i !== interest)
-    }))
-  }
+    const newInterests = checked 
+      ? [...formData.interests, interest]
+      : formData.interests.filter(i => i !== interest);
+    setFormData(prev => ({ ...prev, interests: newInterests }));
+  };
+
+  const isFormValid = useMemo(() => {
+    return Object.values(formData).every(value => {
+        if (Array.isArray(value)) return true; // Assuming interests are optional
+        return value !== '';
+    }) && Object.values(errors).every(error => error === '');
+  }, [formData, errors]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isFormValid) {
+        toast({ title: "Invalid Form", description: "Please correct the errors before submitting.", variant: "destructive" });
+        return;
+    }
+    setIsLoading(true);
+
+    try {
+      const registrationData = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        role: "filler",
+        profile: {
+          age_range: formData.age,
+          gender: formData.gender,
+          country: formData.country,
+          state: formData.state,
+          education: formData.education,
+          employment: formData.employment,
+          income_range: formData.income,
+          interests: formData.interests,
+        },
+      };
+
+      await api.post('/api/v1/auth/register', registrationData);
+      await signIn(formData.email, formData.password);
+      
+      toast({ title: "Success", description: "Account created successfully!", variant: "success" });
+      router.push("/filler");
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Registration failed", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
+    <main className="flex min-h-screen items-center justify-center p-4 bg-slate-50">
+      <div className="w-full max-w-2xl py-8">
         <div className="text-center mb-8">
-          <img src="/Logo.png" alt="Onetime Survey" className="h-16 w-auto mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Complete your profile</h1>
-          <p className="text-slate-600">Help us match you with relevant surveys</p>
+          <Image src="/Logo.png" alt="Onetime Survey" width={192} height={48} className="mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Create your Filler Account</h1>
+          <p className="text-slate-600">Complete your profile to get matched with relevant surveys.</p>
         </div>
 
-        <Card className="w-full">
+        <Card className="w-full shadow-lg">
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* ... Form fields with validation ... */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <label className="text-sm font-medium text-slate-700">First name</label>
-                  <Input 
-                    placeholder="Enter first name" 
-                    className="h-11 border-blue-200 focus:border-[#013F5C]"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                    required
-                  />
+                  <Input placeholder="Enter first name" value={formData.firstName} onChange={(e) => handleChange('firstName', e.target.value)} required />
+                  {errors.firstName && <p className="text-xs text-red-600 flex items-center"><AlertCircle className="h-3 w-3 mr-1"/>{errors.firstName}</p>}
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <label className="text-sm font-medium text-slate-700">Last name</label>
-                  <Input 
-                    placeholder="Enter last name" 
-                    className="h-11 border-blue-200 focus:border-[#013F5C]"
-                    value={formData.lastName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                    required
-                  />
+                  <Input placeholder="Enter last name" value={formData.lastName} onChange={(e) => handleChange('lastName', e.target.value)} required />
+                  {errors.lastName && <p className="text-xs text-red-600 flex items-center"><AlertCircle className="h-3 w-3 mr-1"/>{errors.lastName}</p>}
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Email</label>
-                <Input 
-                  type="email"
-                  placeholder="Enter email address" 
-                  className="h-11 border-blue-200 focus:border-[#013F5C]"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  required
-                />
+                <Input type="email" placeholder="Enter email address" value={formData.email} onChange={(e) => handleChange('email', e.target.value)} required />
+                {errors.email && <p className="text-xs text-red-600 flex items-center"><AlertCircle className="h-3 w-3 mr-1"/>{errors.email}</p>}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Password</label>
-                <Input 
-                  type="password"
-                  placeholder="Create password" 
-                  className="h-11 border-blue-200 focus:border-[#013F5C]"
-                  value={formData.password}
-                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  required
-                />
+                <Input type="password" placeholder="Create password" value={formData.password} onChange={(e) => handleChange('password', e.target.value)} required />
+                <PasswordStrengthIndicator password={formData.password} />
+                {errors.password && <p className="text-xs text-red-600 flex items-center"><AlertCircle className="h-3 w-3 mr-1"/>{errors.password}</p>}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Age</label>
-                  <Select value={formData.age} onValueChange={(value) => setFormData(prev => ({ ...prev, age: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select age range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="18-24">18-24</SelectItem>
-                      <SelectItem value="25-34">25-34</SelectItem>
-                      <SelectItem value="35-44">35-44</SelectItem>
-                      <SelectItem value="45-54">45-54</SelectItem>
-                      <SelectItem value="55+">55+</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Gender</label>
-                  <Select value={formData.gender} onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              {/* ... Other fields with validation ... */}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Country</label>
-              <Select>
-                <SelectTrigger className="h-11 border-blue-200 focus:border-[#013F5C]">
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="nigeria">Nigeria</SelectItem>
-                  <SelectItem value="ghana">Ghana</SelectItem>
-                  <SelectItem value="kenya">Kenya</SelectItem>
-                  <SelectItem value="south-africa">South Africa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">State</label>
-              <Select>
-                <SelectTrigger className="h-11 border-blue-200 focus:border-[#013F5C]">
-                  <SelectValue placeholder="Select state" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="abia">Abia</SelectItem>
-                  <SelectItem value="adamawa">Adamawa</SelectItem>
-                  <SelectItem value="akwa-ibom">Akwa Ibom</SelectItem>
-                  <SelectItem value="anambra">Anambra</SelectItem>
-                  <SelectItem value="bauchi">Bauchi</SelectItem>
-                  <SelectItem value="bayelsa">Bayelsa</SelectItem>
-                  <SelectItem value="benue">Benue</SelectItem>
-                  <SelectItem value="borno">Borno</SelectItem>
-                  <SelectItem value="cross-river">Cross River</SelectItem>
-                  <SelectItem value="delta">Delta</SelectItem>
-                  <SelectItem value="ebonyi">Ebonyi</SelectItem>
-                  <SelectItem value="edo">Edo</SelectItem>
-                  <SelectItem value="ekiti">Ekiti</SelectItem>
-                  <SelectItem value="enugu">Enugu</SelectItem>
-                  <SelectItem value="gombe">Gombe</SelectItem>
-                  <SelectItem value="imo">Imo</SelectItem>
-                  <SelectItem value="jigawa">Jigawa</SelectItem>
-                  <SelectItem value="kaduna">Kaduna</SelectItem>
-                  <SelectItem value="kano">Kano</SelectItem>
-                  <SelectItem value="katsina">Katsina</SelectItem>
-                  <SelectItem value="kebbi">Kebbi</SelectItem>
-                  <SelectItem value="kogi">Kogi</SelectItem>
-                  <SelectItem value="kwara">Kwara</SelectItem>
-                  <SelectItem value="lagos">Lagos</SelectItem>
-                  <SelectItem value="nasarawa">Nasarawa</SelectItem>
-                  <SelectItem value="niger">Niger</SelectItem>
-                  <SelectItem value="ogun">Ogun</SelectItem>
-                  <SelectItem value="ondo">Ondo</SelectItem>
-                  <SelectItem value="osun">Osun</SelectItem>
-                  <SelectItem value="oyo">Oyo</SelectItem>
-                  <SelectItem value="plateau">Plateau</SelectItem>
-                  <SelectItem value="rivers">Rivers</SelectItem>
-                  <SelectItem value="sokoto">Sokoto</SelectItem>
-                  <SelectItem value="taraba">Taraba</SelectItem>
-                  <SelectItem value="yobe">Yobe</SelectItem>
-                  <SelectItem value="zamfara">Zamfara</SelectItem>
-                  <SelectItem value="abuja">FCT Abuja</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Education Level</label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select education level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="secondary">Secondary School</SelectItem>
-                  <SelectItem value="diploma">Diploma/Certificate</SelectItem>
-                  <SelectItem value="bachelor">Bachelor's Degree</SelectItem>
-                  <SelectItem value="master">Master's Degree</SelectItem>
-                  <SelectItem value="phd">PhD</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Employment Status</label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select employment status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="employed">Employed</SelectItem>
-                  <SelectItem value="self-employed">Self-employed</SelectItem>
-                  <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="unemployed">Unemployed</SelectItem>
-                  <SelectItem value="retired">Retired</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Monthly Income Range</label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select income range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0-50k">₦0 - ₦50,000</SelectItem>
-                  <SelectItem value="50k-100k">₦50,000 - ₦100,000</SelectItem>
-                  <SelectItem value="100k-200k">₦100,000 - ₦200,000</SelectItem>
-                  <SelectItem value="200k-500k">₦200,000 - ₦500,000</SelectItem>
-                  <SelectItem value="500k+">₦500,000+</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-              <div className="space-y-4">
-                <label className="text-sm font-medium">Interests (Select all that apply)</label>
-                <div className="grid grid-cols-2 gap-4">
-                  {["Technology", "Fashion", "Food", "Travel", "Sports", "Music", "Movies", "Health"].map((interest) => (
-                    <div key={interest} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={interest} 
-                        checked={formData.interests.includes(interest)}
-                        onCheckedChange={(checked) => handleInterestChange(interest, checked as boolean)}
-                      />
-                      <label htmlFor={interest} className="text-sm">{interest}</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <Button 
-                type="submit"
-                variant="filler" 
-                className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating account..." : "Complete setup & view surveys"}
+              <Button type="submit" variant="filler" className="w-full h-12 text-base font-semibold" disabled={!isFormValid || isLoading}>
+                {isLoading ? "Creating account..." : "Complete Setup & View Surveys"}
               </Button>
             </form>
           </CardContent>

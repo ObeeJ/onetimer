@@ -8,6 +8,7 @@ import { AnimatedLogo } from "@/components/ui/animated-logo"
 import { AnimatedBackground } from "@/components/ui/animated-background"
 import { Footer } from "@/components/ui/footer"
 import { cn } from "@/lib/utils"
+import { BetaBanner } from '@/components/ui/beta-banner'
 
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -84,6 +85,8 @@ export default function HomePage() {
           </div>
         </div>
       </nav>
+
+      <BetaBanner />
 
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8 relative z-10">
