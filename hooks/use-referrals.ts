@@ -1,4 +1,4 @@
-'''"use client"
+"use client"
 
 import { useQuery } from '@tanstack/react-query'
 import { api } from './use-api'
@@ -10,4 +10,3 @@ export function useReferrals() {
     queryFn: () => api.get('/api/referral/stats'),
   })
 }
-'''
