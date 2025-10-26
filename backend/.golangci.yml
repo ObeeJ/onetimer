@@ -1,0 +1,30 @@
+
+run:
+  timeout: 5m
+  skip-dirs:
+    - vendor
+    - mocks
+
+linters:
+  enable-all: true
+  disable:
+    - maligned
+    - prealloc
+    - testpackage
+    - goerr113
+    - exhaustivestruct
+    - nonamedreturns
+    - gochecknoglobals
+    - gocognit
+    - gocyclo
+    - funlen
+    - lll
+    - dupl
+    - wsl
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - funlen
+        - goconst
