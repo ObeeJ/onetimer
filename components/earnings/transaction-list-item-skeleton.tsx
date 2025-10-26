@@ -1,4 +1,4 @@
-'''export function TransactionListItemSkeleton() {
+export function TransactionListItemSkeleton() {
   return (
     <div className="flex items-center justify-between p-4 animate-pulse">
       <div className="flex-1 min-w-0 space-y-2">
@@ -12,4 +12,3 @@
     </div>
   )
 }
-'''
