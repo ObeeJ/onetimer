@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { useAuth } from "@/providers/auth-provider"
-import { authenticateUser } from "@/lib/mock-users"
+
 import { AnimatedBackground } from "@/components/ui/animated-background"
 import Image from "next/image"
 export default function LoginPage() {
@@ -25,28 +25,23 @@ export default function LoginPage() {
     setError("")
 
     try {
-      const user = authenticateUser(email, password)
-      if (user) {
-        signIn(user)
-        // Redirect based on user role
-        switch (user.role) {
-          case "filler":
-            router.push("/filler")
-            break
-          case "creator":
-            router.push("/creator")
-            break
-          case "admin":
-            router.push("/admin")
-            break
-          case "super_admin":
-            router.push("/super-admin")
-            break
-          default:
-            router.push("/")
-        }
-      } else {
-        setError("Invalid email or password")
+      const user = await signIn(email, password)
+      // Redirect based on user role
+      switch (user.role) {
+        case "filler":
+          router.push("/filler")
+          break
+        case "creator":
+          router.push("/creator")
+          break
+        case "admin":
+          router.push("/admin")
+          break
+        case "super_admin":
+          router.push("/super-admin")
+          break
+        default:
+          router.push("/")
       }
     } catch (err) {
       setError("Login failed. Please try again.")

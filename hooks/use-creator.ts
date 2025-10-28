@@ -93,9 +93,23 @@ export function useSurveyAnalytics(surveyId: string) {
   })
 }
 
+export interface CreditTransaction {
+  id: string;
+  type: 'purchase' | 'usage';
+  description: string;
+  date: string;
+  credits: number;
+}
+
+export interface CreatorCredits {
+  balance: number;
+  spent: number;
+  transactions: CreditTransaction[];
+}
+
 export function useCreatorCredits() {
   return useQuery({
     queryKey: ['creator', 'credits'],
-    queryFn: () => api.get('/api/v1/creator/credits')
+    queryFn: () => api.get<CreatorCredits>('/api/v1/creator/credits')
   })
 }
