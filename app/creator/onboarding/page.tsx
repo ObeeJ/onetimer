@@ -175,17 +175,8 @@ export default function CreatorOnboardingPage() {
     setIsLoading(true)
 
     try {
-      // Create new user
-      const newUser = {
-        id: `creator-${Date.now()}`,
-        name: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        role: "creator" as const,
-        isVerified: true
-      }
-
       // Sign in the user
-      signIn(newUser)
+      await signIn(formData.email, formData.password)
       
       // Redirect to creator dashboard
       router.push("/creator")
