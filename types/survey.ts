@@ -15,6 +15,7 @@ export interface Survey {
   target?: number
   expiresAt?: string
   eligible?: boolean
+  estimatedTime?: number
 }
 
 export interface CreatorSurvey {

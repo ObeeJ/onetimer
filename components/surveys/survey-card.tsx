@@ -36,7 +36,7 @@ export default function SurveyCard({ survey }: { survey: Survey }) {
             </div>
             <div className="flex items-center gap-1 font-medium text-slate-500">
               <Clock className="h-3.5 w-3.5 flex-shrink-0" />
-              <span>{survey.estimatedTime}m</span>
+              <span>{survey.estimated_duration}m</span>
             </div>
           </div>
         </div>
@@ -72,7 +72,7 @@ SurveyCard.defaultProps = {
     title: "Untitled",
     description: "No description",
     category: "general",
-    estimatedTime: 5,
+    estimated_duration: 5,
     reward: 10,
     eligible: true,
   },
