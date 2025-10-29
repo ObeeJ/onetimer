@@ -15,7 +15,6 @@ import { useAuth } from "@/providers/auth-provider"
 import { useCreatorSurveys, useDeleteSurvey } from "@/hooks/use-creator"
 import { CreatorSurvey } from "@/types/survey"
 import { toast } from "sonner"
-import { CreatorSurvey } from "@/types/survey"
 
 export default function CreatorSurveysPage() {
   const { isAuthenticated, user } = useAuth()
