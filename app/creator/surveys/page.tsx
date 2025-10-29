@@ -13,7 +13,9 @@ import { BarChart3, Plus, Search, Eye, Users, Calendar, MoreHorizontal, Edit, Co
 import Link from "next/link"
 import { useAuth } from "@/providers/auth-provider"
 import { useCreatorSurveys, useDeleteSurvey } from "@/hooks/use-creator"
+import { CreatorSurvey } from "@/types/survey"
 import { toast } from "sonner"
+import { CreatorSurvey } from "@/types/survey"
 
 export default function CreatorSurveysPage() {
   const { isAuthenticated, user } = useAuth()
@@ -22,7 +24,7 @@ export default function CreatorSurveysPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
 
-  const surveys = surveysData?.surveys || []
+  const surveys: CreatorSurvey[] = surveysData?.surveys || []
 
   const handleDeleteSurvey = async (surveyId: string) => {
     try {
@@ -214,7 +216,7 @@ export default function CreatorSurveysPage() {
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-slate-500" />
                       <div>
-                        <p className="text-sm font-medium">{survey.responses}/{survey.target}</p>
+                        <p className="text-sm font-medium">{survey.responses || 0}/{survey.target || 0}</p>
                         <p className="text-xs text-slate-500">Responses</p>
                       </div>
                     </div>
@@ -222,7 +224,7 @@ export default function CreatorSurveysPage() {
                     <div className="flex items-center gap-2">
                       <Eye className="h-4 w-4 text-slate-500" />
                       <div>
-                        <p className="text-sm font-medium">{Math.round((survey.responses / survey.target) * 100)}%</p>
+                        <p className="text-sm font-medium">{Math.round(((survey.responses || 0) / (survey.target || 1)) * 100)}%</p>
                         <p className="text-xs text-slate-500">Complete</p>
                       </div>
                     </div>

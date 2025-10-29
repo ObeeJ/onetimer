@@ -132,7 +132,7 @@ export default function SuperAdminReportsPage() {
                   cy="50%"
                   outerRadius={100}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${name} ${((percent as number) * 100).toFixed(0)}%`}
                 >
                   {userTypeData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />

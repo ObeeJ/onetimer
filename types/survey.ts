@@ -8,9 +8,31 @@ export interface Survey {
   difficulty?: string
   responses_count?: number
   questions?: Question[]
-  status?: 'active' | 'draft' | 'completed'
+  status?: 'active' | 'draft' | 'completed' | 'pending'
   created_at?: string
   updated_at?: string
+  responses?: number
+  target?: number
+  expiresAt?: string
+  eligible?: boolean
+}
+
+export interface CreatorSurvey {
+  id: string
+  title: string
+  description: string
+  category: string
+  estimated_duration: number
+  reward: number
+  difficulty?: string
+  responses_count?: number
+  questions?: Question[]
+  status?: 'active' | 'draft' | 'completed' | 'pending'
+  created_at?: string
+  updated_at?: string
+  responses: number
+  target: number
+  expiresAt: string
 }
 
 export interface Question {

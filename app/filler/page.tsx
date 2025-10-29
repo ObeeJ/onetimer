@@ -172,10 +172,8 @@ export default function DashboardPage() {
             </Link>
           </div>
           
-          {surveys && surveys.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {surveys.slice(0, 6).map((survey) => (
-                <Card key={survey.id} className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                     {surveys && surveys.pages.reduce((acc, page) => acc + page.surveys.length, 0) > 0 ? (            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                             {surveys.pages.flatMap(page => page.surveys).slice(0, 6).map((survey) => (                <Card key={survey.id} className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <Badge variant="secondary" className="rounded-full bg-blue-100 text-blue-700 text-xs">

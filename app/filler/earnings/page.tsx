@@ -24,14 +24,14 @@ export default function EarningsPage() {
   const [withdrawOpen, setWithdrawOpen] = useState(false)
 
   const earningsData = {
-    total: earnings?.total_earned || 0,
-    available: earnings?.balance || 0,
+    total: earnings?.total || 0,
+    available: earnings?.available || 0,
     pending: earnings?.pending || 0,
     withdrawn: earnings?.withdrawn || 0,
-    transactions: earnings?.history || []
+    transactions: earnings?.transactions || []
   }
 
-  const thisMonth = earnings?.this_month || 0
+  // const thisMonth = earnings?.this_month || 0
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -167,7 +167,7 @@ export default function EarningsPage() {
                   <TrendingUp className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-slate-900">₦{thisMonth.toLocaleString()}</div>
+                  {/* <div className="text-2xl font-bold text-slate-900">₦{thisMonth.toLocaleString()}</div> */}
                   <p className="text-xs text-slate-500 mt-1">+15% from last month</p>
                 </CardContent>
               </Card>
@@ -221,7 +221,7 @@ export default function EarningsPage() {
                         {earningsData.transactions.map((transaction) => (
                           <div key={transaction.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-slate-900 truncate">{transaction.title}</p>
+                              <p className="font-medium text-slate-900 truncate">{transaction.description}</p>
                               <p className="text-sm text-slate-500">{transaction.date}</p>
                             </div>
                             <div className="flex items-center gap-3">

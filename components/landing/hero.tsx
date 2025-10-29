@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, useReducedMotion, linear } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -29,7 +29,7 @@ export default function Hero() {
           transition={{
             duration: 20,
             repeat: Number.POSITIVE_INFINITY,
-            ease: linear,
+            ease: 'linear',
           }}
         />
 
