@@ -32,13 +32,7 @@ export function useSuperAdminAuth() {
     }
     setSuperAdminUser(mockUser)
     localStorage.setItem("super_admin_user", JSON.stringify(mockUser))
-    globalSignIn({
-      id: mockUser.id,
-      name: mockUser.name,
-      email: mockUser.email,
-      role: "super_admin",
-      isVerified: true
-    })
+    globalSignIn(email, password)
     return Promise.resolve(mockUser)
   }
 

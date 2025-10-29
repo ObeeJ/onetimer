@@ -30,13 +30,7 @@ export function useCreatorAuth() {
   const signIn = useCallback((c: Creator) => {
     localStorage.setItem(KEY, JSON.stringify(c))
     setCreator(c)
-    globalSignIn({
-      id: c.id,
-      name: c.name,
-      email: c.email,
-      role: "creator",
-      isVerified: c.isVerified
-    })
+    globalSignIn(c.email, "password")
   }, [globalSignIn])
 
   const signOut = useCallback(() => {

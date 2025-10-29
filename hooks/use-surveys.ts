@@ -6,13 +6,14 @@ import type { Survey, SurveyResponse } from '@/types/survey'
 
 const fetchSurveys = async ({ pageParam = 1 }) => {
   const res = await api.get(`/api/survey?page=${pageParam}&limit=10`)
-  return res.data
+  return (res as any).data
 }
 
 export function useSurveys() {
   return useInfiniteQuery({
     queryKey: ['surveys'],
     queryFn: fetchSurveys,
+    initialPageParam: 1,
     getNextPageParam: (lastPage, pages) => {
       return lastPage.hasNextPage ? pages.length + 1 : undefined
     },
@@ -51,6 +52,7 @@ export function useEligibleSurveys() {
   return useInfiniteQuery({
     queryKey: ['surveys', 'eligible'],
     queryFn: fetchSurveys, // Assuming the same endpoint and pagination
+    initialPageParam: 1,
     getNextPageParam: (lastPage, pages) => {
       return lastPage.hasNextPage ? pages.length + 1 : undefined
     },

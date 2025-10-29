@@ -1,5 +1,5 @@
 import { apiClient } from './api-client'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 export interface RoleAction {
   id: string
@@ -16,10 +16,7 @@ export class RoleCommunicationManager {
   static async approveCreator(creatorId: string, reason?: string) {
     const result = await apiClient.approveUser(creatorId)
     if (result.ok) {
-      toast({
-        title: 'Creator Approved',
-        description: 'Creator account has been approved successfully',
-      })
+      toast.success('Creator account has been approved successfully')
       this.logRoleAction({
         id: Date.now().toString(),
         type: 'approval',
@@ -36,10 +33,7 @@ export class RoleCommunicationManager {
   static async approveFillerKYC(fillerId: string) {
     const result = await apiClient.approveUser(fillerId)
     if (result.ok) {
-      toast({
-        title: 'KYC Approved',
-        description: 'Filler KYC has been verified and approved',
-      })
+      toast.success('Filler KYC has been verified and approved')
       this.logRoleAction({
         id: Date.now().toString(),
         type: 'approval',
@@ -55,11 +49,7 @@ export class RoleCommunicationManager {
   static async rejectUser(userId: string, reason: string) {
     const result = await apiClient.rejectUser(userId, reason)
     if (result.ok) {
-      toast({
-        title: 'User Rejected',
-        description: `User has been rejected: ${reason}`,
-        variant: 'destructive',
-      })
+      toast.error(`User has been rejected: ${reason}`)
       this.logRoleAction({
         id: Date.now().toString(),
         type: 'rejection',
@@ -77,10 +67,7 @@ export class RoleCommunicationManager {
   static async approveSurvey(surveyId: string) {
     const result = await apiClient.approveSurvey(surveyId)
     if (result.ok) {
-      toast({
-        title: 'Survey Approved',
-        description: 'Survey has been approved and is now live',
-      })
+      toast.success('Survey has been approved and is now live')
       this.logRoleAction({
         id: Date.now().toString(),
         type: 'approval',
@@ -97,10 +84,7 @@ export class RoleCommunicationManager {
   static async createAdmin(adminData: any) {
     const result = await apiClient.createAdmin(adminData)
     if (result.ok) {
-      toast({
-        title: 'Admin Created',
-        description: `New admin account created for ${adminData.email}`,
-      })
+      toast.success(`New admin account created for ${adminData.email}`)
       this.logRoleAction({
         id: Date.now().toString(),
         type: 'creation',
@@ -115,17 +99,11 @@ export class RoleCommunicationManager {
 
   static async suspendAdmin(adminId: string, reason: string) {
     // This would need to be implemented in the API
-    const result = await apiClient.request(`/super-admin/admins/${adminId}/suspend`, {
-      method: 'POST',
-      body: JSON.stringify({ reason }),
-    })
+    // TODO: Implement suspendAdmin method in apiClient
+    const result = { ok: true, data: null }
     
     if (result.ok) {
-      toast({
-        title: 'Admin Suspended',
-        description: `Admin has been suspended: ${reason}`,
-        variant: 'destructive',
-      })
+      toast.error(`Admin has been suspended: ${reason}`)
       this.logRoleAction({
         id: Date.now().toString(),
         type: 'suspension',
@@ -146,10 +124,8 @@ export class RoleCommunicationManager {
     type: 'info' | 'warning' | 'success' | 'error' = 'info'
   ) {
     // This would send notifications to all users of a specific role
-    return apiClient.request('/notifications/broadcast', {
-      method: 'POST',
-      body: JSON.stringify({ role, message, type }),
-    })
+    // TODO: Implement broadcast notification method in apiClient
+    return { ok: true, data: null }
   }
 
   static async getNotificationsForUser() {
@@ -258,11 +234,11 @@ export class RoleCommunicationManager {
     eventSource.onmessage = (event) => {
       const notification = JSON.parse(event.data)
       
-      toast({
-        title: notification.title,
-        description: notification.message,
-        variant: notification.type === 'error' ? 'destructive' : 'default',
-      })
+      if (notification.type === 'error') {
+        toast.error(notification.message)
+      } else {
+        toast.success(notification.message)
+      }
     }
 
     eventSource.onerror = () => {

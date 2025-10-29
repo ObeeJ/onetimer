@@ -1,4 +1,4 @@
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 interface ApiResponse<T = any> {
   ok: boolean
@@ -36,7 +36,7 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
     
-    const headers: HeadersInit = {
+    const headers: any = {
       'Content-Type': 'application/json',
       ...options.headers,
     }
@@ -60,11 +60,7 @@ class ApiClient {
       return { ok: true, data }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Network error'
-      toast({
-        title: 'API Error',
-        description: errorMessage,
-        variant: 'destructive',
-      })
+      toast.error(errorMessage)
       return { ok: false, error: errorMessage }
     }
   }
@@ -235,7 +231,7 @@ class ApiClient {
     const formData = new FormData()
     formData.append('file', file)
 
-    const headers: HeadersInit = {}
+    const headers: Record<string, string> = {}
     if (this.token) {
       headers.Authorization = `Bearer ${this.token}`
     }
@@ -256,11 +252,7 @@ class ApiClient {
       return { ok: true, data }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Upload error'
-      toast({
-        title: 'Upload Error',
-        description: errorMessage,
-        variant: 'destructive',
-      })
+      toast.error(errorMessage)
       return { ok: false, error: errorMessage }
     }
   }

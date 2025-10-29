@@ -30,13 +30,7 @@ export function useAdminAuth() {
     }
     setAdminUser(mockUser)
     localStorage.setItem("admin_user", JSON.stringify(mockUser))
-    globalSignIn({
-      id: mockUser.id,
-      name: mockUser.name,
-      email: mockUser.email,
-      role: "admin",
-      isVerified: true
-    })
+    globalSignIn(email, password)
     return Promise.resolve(mockUser)
   }
 
