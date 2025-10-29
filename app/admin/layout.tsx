@@ -1,6 +1,7 @@
 "use client"
 
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { RoleGuard } from "@/components/auth/role-guard"
@@ -51,7 +52,7 @@ export default function AdminLayout({
           <div className="h-16 border-b border-slate-200/60 flex items-center justify-center px-4 bg-gradient-to-r from-slate-50/50 to-transparent">
             {sidebarOpen ? (
               <div className="flex items-center gap-3 w-full">
-                <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto" />
+                <Image src="/Logo.png" alt="OneTime Survey" width={128} height={32} className="h-8 w-auto" />
                 <div className="ml-auto">
                   <SidebarToggle />
                 </div>
@@ -149,7 +150,7 @@ export default function AdminLayout({
         )}>
           {/* Header */}
           <div className="h-16 border-b border-slate-200/60 flex items-center justify-between px-4 bg-gradient-to-r from-slate-50/50 to-transparent">
-            <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto" />
+            <Image src="/Logo.png" alt="OneTime Survey" width={128} height={32} className="h-8 w-auto" />
             <SidebarToggle />
           </div>
 

@@ -20,9 +20,9 @@ export default function ReferralsPage() {
   const reduceMotion = useReducedMotion()
   const [copied, setCopied] = useState(false)
 
-  const referralCode = referralData?.code || ""
-  const referralLink = referralData?.link || `https://onetimesurvey.com/join?ref=${referralCode}`
-  const referrals = referralData?.users || []
+  const referralCode = referralData?.referral_code || ""
+  const referralLink = `https://onetimesurvey.com/join?ref=${referralCode}`
+  const referrals = referralData?.referrals || []
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -239,11 +239,11 @@ export default function ReferralsPage() {
                       <div key={referral.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-slate-900">{referral.name}</p>
-                          <p className="text-sm text-slate-500">Joined {new Date(referral.joined_at).toLocaleDateString()}</p>
+                          <p className="text-sm text-slate-500">Joined {new Date(referral.join_date).toLocaleDateString()}</p>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="text-right">
-                            <p className="font-semibold text-slate-900">₦{referral.points}</p>
+                            <p className="font-semibold text-slate-900">₦{referral.earnings}</p>
                             <Badge 
                               variant={referral.status === "active" ? "default" : "secondary"}
                               className={referral.status === "active" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}

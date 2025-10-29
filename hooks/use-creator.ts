@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from './use-api'
+import { CreatorSurvey } from '@/types/survey'
 
 export interface CreatorDashboard {
   total_surveys: number
@@ -9,16 +10,6 @@ export interface CreatorDashboard {
   total_responses: number
   credits_balance: number
   monthly_responses: number
-}
-
-export interface CreatorSurvey {
-  id: string
-  title: string
-  description: string
-  status: string
-  current_responses: number
-  max_responses: number
-  created_at: string
 }
 
 export interface SurveyAnalytics {

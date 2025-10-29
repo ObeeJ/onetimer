@@ -43,6 +43,10 @@ export default function TakeSurveyPage({ params }: { params: { id: string } }) {
   const { mutate: saveProgress } = useSaveProgress()
   const { toast } = useToast()
   const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, saved
+  const progress = useMemo(() => {
+    if (!survey?.questions?.length) return 0;
+    return ((idx + 1) / survey.questions.length) * 100;
+  }, [idx, survey]);
 
   const debouncedAnswers = useDebounce(answers, 2000); // Debounce answers with a 2-second delay
 

@@ -1,5 +1,5 @@
-FROM node:18-alpine AS base
-RUN apk add --no-cache libc6-compat curl
+FROM node:18-bullseye AS base
+RUN apt-get update && apt-get install -y curl
 
 FROM base AS deps
 WORKDIR /app

@@ -66,8 +66,8 @@ export default function CreatorDashboardPage() {
     id: survey.id,
     title: survey.title,
     status: survey.status,
-    responses: survey.current_responses,
-    target: survey.max_responses
+    responses: survey.responses,
+    target: survey.target
   })) || []
 
   return (
