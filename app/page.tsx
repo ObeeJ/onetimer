@@ -9,6 +9,7 @@ import { AnimatedBackground } from "@/components/ui/animated-background"
 import { Footer } from "@/components/ui/footer"
 import { cn } from "@/lib/utils"
 import { BetaBanner } from '@/components/ui/beta-banner'
+import Hero from '@/components/landing/hero'
 
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -88,31 +89,8 @@ export default function HomePage() {
 
       <BetaBanner />
 
-      {/* Hero Section */}
-      <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 fade-in-up">
-            Earn money sharing
-            <span className="text-[#013F5C] block">your opinions</span>
-          </h1>
-          <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto fade-in-up" style={{animationDelay: '0.2s'}}>
-            Join thousands of Nigerians earning ₦200-1,500 per survey. Your voice matters, and we pay for it.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center fade-in-up" style={{animationDelay: '0.4s'}}>
-            <Link href="/auth/role-selection">
-              <Button size="lg" className="bg-[#013F5C] hover:bg-[#012d42] text-white px-8 py-4 text-lg font-semibold group pulse-cta hover:shadow-xl">
-                Start earning now
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-            <Link href="/auth/login">
-              <Button variant="outline" size="lg" className="border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-4 text-lg hover:shadow-md">
-                Sign in
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Hero Section with Waitlist */}
+      <Hero />
 
       {/* Stats Section */}
       <section className="py-16 bg-slate-50 relative">
