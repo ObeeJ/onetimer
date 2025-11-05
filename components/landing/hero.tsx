@@ -40,35 +40,8 @@ export default function Hero() {
   }
 
   return (
-    <section className="relative overflow-hidden">
-      <div className="absolute inset-0">
-        <motion.div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: "50px 50px",
-          }}
-          animate={
-            reduceMotion
-              ? {}
-              : {
-                  backgroundPosition: ["0px 0px", "50px 50px"],
-                }
-          }
-          transition={{
-            duration: 20,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: 'linear',
-          }}
-        />
-
-        <div className="absolute inset-0 backdrop-blur-md bg-white/10 border-t border-white/20" />
-      </div>
-
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+    <section className="relative overflow-hidden py-16">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: reduceMotion ? 0 : 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -79,19 +52,19 @@ export default function Hero() {
             initial={{ opacity: 0, y: reduceMotion ? 0 : 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduceMotion ? 0.1 : 0.8, delay: reduceMotion ? 0 : 0.2 }}
-            className="text-4xl font-bold tracking-tight text-white sm:text-6xl"
+            className="text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl"
           >
-            Earn Money Taking Surveys
+            Earn money sharing
+            <span className="text-[#013F5C] block">your opinions</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: reduceMotion ? 0 : 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduceMotion ? 0.1 : 0.8, delay: reduceMotion ? 0 : 0.4 }}
-            className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-white/90"
+            className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600"
           >
-            Join thousands of Nigerians earning extra income by sharing their opinions. Simple, fast, and rewarding
-            surveys that fit your schedule.
+            Join thousands of Nigerians earning ₦200-1,500 per survey. Your voice matters, and we pay for it.
           </motion.p>
 
           <motion.div
@@ -123,8 +96,8 @@ export default function Hero() {
             className="mt-16 mx-auto max-w-4xl"
           >
             <form onSubmit={handleWaitlistSubmit} className="relative">
-              {/* Glassmorphism container */}
-              <div className="backdrop-blur-lg bg-white/10 border border-white/20 rounded-2xl p-6 shadow-2xl">
+              {/* Light glassmorphism container */}
+              <div className="backdrop-blur-lg bg-slate-50/80 border border-slate-200 rounded-2xl p-6 shadow-lg">
                 <div className="flex items-center gap-4 flex-wrap md:flex-nowrap">
                   {/* Social Media Icons - Left Side */}
                   <motion.div
@@ -136,37 +109,37 @@ export default function Hero() {
                       href="https://twitter.com/onetimer"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 transition-all duration-300"
+                      className="p-3 rounded-full bg-slate-100 hover:bg-[#013F5C] hover:text-white backdrop-blur-md border border-slate-200 transition-all duration-300 text-slate-600"
                       whileHover={{ scale: 1.1, rotate: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Twitter className="w-5 h-5 text-white" />
+                      <Twitter className="w-5 h-5" />
                     </motion.a>
                     <motion.a
                       href="https://instagram.com/onetimer"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 transition-all duration-300"
+                      className="p-3 rounded-full bg-slate-100 hover:bg-[#013F5C] hover:text-white backdrop-blur-md border border-slate-200 transition-all duration-300 text-slate-600"
                       whileHover={{ scale: 1.1, rotate: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Instagram className="w-5 h-5 text-white" />
+                      <Instagram className="w-5 h-5" />
                     </motion.a>
                     <motion.a
                       href="https://linkedin.com/company/onetimer"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 transition-all duration-300"
+                      className="p-3 rounded-full bg-slate-100 hover:bg-[#013F5C] hover:text-white backdrop-blur-md border border-slate-200 transition-all duration-300 text-slate-600"
                       whileHover={{ scale: 1.1, rotate: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Linkedin className="w-5 h-5 text-white" />
+                      <Linkedin className="w-5 h-5" />
                     </motion.a>
                   </motion.div>
 
                   {/* Email Input - Search Bar Style */}
                   <div className="flex-1 relative">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
                       type="email"
                       value={email}
@@ -174,7 +147,7 @@ export default function Hero() {
                       placeholder="Enter your email address..."
                       required
                       disabled={isSubmitting}
-                      className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/30 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 disabled:opacity-50"
+                      className="w-full pl-12 pr-4 py-4 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#013F5C]/50 focus:border-transparent transition-all duration-300 disabled:opacity-50"
                     />
                   </div>
 
@@ -207,8 +180,8 @@ export default function Hero() {
                     animate={{ opacity: 1, y: 0 }}
                     className={`mt-4 p-3 rounded-lg ${
                       message.type === 'success'
-                        ? 'bg-green-500/20 border border-green-500/30 text-green-100'
-                        : 'bg-red-500/20 border border-red-500/30 text-red-100'
+                        ? 'bg-green-50 border border-green-200 text-green-700'
+                        : 'bg-red-50 border border-red-200 text-red-700'
                     }`}
                   >
                     {message.text}
