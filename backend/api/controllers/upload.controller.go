@@ -3,6 +3,8 @@ package controllers
 import (
 	"fmt"
 	"onetimer-backend/cache"
+	"onetimer-backend/services"
+	"onetimer-backend/utils"
 	"path/filepath"
 	"strings"
 
@@ -11,11 +13,15 @@ import (
 )
 
 type UploadController struct {
-	cache *cache.Cache
+	cache   *cache.Cache
+	storage *services.StorageService
 }
 
-func NewUploadController(cache *cache.Cache) *UploadController {
-	return &UploadController{cache: cache}
+func NewUploadController(cache *cache.Cache, storage *services.StorageService) *UploadController {
+	return &UploadController{
+		cache:   cache,
+		storage: storage,
+	}
 }
 
 func (h *UploadController) UploadKYC(c *fiber.Ctx) error {
@@ -49,17 +55,33 @@ func (h *UploadController) UploadKYC(c *fiber.Ctx) error {
 
 	// Generate unique filename
 	filename := fmt.Sprintf("kyc_%s_%s%s", userID, uuid.New().String()[:8], ext)
-	
-	// TODO: Upload to AWS S3
-	// For now, save locally
-	if err := c.SaveFile(file, fmt.Sprintf("./uploads/%s", filename)); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to save file"})
+
+	// Upload to Supabase Storage (S3-compatible)
+	if h.storage == nil {
+		utils.LogWarn("Storage service not available, saving locally")
+		// Fallback to local storage
+		if err := c.SaveFile(file, fmt.Sprintf("./uploads/%s", filename)); err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to save file"})
+		}
+		return c.JSON(fiber.Map{
+			"ok":       true,
+			"filename": filename,
+			"url":      fmt.Sprintf("/uploads/%s", filename),
+			"message":  "KYC document uploaded successfully (local storage)",
+		})
+	}
+
+	// Upload to cloud storage
+	publicURL, err := h.storage.UploadFile(file, "kyc", filename)
+	if err != nil {
+		utils.LogError("Failed to upload to cloud storage: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to upload file"})
 	}
 
 	return c.JSON(fiber.Map{
 		"ok":       true,
 		"filename": filename,
-		"url":      fmt.Sprintf("/uploads/%s", filename),
+		"url":      publicURL,
 		"message":  "KYC document uploaded successfully",
 	})
 }
@@ -95,16 +117,32 @@ func (h *UploadController) UploadSurveyMedia(c *fiber.Ctx) error {
 
 	// Generate unique filename
 	filename := fmt.Sprintf("survey_%s_%s%s", userID, uuid.New().String()[:8], ext)
-	
-	// TODO: Upload to AWS S3
-	if err := c.SaveFile(file, fmt.Sprintf("./uploads/%s", filename)); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to save file"})
+
+	// Upload to Supabase Storage (S3-compatible)
+	if h.storage == nil {
+		utils.LogWarn("Storage service not available, saving locally")
+		if err := c.SaveFile(file, fmt.Sprintf("./uploads/%s", filename)); err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to save file"})
+		}
+		return c.JSON(fiber.Map{
+			"ok":       true,
+			"filename": filename,
+			"url":      fmt.Sprintf("/uploads/%s", filename),
+			"type":     "media",
+		})
+	}
+
+	// Upload to cloud storage
+	publicURL, err := h.storage.UploadFile(file, "survey-media", filename)
+	if err != nil {
+		utils.LogError("Failed to upload to cloud storage: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to upload file"})
 	}
 
 	return c.JSON(fiber.Map{
 		"ok":       true,
 		"filename": filename,
-		"url":      fmt.Sprintf("/uploads/%s", filename),
+		"url":      publicURL,
 		"type":     "media",
 	})
 }
@@ -142,16 +180,32 @@ func (h *UploadController) UploadResponseImage(c *fiber.Ctx) error {
 
 	// Generate unique filename
 	filename := fmt.Sprintf("response_%s_%s_%s%s", surveyID, userID, uuid.New().String()[:8], ext)
-	
-	// Save file
-	if err := c.SaveFile(file, fmt.Sprintf("./uploads/%s", filename)); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to save image"})
+
+	// Upload to Supabase Storage (S3-compatible)
+	if h.storage == nil {
+		utils.LogWarn("Storage service not available, saving locally")
+		if err := c.SaveFile(file, fmt.Sprintf("./uploads/%s", filename)); err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to save image"})
+		}
+		return c.JSON(fiber.Map{
+			"ok":       true,
+			"filename": filename,
+			"url":      fmt.Sprintf("/uploads/%s", filename),
+			"type":     "response_image",
+		})
+	}
+
+	// Upload to cloud storage
+	publicURL, err := h.storage.UploadFile(file, "responses", filename)
+	if err != nil {
+		utils.LogError("Failed to upload to cloud storage: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to upload image"})
 	}
 
 	return c.JSON(fiber.Map{
 		"ok":       true,
 		"filename": filename,
-		"url":      fmt.Sprintf("/uploads/%s", filename),
+		"url":      publicURL,
 		"type":     "response_image",
 	})
 }

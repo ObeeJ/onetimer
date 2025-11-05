@@ -3,21 +3,31 @@ package controllers
 import (
 	"onetimer-backend/cache"
 	"onetimer-backend/models"
+	"onetimer-backend/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type SuperAdminController struct {
 	cache *cache.Cache
+	db    *pgxpool.Pool
 }
 
-func NewSuperAdminController(cache *cache.Cache) *SuperAdminController {
-	return &SuperAdminController{cache: cache}
+func NewSuperAdminController(cache *cache.Cache, db *pgxpool.Pool) *SuperAdminController {
+	return &SuperAdminController{cache: cache, db: db}
 }
 
 func (h *SuperAdminController) GetAdmins(c *fiber.Ctx) error {
+	superAdminID, ok := c.Locals("user_id").(string)
+	if !ok {
+		utils.LogError("Unauthorized admin list access attempt")
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	// In production, query from database
 	admins := []models.User{
 		{
 			ID:        uuid.New(),
@@ -37,7 +47,13 @@ func (h *SuperAdminController) GetAdmins(c *fiber.Ctx) error {
 		},
 	}
 
-	return c.JSON(fiber.Map{"admins": admins})
+	utils.LogInfo("Admin list retrieved by super admin %s: count=%d", superAdminID, len(admins))
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    admins,
+		"count":   len(admins),
+	})
 }
 
 func (h *SuperAdminController) CreateAdmin(c *fiber.Ctx) error {
@@ -77,7 +93,10 @@ func (h *SuperAdminController) GetFinancials(c *fiber.Ctx) error {
 		"total_users":        12500,
 	}
 
-	return c.JSON(financials)
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    financials,
+	})
 }
 
 func (h *SuperAdminController) GetAuditLogs(c *fiber.Ctx) error {
@@ -113,7 +132,10 @@ func (h *SuperAdminController) GetSystemSettings(c *fiber.Ctx) error {
 		"maintenance_mode":        false,
 	}
 
-	return c.JSON(settings)
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    settings,
+	})
 }
 
 func (h *SuperAdminController) UpdateSettings(c *fiber.Ctx) error {
@@ -123,8 +145,8 @@ func (h *SuperAdminController) UpdateSettings(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"ok":       true,
+		"success":  true,
 		"message":  "Settings updated successfully",
-		"settings": settings,
+		"data":     settings,
 	})
 }

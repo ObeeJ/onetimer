@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"onetimer-backend/cache"
+	"onetimer-backend/services"
+	"onetimer-backend/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,12 +13,17 @@ import (
 )
 
 type AnalyticsController struct {
-	cache *cache.Cache
-	db    *pgxpool.Pool
+	cache            *cache.Cache
+	db               *pgxpool.Pool
+	analyticsService *services.AnalyticsService
 }
 
 func NewAnalyticsController(cache *cache.Cache, db *pgxpool.Pool) *AnalyticsController {
-	return &AnalyticsController{cache: cache, db: db}
+	return &AnalyticsController{
+		cache:            cache,
+		db:               db,
+		analyticsService: services.NewAnalyticsService(db, cache),
+	}
 }
 
 // GetDashboardAnalytics returns comprehensive dashboard analytics
@@ -116,6 +123,94 @@ func (h *AnalyticsController) ExportAnalytics(c *fiber.Ctx) error {
 	}
 	
 	return c.Status(400).JSON(fiber.Map{"error": "Unsupported format"})
+}
+
+// GetFillerDashboard returns analytics for survey fillers
+func (h *AnalyticsController) GetFillerDashboard(c *fiber.Ctx) error {
+	userID := c.Locals("user_id")
+	if userID == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	analytics, err := h.analyticsService.GetFillerAnalytics(c.Context(), userID.(string))
+	if err != nil {
+		utils.LogError("Failed to get filler analytics: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch analytics"})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    analytics,
+	})
+}
+
+// GetCreatorDashboard returns analytics for survey creators
+func (h *AnalyticsController) GetCreatorDashboard(c *fiber.Ctx) error {
+	userID := c.Locals("user_id")
+	if userID == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	analytics, err := h.analyticsService.GetCreatorAnalytics(c.Context(), userID.(string))
+	if err != nil {
+		utils.LogError("Failed to get creator analytics: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch analytics"})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    analytics,
+	})
+}
+
+// GetAdminDashboard returns platform-wide analytics (admin only)
+func (h *AnalyticsController) GetAdminDashboard(c *fiber.Ctx) error {
+	analytics, err := h.analyticsService.GetAdminAnalytics(c.Context())
+	if err != nil {
+		utils.LogError("Failed to get admin analytics: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch analytics"})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    analytics,
+	})
+}
+
+// GetEarningsBreakdown returns detailed earnings information
+func (h *AnalyticsController) GetEarningsBreakdown(c *fiber.Ctx) error {
+	userID := c.Locals("user_id")
+	if userID == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	breakdown, err := h.analyticsService.GetEarningsBreakdown(c.Context(), userID.(string))
+	if err != nil {
+		utils.LogError("Failed to get earnings breakdown: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch earnings data"})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    breakdown,
+	})
+}
+
+// InvalidateCache allows manual cache invalidation (admin only)
+func (h *AnalyticsController) InvalidateCache(c *fiber.Ctx) error {
+	pattern := c.Query("pattern", "analytics:*")
+
+	if err := h.cache.Invalidate(c.Context(), pattern); err != nil {
+		utils.LogError("Failed to invalidate cache: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to invalidate cache"})
+	}
+
+	utils.LogInfo("Cache invalidated for pattern: %s", pattern)
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Cache invalidated successfully",
+		"pattern": pattern,
+	})
 }
 
 // Helper functions for analytics calculations
@@ -314,6 +409,7 @@ func (h *AnalyticsController) getResponseAnalytics(surveyID string) fiber.Map {
 }
 
 func (h *AnalyticsController) getCompletionFunnel(surveyID string) []fiber.Map {
+	_ = surveyID // TODO: Implement actual completion funnel calculation
 	// Mock completion funnel data
 	return []fiber.Map{
 		{"step": "Started", "count": 150, "percentage": 100},

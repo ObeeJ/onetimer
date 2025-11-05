@@ -192,6 +192,15 @@ func (db *SupabaseDB) InitSchema() error {
 		created_at TIMESTAMP DEFAULT NOW()
 	);
 
+	-- Waitlist table for landing page email collection
+	CREATE TABLE IF NOT EXISTS waitlist (
+		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+		email VARCHAR(255) UNIQUE NOT NULL,
+		source VARCHAR(100) DEFAULT 'hero_section',
+		notified BOOLEAN DEFAULT FALSE,
+		created_at TIMESTAMP DEFAULT NOW()
+	);
+
 	-- Create indexes for performance
 	CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 	CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
@@ -210,6 +219,8 @@ func (db *SupabaseDB) InitSchema() error {
 	CREATE INDEX IF NOT EXISTS idx_payment_transactions_user ON payment_transactions(user_id);
 	CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id);
 	CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
+	CREATE INDEX IF NOT EXISTS idx_waitlist_email ON waitlist(email);
+	CREATE INDEX IF NOT EXISTS idx_waitlist_created_at ON waitlist(created_at DESC);
 	`
 
 	_, err := db.Exec(context.Background(), schema)

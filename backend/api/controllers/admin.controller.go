@@ -105,11 +105,13 @@ func (h *AdminController) GetUsers(c *fiber.Ctx) error {
 
 	// Get total count
 	countQuery := "SELECT COUNT(*) FROM users WHERE 1=1"
+	countArgs := []interface{}{}
 	if role != "" {
-		countQuery += " AND role = '" + role + "'"
+		countQuery += " AND role = $1"
+		countArgs = append(countArgs, role)
 	}
 	var total int
-	h.db.QueryRow(context.Background(), countQuery).Scan(&total)
+	h.db.QueryRow(context.Background(), countQuery, countArgs...).Scan(&total)
 
 	return c.JSON(fiber.Map{
 		"users": users,
@@ -121,7 +123,10 @@ func (h *AdminController) GetUsers(c *fiber.Ctx) error {
 
 func (h *AdminController) ApproveUser(c *fiber.Ctx) error {
 	userID := c.Params("id")
-	adminID := c.Locals("user_id").(string)
+	adminID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
 	
 	// Update user status
 	updateQuery := `UPDATE users SET kyc_status = 'approved', is_verified = true, updated_at = NOW() WHERE id = $1`
@@ -147,7 +152,10 @@ func (h *AdminController) ApproveUser(c *fiber.Ctx) error {
 
 func (h *AdminController) RejectUser(c *fiber.Ctx) error {
 	userID := c.Params("id")
-	adminID := c.Locals("user_id").(string)
+	adminID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
 
 	var req struct {
 		Reason string `json:"reason"`
@@ -178,10 +186,66 @@ func (h *AdminController) RejectUser(c *fiber.Ctx) error {
 }
 
 func (h *AdminController) GetSurveys(c *fiber.Ctx) error {
-	surveys := []fiber.Map{
-		{"id": "1", "title": "Sample Survey", "status": "active"},
+	limit := c.QueryInt("limit", 50)
+	offset := c.QueryInt("offset", 0)
+	status := c.Query("status", "")
+
+	query := "SELECT id, title, description, status, reward, max_responses, current_responses, created_at FROM surveys WHERE 1=1"
+	args := []interface{}{}
+	argCount := 0
+
+	if status != "" {
+		argCount++
+		query += fmt.Sprintf(" AND status = $%d", argCount)
+		args = append(args, status)
 	}
-	return c.JSON(fiber.Map{"surveys": surveys})
+
+	query += " ORDER BY created_at DESC"
+	argCount++
+	query += fmt.Sprintf(" LIMIT $%d", argCount)
+	args = append(args, limit)
+
+	argCount++
+	query += fmt.Sprintf(" OFFSET $%d", argCount)
+	args = append(args, offset)
+
+	rows, err := h.db.Query(context.Background(), query, args...)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch surveys"})
+	}
+	defer rows.Close()
+
+	var surveys []fiber.Map
+	for rows.Next() {
+		var id, title, description, status string
+		var reward, maxResponses, currentResponses int
+		var createdAt time.Time
+
+		if err := rows.Scan(&id, &title, &description, &status, &reward, &maxResponses, &currentResponses, &createdAt); err != nil {
+			continue
+		}
+
+		surveys = append(surveys, fiber.Map{
+			"id": id,
+			"title": title,
+			"description": description,
+			"status": status,
+			"reward": reward,
+			"max_responses": maxResponses,
+			"current_responses": currentResponses,
+			"created_at": createdAt,
+		})
+	}
+
+	if surveys == nil {
+		surveys = []fiber.Map{}
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data": surveys,
+		"count": len(surveys),
+	})
 }
 
 func (h *AdminController) ApproveSurvey(c *fiber.Ctx) error {
@@ -194,35 +258,59 @@ func (h *AdminController) ApproveSurvey(c *fiber.Ctx) error {
 }
 
 func (h *AdminController) GetPayments(c *fiber.Ctx) error {
-	payments := []fiber.Map{
-		{
-			"id":        uuid.New().String(),
-			"user_id":   uuid.New().String(),
-			"amount":    5000,
-			"status":    "pending",
-			"bank_name": "Access Bank",
-			"created_at": time.Now().AddDate(0, 0, -1),
-		},
-		{
-			"id":        uuid.New().String(),
-			"user_id":   uuid.New().String(),
-			"amount":    3500,
-			"status":    "completed",
-			"bank_name": "GTBank",
-			"created_at": time.Now().AddDate(0, 0, -3),
-		},
+	limit := c.QueryInt("limit", 50)
+	offset := c.QueryInt("offset", 0)
+
+	query := "SELECT id, user_id, amount, status, created_at FROM withdrawals ORDER BY created_at DESC LIMIT $1 OFFSET $2"
+	rows, err := h.db.Query(context.Background(), query, limit, offset)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch payments"})
+	}
+	defer rows.Close()
+
+	var payments []fiber.Map
+	for rows.Next() {
+		var id, userID, status string
+		var amount int
+		var createdAt time.Time
+
+		if err := rows.Scan(&id, &userID, &amount, &status, &createdAt); err != nil {
+			continue
+		}
+
+		payments = append(payments, fiber.Map{
+			"id": id,
+			"user_id": userID,
+			"amount": amount,
+			"status": status,
+			"created_at": createdAt,
+		})
 	}
 
 	return c.JSON(fiber.Map{"payments": payments})
 }
 
 func (h *AdminController) GetReports(c *fiber.Ctx) error {
+	var totalUsers, activeSurveys, pendingKYC int
+	var totalEarnings int64
+
+	// Get total users
+	h.db.QueryRow(context.Background(), "SELECT COUNT(*) FROM users").Scan(&totalUsers)
+
+	// Get active surveys
+	h.db.QueryRow(context.Background(), "SELECT COUNT(*) FROM surveys WHERE status = 'active'").Scan(&activeSurveys)
+
+	// Get total earnings
+	h.db.QueryRow(context.Background(), "SELECT COALESCE(SUM(amount), 0) FROM earnings").Scan(&totalEarnings)
+
+	// Get pending KYC
+	h.db.QueryRow(context.Background(), "SELECT COUNT(*) FROM users WHERE kyc_status != 'approved'").Scan(&pendingKYC)
+
 	reports := fiber.Map{
-		"total_users":    1250,
-		"active_surveys": 45,
-		"total_earnings": 2500000,
-		"pending_kyc":    23,
-		"monthly_growth": 15.5,
+		"total_users":    totalUsers,
+		"active_surveys": activeSurveys,
+		"total_earnings": totalEarnings,
+		"pending_kyc":    pendingKYC,
 	}
 
 	return c.JSON(reports)
@@ -299,21 +387,39 @@ func (h *AdminController) ExportUsers(c *fiber.Ctx) error {
 // GetUserDetails returns detailed user information
 func (h *AdminController) GetUserDetails(c *fiber.Ctx) error {
 	userID := c.Params("id")
-	
+
+	var email, name, role, kycStatus string
+	var isActive bool
+	var phone, location *string
+	var createdAt time.Time
+
+	err := h.db.QueryRow(context.Background(),
+		"SELECT email, name, role, kyc_status, is_active, phone, location, created_at FROM users WHERE id = $1",
+		userID).Scan(&email, &name, &role, &kycStatus, &isActive, &phone, &location, &createdAt)
+
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	var totalEarnings int
+	h.db.QueryRow(context.Background(), "SELECT COALESCE(SUM(amount), 0) FROM earnings WHERE user_id = $1", userID).Scan(&totalEarnings)
+
+	var surveysCompleted int
+	h.db.QueryRow(context.Background(), "SELECT COUNT(*) FROM responses WHERE user_id = $1", userID).Scan(&surveysCompleted)
+
 	user := fiber.Map{
-		"id":           userID,
-		"name":         "John Doe",
-		"email":        "john@example.com",
-		"role":         "filler",
-		"status":       "active",
-		"kyc_status":   "verified",
-		"phone":        "+234801234567",
-		"location":     "Lagos, Nigeria",
-		"joined_date":  "2024-01-15",
-		"last_active":  "2024-01-20",
-		"total_earnings": 45200,
-		"surveys_completed": 23,
-		"kyc_documents": []string{"id_card.jpg", "selfie.jpg"},
+		"id": userID,
+		"name": name,
+		"email": email,
+		"role": role,
+		"status": "active",
+		"kyc_status": kycStatus,
+		"is_active": isActive,
+		"phone": phone,
+		"location": location,
+		"created_at": createdAt,
+		"total_earnings": totalEarnings,
+		"surveys_completed": surveysCompleted,
 	}
 
 	return c.JSON(user)

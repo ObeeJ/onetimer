@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"onetimer-backend/cache"
 	"onetimer-backend/models"
 	"onetimer-backend/security"
@@ -9,14 +10,20 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserController struct {
 	cache *cache.Cache
+	db    *pgxpool.Pool
 }
 
 func NewUserController(cache *cache.Cache) *UserController {
 	return &UserController{cache: cache}
+}
+
+func NewUserControllerWithDB(cache *cache.Cache, db *pgxpool.Pool) *UserController {
+	return &UserController{cache: cache, db: db}
 }
 
 func (h *UserController) Register(c *fiber.Ctx) error {
@@ -25,6 +32,7 @@ func (h *UserController) Register(c *fiber.Ctx) error {
 		Name     string `json:"name"`
 		Role     string `json:"role"`
 		Password string `json:"password"`
+		Phone    string `json:"phone"`
 	}
 
 	if err := c.BodyParser(&req); err != nil {
@@ -34,7 +42,7 @@ func (h *UserController) Register(c *fiber.Ctx) error {
 	// Validate input
 	validator := security.NewValidator()
 	validator.ValidateEmail(req.Email).ValidateName(req.Name).ValidatePassword(req.Password)
-	
+
 	if validator.HasErrors() {
 		return validator.SendErrorResponse(c)
 	}
@@ -43,13 +51,21 @@ func (h *UserController) Register(c *fiber.Ctx) error {
 	req.Email = validator.SanitizeInput(req.Email)
 	req.Name = validator.SanitizeInput(req.Name)
 
-	_, err := utils.HashPassword(req.Password)
+	// Hash password
+	passwordHash, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to hash password"})
 	}
-	
+
+	// Set default role
+	if req.Role == "" {
+		req.Role = "filler"
+	}
+
+	// Create user
+	userID := uuid.New().String()
 	user := models.User{
-		ID:         uuid.New(),
+		ID:         uuid.MustParse(userID),
 		Email:      req.Email,
 		Name:       req.Name,
 		Role:       req.Role,
@@ -57,6 +73,21 @@ func (h *UserController) Register(c *fiber.Ctx) error {
 		IsActive:   true,
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
+	}
+
+	// Save to database if available
+	if h.db != nil {
+		err := h.db.QueryRow(context.Background(),
+			"INSERT INTO users (id, email, name, phone, password_hash, role, is_verified, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
+			userID, req.Email, req.Name, req.Phone, passwordHash, req.Role, false, true).Scan(&userID)
+
+		if err != nil {
+			// Check if it's a duplicate email error
+			if err.Error() == "no rows in result set" {
+				return c.Status(409).JSON(fiber.Map{"error": "Email already registered"})
+			}
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to create user"})
+		}
 	}
 
 	return c.Status(201).JSON(fiber.Map{

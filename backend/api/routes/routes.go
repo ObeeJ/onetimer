@@ -2,15 +2,17 @@ package routes
 
 import (
 	"onetimer-backend/api/controllers"
+	"onetimer-backend/api/middleware"
 	"onetimer-backend/config"
 	"onetimer-backend/cache"
 	"onetimer-backend/services"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgxpool.Pool, emailService *services.EmailService, paystackService *services.PaystackService) {
+func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgxpool.Pool, emailService *services.EmailService, paystackService *services.PaystackService, storageService *services.StorageService, rateLimiter *middleware.RateLimiter, wsHub *services.Hub) {
 	// Health endpoints
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
@@ -21,34 +23,59 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgx
 	})
 
 	api := app.Group("/api")
+
+	// Apply global rate limiting (100 requests per minute per IP/user)
+	if rateLimiter != nil {
+		api.Use(rateLimiter.PerEndpointRateLimit())
+	}
+
 	api.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"status": "ok",
 			"env":    cfg.Env,
 			"api":    "ready",
+			"ratelimit": rateLimiter != nil,
 		})
 	})
 
 	// Initialize controllers
-	userController := controllers.NewUserController(cache)
+	userController := controllers.NewUserControllerWithDB(cache, db)
 	authController := controllers.NewAuthController(cache, cfg.JWTSecret)
 	adminController := controllers.NewAdminController(cache, db)
 	billingController := controllers.NewBillingController()
-	creatorController := controllers.NewCreatorController(cache)
+	creatorController := controllers.NewCreatorController(cache, db)
 	creditsController := controllers.NewCreditsController(cache, cfg)
-	earningsController := controllers.NewEarningsController(cache, cfg)
+	earningsController := controllers.NewEarningsController(cache, db, cfg)
 	eligibilityController := controllers.NewEligibilityController(cache, db)
 	exportController := controllers.NewExportController(cache, db)
-	loginController := controllers.NewLoginController(cache, cfg.JWTSecret)
+	fillerController := controllers.NewFillerController(cache, db)
+	loginController := controllers.NewLoginController(cache, db, cfg.JWTSecret)
 	logoutController := controllers.NewLogoutController()
 	onboardingController := controllers.NewOnboardingController(cache, db)
-	paymentController := controllers.NewPaymentController(cache)
+	paymentController := controllers.NewPaymentController(cache, cfg.PaystackSecret)
 	profileController := controllers.NewProfileController(cache, db)
-	referralController := controllers.NewReferralController(cache)
-	superAdminController := controllers.NewSuperAdminController(cache)
+	referralController := controllers.NewReferralController(cache, db)
+	superAdminController := controllers.NewSuperAdminController(cache, db)
 	surveyController := controllers.NewSurveyController(db, cache)
-	uploadController := controllers.NewUploadController(cache)
+	uploadController := controllers.NewUploadController(cache, storageService)
 	withdrawalController := controllers.NewWithdrawalController(cache, db, cfg.PaystackSecret)
+	waitlistController := controllers.NewWaitlistController(db, emailService)
+	analyticsController := controllers.NewAnalyticsController(cache, db)
+	wsController := controllers.NewWebSocketController(wsHub)
+
+	// WebSocket route (requires upgrade check)
+	app.Use("/ws", func(c *fiber.Ctx) error {
+		if websocket.IsWebSocketUpgrade(c) {
+			c.Locals("allowed", true)
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
+	app.Get("/ws", websocket.New(wsController.HandleWebSocket))
+
+	// Waitlist routes (public - no auth required)
+	api.Post("/waitlist/join", waitlistController.JoinWaitlist)
+	api.Get("/waitlist/stats", waitlistController.GetWaitlistStats) // TODO: Add admin middleware
 
 	// User routes
 	user := api.Group("/user")
@@ -66,6 +93,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgx
 
 	// Admin routes
 	admin := api.Group("/admin")
+	admin.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	admin.Get("/users", adminController.GetUsers)
 	admin.Post("/users/:id/approve", adminController.ApproveUser)
 	admin.Post("/users/:id/reject", adminController.RejectUser)
@@ -81,6 +109,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgx
 
 	// Creator routes
 	creator := api.Group("/creator")
+	creator.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	creator.Get("/dashboard", creatorController.GetDashboard)
 	creator.Get("/surveys", creatorController.GetMySurveys)
 	creator.Put("/surveys/:id", creatorController.UpdateSurvey)
@@ -102,16 +131,48 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgx
 
 	// Earnings routes
 	earnings := api.Group("/earnings")
+	earnings.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	earnings.Get("/", earningsController.GetEarnings)
 	earnings.Post("/withdraw", earningsController.WithdrawEarnings)
 
 	// Eligibility routes
 	eligibility := api.Group("/eligibility")
+	eligibility.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	eligibility.Get("/check", eligibilityController.CheckEligibility)
+
+	// Filler routes
+	filler := api.Group("/filler")
+	filler.Use(middleware.JWTMiddleware(cfg.JWTSecret))
+	filler.Get("/dashboard", fillerController.GetDashboard)
+	filler.Get("/surveys", fillerController.GetAvailableSurveys)
+	filler.Get("/surveys/completed", fillerController.GetCompletedSurveys)
+	filler.Get("/earnings", fillerController.GetEarningsHistory)
 
 	// Export routes
 	export := api.Group("/export")
 	export.Get("/survey/:id", exportController.ExportSurveyResponses)
+
+	// Analytics routes
+	analytics := api.Group("/analytics")
+	analytics.Use(middleware.JWTMiddleware(cfg.JWTSecret))
+
+	// Filler analytics
+	analytics.Get("/filler/dashboard", analyticsController.GetFillerDashboard)
+	analytics.Get("/filler/earnings", analyticsController.GetEarningsBreakdown)
+
+	// Creator analytics
+	analytics.Get("/creator/dashboard", analyticsController.GetCreatorDashboard)
+	analytics.Get("/creator/surveys/:id", analyticsController.GetSurveyAnalytics)
+	analytics.Get("/creator/trends", analyticsController.GetResponseTrends)
+
+	// Admin analytics (requires admin role)
+	analytics.Get("/admin/dashboard", analyticsController.GetAdminDashboard)
+	analytics.Post("/admin/cache/invalidate", analyticsController.InvalidateCache)
+
+	// Legacy routes (kept for backward compatibility)
+	analytics.Get("/dashboard", analyticsController.GetDashboardAnalytics)
+	analytics.Get("/surveys/:id", analyticsController.GetSurveyAnalytics)
+	analytics.Get("/export/:id", analyticsController.ExportAnalytics)
 
 	// Onboarding routes
 	onboarding := api.Group("/onboarding")
@@ -121,6 +182,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgx
 
 	// Payment routes
 	payment := api.Group("/payment")
+	payment.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	payment.Post("/purchase", paymentController.PurchaseCredits)
 	payment.Get("/verify/:reference", paymentController.VerifyPayment)
 	payment.Post("/payouts", paymentController.ProcessBatchPayouts)
@@ -131,12 +193,14 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgx
 
 	// Referral routes
 	referral := api.Group("/referral")
+	referral.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	referral.Get("/", referralController.GetReferrals)
 	referral.Post("/code", referralController.GenerateCode)
 	referral.Get("/stats", referralController.GetStats)
 
 	// Super Admin routes
 	superAdmin := api.Group("/super-admin")
+	superAdmin.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	superAdmin.Get("/admins", superAdminController.GetAdmins)
 	superAdmin.Post("/admins", superAdminController.CreateAdmin)
 	superAdmin.Get("/financials", superAdminController.GetFinancials)
@@ -144,23 +208,28 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgx
 	superAdmin.Get("/settings", superAdminController.GetSystemSettings)
 	superAdmin.Put("/settings", superAdminController.UpdateSettings)
 
-	// Survey routes
+	// Survey routes (consolidated - single group with selective middleware)
 	survey := api.Group("/survey")
-	survey.Post("/", surveyController.CreateSurvey)
+
+	// Public GET endpoints (no middleware)
 	survey.Get("/", surveyController.GetSurveys)
 	survey.Get("/:id", surveyController.GetSurvey)
-	survey.Put("/:id", surveyController.UpdateSurvey)
-	survey.Delete("/:id", surveyController.DeleteSurvey)
-	survey.Post("/:id/submit", surveyController.SubmitResponse)
 	survey.Get("/:id/questions", surveyController.GetSurveyQuestions)
-	survey.Post("/:id/start", surveyController.StartSurvey)
-	survey.Post("/:id/progress", surveyController.SaveProgress)
-	survey.Post("/:id/pause", surveyController.PauseSurvey)
-	survey.Post("/:id/resume", surveyController.ResumeSurvey)
-	survey.Post("/import", surveyController.ImportSurvey)
-	survey.Post("/:id/duplicate", surveyController.DuplicateSurvey)
 	survey.Get("/templates", surveyController.GetSurveyTemplates)
-	survey.Post("/draft", surveyController.SaveSurveyDraft)
+
+	// Protected POST/PUT/DELETE endpoints (with JWT middleware)
+	jwtMiddleware := middleware.JWTMiddleware(cfg.JWTSecret)
+	survey.Post("/", jwtMiddleware, surveyController.CreateSurvey)
+	survey.Put("/:id", jwtMiddleware, surveyController.UpdateSurvey)
+	survey.Delete("/:id", jwtMiddleware, surveyController.DeleteSurvey)
+	survey.Post("/:id/submit", jwtMiddleware, surveyController.SubmitResponse)
+	survey.Post("/:id/start", jwtMiddleware, surveyController.StartSurvey)
+	survey.Post("/:id/progress", jwtMiddleware, surveyController.SaveProgress)
+	survey.Post("/:id/pause", jwtMiddleware, surveyController.PauseSurvey)
+	survey.Post("/:id/resume", jwtMiddleware, surveyController.ResumeSurvey)
+	survey.Post("/import", jwtMiddleware, surveyController.ImportSurvey)
+	survey.Post("/:id/duplicate", jwtMiddleware, surveyController.DuplicateSurvey)
+	survey.Post("/draft", jwtMiddleware, surveyController.SaveSurveyDraft)
 
 	// Upload routes
 	upload := api.Group("/upload")

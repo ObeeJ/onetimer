@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"onetimer-backend/cache"
 	"onetimer-backend/security"
 	"onetimer-backend/utils"
@@ -8,17 +9,19 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type LoginController struct {
 	cache     *cache.Cache
+	db        *pgxpool.Pool
 	jwtSecret string
 }
 
-func NewLoginController(cache *cache.Cache, jwtSecret string) *LoginController {
+func NewLoginController(cache *cache.Cache, db *pgxpool.Pool, jwtSecret string) *LoginController {
 	return &LoginController{
 		cache:     cache,
+		db:        db,
 		jwtSecret: jwtSecret,
 	}
 }
@@ -33,16 +36,40 @@ func (h *LoginController) Login(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
-	// TODO: Get user from database
-	// Mock user data with hashed password
-	storedHash := "$2a$14$example.hash.here" // This would come from DB
-	
+	// Validate input
+	if req.Email == "" || req.Password == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "Email and password are required"})
+	}
+
+	// Get user from database
+	var userID, name, role, storedHash string
+	var isVerified, isActive bool
+
+	if h.db != nil {
+		err := h.db.QueryRow(context.Background(),
+			"SELECT id, name, password_hash, role, is_verified, is_active FROM users WHERE email = $1",
+			req.Email).Scan(&userID, &name, &storedHash, &role, &isVerified, &isActive)
+
+		if err != nil {
+			return c.Status(401).JSON(fiber.Map{"error": "Invalid credentials"})
+		}
+
+		// Check if account is active
+		if !isActive {
+			return c.Status(403).JSON(fiber.Map{"error": "Account is inactive"})
+		}
+	} else {
+		// Fallback for when database is not available
+		return c.Status(500).JSON(fiber.Map{"error": "Database unavailable"})
+	}
+
+	// Verify password
 	if !utils.CheckPassword(req.Password, storedHash) {
 		return c.Status(401).JSON(fiber.Map{"error": "Invalid credentials"})
 	}
 
 	// Generate JWT token
-	token, err := h.generateToken(uuid.New().String(), "filler")
+	token, err := h.generateToken(userID, role)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate token"})
 	}
@@ -56,9 +83,11 @@ func (h *LoginController) Login(c *fiber.Ctx) error {
 		"token":      token,
 		"csrf_token": csrfToken,
 		"user": fiber.Map{
-			"id":    uuid.New().String(),
-			"email": req.Email,
-			"role":  "filler",
+			"id":         userID,
+			"email":      req.Email,
+			"name":       name,
+			"role":       role,
+			"isVerified": isVerified,
 		},
 	})
 }

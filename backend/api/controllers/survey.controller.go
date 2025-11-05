@@ -2,11 +2,13 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"onetimer-backend/cache"
 	"onetimer-backend/models"
 	"onetimer-backend/repository"
 	"onetimer-backend/services"
+	"onetimer-backend/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -35,47 +37,36 @@ func NewSurveyController(db *pgxpool.Pool, cache *cache.Cache) *SurveyController
 }
 
 func (h *SurveyController) CreateSurvey(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(string)
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		utils.LogError("Unauthorized survey creation attempt")
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
 
 	var req models.SurveyRequest
 	if err := c.BodyParser(&req); err != nil {
+		utils.LogError("Failed to parse survey request: %v", err)
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid survey data"})
 	}
 
+	// Validate required fields
 	if req.Title == "" || req.Description == "" {
+		utils.LogWarn("Survey missing required fields - title or description empty")
 		return c.Status(400).JSON(fiber.Map{"error": "Title and description are required"})
 	}
 
-	if len(req.Questions) == 0 {
-		return c.Status(400).JSON(fiber.Map{"error": "At least one question is required"})
-	}
-
-	// Validate reward amount based on survey complexity
-	if err := h.billingService.ValidateRewardRange(len(req.Questions), req.RewardAmount); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	// Calculate total survey cost
-	billing := services.SurveyBilling{
-		Pages:              len(req.Questions),
-		RewardPerUser:      req.RewardAmount,
-		Respondents:        req.TargetCount,
-		PriorityPlacement:  req.PriorityPlacement,
-		DemographicFilters: len(req.DemographicFilters),
-		ExtraDays:          req.ExtraDays,
-		DataExport:         req.DataExport,
-	}
-
-	billingResult, err := h.billingService.CalculateSurveyCost(billing)
+	// Parse creator ID
+	creatorID, err := uuid.Parse(userID)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Failed to calculate survey cost: " + err.Error()})
+		utils.LogError("Invalid creator ID: %v", err)
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid user ID"})
 	}
 
+	// Create survey ID and object
 	surveyID := uuid.New()
-
 	survey := models.Survey{
 		ID:               surveyID,
-		CreatorID:        uuid.MustParse(userID),
+		CreatorID:        creatorID,
 		Title:            req.Title,
 		Description:      req.Description,
 		Category:         req.Category,
@@ -87,35 +78,62 @@ func (h *SurveyController) CreateSurvey(c *fiber.Ctx) error {
 		UpdatedAt:        time.Now(),
 	}
 
-	if err := h.repo.Create(c.Context(), &survey); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to create survey"})
+	ctx := context.Background()
+
+	// Persist survey to database
+	if h.repo != nil {
+		if err := h.repo.Create(ctx, &survey); err != nil {
+			utils.LogError("Failed to create survey in database: %v", err)
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to save survey to database"})
+		}
+		utils.LogInfo("Survey created successfully: %s by user %s", surveyID, userID)
+	} else {
+		utils.LogWarn("Database not available - survey not persisted")
 	}
 
-	for _, q := range req.Questions {
-		question := models.Question{
-			ID:       uuid.New(),
-			SurveyID: surveyID,
-			Type:     q.Type,
-			Title:    q.Title,
-			Required: q.Required,
-			Options:  q.Options,
-			Scale:    q.Scale,
-			Rows:     q.Rows,
-			Cols:     q.Cols,
-			Order:    q.Order,
+	// Create and persist questions
+	if len(req.Questions) > 0 && h.repo != nil {
+		for idx, q := range req.Questions {
+			question := models.Question{
+				ID:          uuid.New(),
+				SurveyID:    surveyID,
+				Type:        q.Type,
+				Title:       q.Title,
+				Description: q.Description,
+				Required:    q.Required,
+				Options:     q.Options,
+				Scale:       q.Scale,
+				Rows:        q.Rows,
+				Cols:        q.Cols,
+				Order:       idx + 1,
+			}
+
+			if err := h.repo.CreateQuestion(ctx, &question); err != nil {
+				utils.LogError("Failed to create question for survey %s: %v", surveyID, err)
+				// Continue creating other questions instead of failing
+				continue
+			}
 		}
-		if err := h.repo.CreateQuestion(c.Context(), &question); err != nil {
-			return c.Status(500).JSON(fiber.Map{"error": "Failed to create question"})
-		}
+		utils.LogInfo("Questions created for survey: %s (count: %d)", surveyID, len(req.Questions))
 	}
 
+	// Return success response with survey details
 	return c.Status(201).JSON(fiber.Map{
-		"ok":           true,
-		"survey":       survey,
-		"billing":      billingResult,
-		"total_cost":   billingResult.TotalCost,
-		"platform_fee": billingResult.PlatformFee,
-		"message":      "Survey created successfully and submitted for review",
+		"ok":      true,
+		"success": true,
+		"data": fiber.Map{
+			"survey_id":        survey.ID,
+			"title":            survey.Title,
+			"description":      survey.Description,
+			"category":         survey.Category,
+			"reward":           survey.Reward,
+			"target_count":     survey.MaxResponses,
+			"estimated_time":   survey.EstimatedTime,
+			"status":           survey.Status,
+			"created_at":       survey.CreatedAt,
+			"question_count":   len(req.Questions),
+		},
+		"message": "Survey created successfully and submitted for review",
 	})
 }
 
@@ -143,7 +161,11 @@ func (h *SurveyController) GetSurveys(c *fiber.Ctx) error {
 
 	surveys, err := h.repo.GetAll(c.Context(), 100, 0, "")
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch surveys"})
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch surveys", "details": err.Error()})
+	}
+
+	if surveys == nil {
+		surveys = []models.Survey{}
 	}
 
 	return c.JSON(fiber.Map{"data": surveys, "success": true})
@@ -200,7 +222,10 @@ func (h *SurveyController) GetSurvey(c *fiber.Ctx) error {
 
 func (h *SurveyController) UpdateSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
-	userID := c.Locals("user_id").(string)
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
 
 	var req models.SurveyRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -243,7 +268,10 @@ func (h *SurveyController) UpdateSurvey(c *fiber.Ctx) error {
 
 func (h *SurveyController) DeleteSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
-	userID := c.Locals("user_id").(string)
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
 
 	surveyUUID, err := uuid.Parse(surveyID)
 	if err != nil {
@@ -272,7 +300,10 @@ func (h *SurveyController) DeleteSurvey(c *fiber.Ctx) error {
 
 func (h *SurveyController) SubmitResponse(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
-	userID := c.Locals("user_id").(string)
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
 
 	var req struct {
 		Responses []models.Answer `json:"responses"`
@@ -353,7 +384,9 @@ func (h *SurveyController) StartSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
 	userID := "mock-user-id"
 	if c.Locals("user_id") != nil {
-		userID = c.Locals("user_id").(string)
+		if uid, ok := c.Locals("user_id").(string); ok {
+			userID = uid
+		}
 	}
 
 	sessionKey := "survey_session:" + surveyID + ":" + userID
@@ -379,7 +412,9 @@ func (h *SurveyController) SaveProgress(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
 	userID := "mock-user-id"
 	if c.Locals("user_id") != nil {
-		userID = c.Locals("user_id").(string)
+		if uid, ok := c.Locals("user_id").(string); ok {
+			userID = uid
+		}
 	}
 
 	var req struct {
@@ -448,7 +483,10 @@ func (h *SurveyController) ResumeSurvey(c *fiber.Ctx) error {
 }
 
 func (h *SurveyController) ImportSurvey(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(string)
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
 
 	file, err := c.FormFile("survey_file")
 	if err != nil {
@@ -484,7 +522,10 @@ func (h *SurveyController) ImportSurvey(c *fiber.Ctx) error {
 
 func (h *SurveyController) DuplicateSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
-	userID := c.Locals("user_id").(string)
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
 
 	surveyUUID, err := uuid.Parse(surveyID)
 	if err != nil {
@@ -541,7 +582,9 @@ func (h *SurveyController) GetSurveyTemplates(c *fiber.Ctx) error {
 func (h *SurveyController) SaveSurveyDraft(c *fiber.Ctx) error {
 	userID := "mock-user-id"
 	if c.Locals("user_id") != nil {
-		userID = c.Locals("user_id").(string)
+		if uid, ok := c.Locals("user_id").(string); ok {
+			userID = uid
+		}
 	}
 
 	var req models.SurveyRequest

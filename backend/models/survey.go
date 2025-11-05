@@ -12,7 +12,7 @@ type Survey struct {
 	Title            string     `json:"title" db:"title"`
 	Description      string     `json:"description" db:"description"`
 	Category         string     `json:"category" db:"category"`
-	TargetAudience   string     `json:"target_audience" db:"target_audience"`
+	TargetAudience   *string    `json:"target_audience" db:"target_audience"`
 	EstimatedTime    int        `json:"estimated_time" db:"estimated_time"`
 	Reward           int        `json:"reward" db:"reward"`
 	Status           string     `json:"status" db:"status"`

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"onetimer-backend/utils"
 )
 
 type BillingService struct{}
@@ -29,12 +30,15 @@ func NewBillingService() *BillingService {
 
 func (bs *BillingService) CalculateSurveyCost(billing SurveyBilling) (*BillingResult, error) {
 	if billing.Pages <= 0 {
+		utils.LogWarn("Invalid billing calculation: pages must be greater than 0")
 		return nil, errors.New("pages must be greater than 0")
 	}
 	if billing.RewardPerUser < 100 {
+		utils.LogWarn("Invalid billing calculation: reward per user must be at least ₦100")
 		return nil, errors.New("reward per user must be at least ₦100")
 	}
 	if billing.Respondents <= 0 {
+		utils.LogWarn("Invalid billing calculation: respondents must be greater than 0")
 		return nil, errors.New("respondents must be greater than 0")
 	}
 
@@ -78,12 +82,16 @@ func (bs *BillingService) CalculateSurveyCost(billing SurveyBilling) (*BillingRe
 		totalCost += 300
 	}
 
-	return &BillingResult{
+	result := &BillingResult{
 		PlatformFee:       platformFee,
 		TotalCost:         totalCost,
 		ComplexityLevel:   complexityLevel,
 		EstimatedDuration: estimatedDuration,
-	}, nil
+	}
+
+	utils.LogInfo("Survey cost calculated: complexity=%s, platform_fee=%d, total_cost=%d", complexityLevel, platformFee, totalCost)
+
+	return result, nil
 }
 
 func (bs *BillingService) ValidateRewardRange(pages int, rewardPerUser int) error {

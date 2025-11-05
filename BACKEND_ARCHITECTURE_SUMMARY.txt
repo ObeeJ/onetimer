@@ -1,0 +1,338 @@
+================================================================================
+                 ONETIMER BACKEND ARCHITECTURE SUMMARY
+================================================================================
+
+FRAMEWORK & STACK
+-----------------
+Go (Fiber v2 Web Framework) | PostgreSQL | Redis | pgx Driver | JWT Authentication
+
+================================================================================
+                            REQUEST FLOW DIAGRAM
+================================================================================
+
+HTTP Request
+    |
+    v
+[Fiber Router] (/api/routes/routes.go)
+    |
+    ├─ CORS Middleware (localhost:3000, onetimesurvey.com)
+    ├─ Logger Middleware
+    ├─ Security Headers Middleware (CSP, X-Frame-Options, etc.)
+    |
+    v
+[Route Matching] (30+ endpoints defined)
+    |
+    ├─ Public Routes: /auth/*, /user/register, /survey/*
+    |
+    └─ Protected Routes: [JWTMiddleware] → /admin/*, /creator/*, /filler/*
+                        [RequireRole] → Role-based access control
+    |
+    v
+[Controller Layer] (/api/controllers/*.go)
+    |
+    ├─ Extract user_id, role from JWT claims
+    ├─ Parse & validate request body
+    ├─ Sanitize inputs (XSS/SQL injection protection)
+    |
+    v
+[Service Layer] (/services/*.go)
+    |
+    ├─ Business logic (billing, email, OTP generation)
+    ├─ External API calls (Paystack, KYC services)
+    ├─ Data transformation
+    |
+    v
+[Repository Pattern] (/repository/*_repository.go)
+    |
+    ├─ Database queries with parameterized statements
+    ├─ Transaction management (WithTx pattern)
+    ├─ Data persistence
+    |
+    v
+[Database] (PostgreSQL)
+    |
+    ├─ Users, Surveys, Questions, Responses
+    ├─ Earnings, Withdrawals, Credits, Referrals
+    |
+    v
+[Response] JSON → Client
+
+================================================================================
+                        AUTHENTICATION FLOW
+================================================================================
+
+USER REGISTRATION PATH:
+  POST /api/user/register
+    -> UserController.Register()
+    -> Validate email/password/name
+    -> Hash password (bcrypt, cost 14)
+    -> Create user in DB
+    -> Return user data (201)
+
+LOGIN PATH:
+  POST /api/auth/login
+    -> LoginController.Login()
+    -> Query DB for user by email
+    -> Compare password hash
+    -> Generate JWT token (HS256, 24-hour expiry)
+    -> Set auth_token cookie (HttpOnly, Secure)
+    -> Set csrf_token cookie
+    -> Return token + user data
+
+OTP VERIFICATION PATH:
+  POST /api/auth/send-otp
+    -> AuthController.SendOTP()
+    -> Generate 6-digit OTP
+    -> Store in Redis (key: otp:{email}, TTL: 5 min)
+    -> Send via email
+    -> Return success
+
+  POST /api/auth/verify-otp
+    -> AuthController.VerifyOTP()
+    -> Retrieve OTP from Redis
+    -> Check expiration
+    -> Compare with provided OTP
+    -> Generate JWT token
+    -> Return token
+
+PROTECTED ENDPOINT ACCESS:
+  GET /api/creator/dashboard (requires JWT)
+    -> [JWTMiddleware] validates Authorization header or auth_token cookie
+    -> Extracts user_id, role from claims
+    -> Stores in c.Locals()
+    -> [RequireRole] checks user role permissions
+    -> Controller processes request
+    -> Return response
+
+================================================================================
+                        DATABASE SCHEMA
+================================================================================
+
+TABLES IMPLEMENTED:
+  - users          (id, email, name, role, password_hash, kyc_status, etc.)
+  - surveys        (id, creator_id, title, description, reward, status, etc.)
+  - questions      (id, survey_id, type, title, options, scale, etc.)
+  - responses      (id, survey_id, user_id, answers, status, timestamps)
+  - earnings       (id, user_id, survey_id, amount, type, status)
+  - withdrawals    (id, user_id, amount, bank_code, account_number, status)
+
+TABLES MISSING (models exist but not created):
+  - kyc_verifications
+  - credits
+  - referrals
+  - payments/transactions
+  - survey_responses (referenced in code)
+
+RELATIONSHIPS:
+  surveys.creator_id -> users.id
+  questions.survey_id -> surveys.id
+  responses.survey_id -> surveys.id
+  responses.user_id -> users.id
+  earnings.user_id -> users.id
+  withdrawals.user_id -> users.id
+
+================================================================================
+                    CONTROLLER STATUS MATRIX
+================================================================================
+
+COMPLETE IMPLEMENTATIONS:
+  LoginController     - Full login with JWT generation
+  AuthController      - OTP send/verify (has security issue)
+  FillerController    - Dashboard, surveys, earnings
+  SurveyController    - Basic CRUD (partial)
+
+PARTIAL IMPLEMENTATIONS:
+  UserController      - Register works, GetProfile has hardcoded data
+  AdminController     - GetUsers works, approval endpoints stub
+  CreatorController   - Dashboard works, UpdateSurvey doesn't save
+  BillingController   - Cost calculation works
+  ExportController    - CSV export skeleton only
+
+STUB/INCOMPLETE:
+  PaymentController   - All methods marked "not implemented"
+  WithdrawalController- Request structure, no DB operations
+  ReferralController  - Structure only
+  UploadController    - S3 integration incomplete
+
+================================================================================
+                    ERROR HANDLING & VALIDATION
+================================================================================
+
+VALIDATION LAYERS:
+  1. Input Sanitization: security.Validator.SanitizeInput()
+     - Removes XSS patterns: <script>, javascript:, etc.
+     - Removes SQL patterns: union, select, insert, etc.
+     - Limits length to 1000 chars
+
+  2. Field Validation: security.Validator.Validate*()
+     - ValidateEmail: RFC 5322 + regex check
+     - ValidatePassword: 8-128 chars, requires upper/lower/digit/special
+     - ValidateName: 2-100 chars, alphanumeric + space/hyphen/apostrophe
+
+  3. Business Validation: Services (e.g., BillingService)
+     - Pages > 0, Reward >= 100, Respondents > 0
+     - Reward range based on survey complexity
+
+  4. Controller Validation: Inline checks
+     - Required fields present
+     - Data type correctness
+
+ERROR RESPONSE INCONSISTENCY:
+  Pattern 1: {"error": "message"}
+  Pattern 2: {"ok": true/false, "error": "message"}
+  Pattern 3: {"success": true/false, "data": {...}, "errors": [...]}
+  Pattern 4: {"error": "message", "success": false}
+
+MISSING ERROR HANDLING:
+  - No error codes (e.g., ERR_001, ERR_002)
+  - No request tracking IDs
+  - No security event logging
+  - Silent database error failures
+  - String-based error matching (fragile)
+
+================================================================================
+                        SECURITY ASSESSMENT
+================================================================================
+
+STRENGTHS:
+  + Password hashing with bcrypt (cost 14) - STRONG
+  + JWT tokens (HS256) with 24-hour expiry
+  + CSRF protection (double-submit cookie pattern)
+  + Security headers (CSP, X-Frame-Options, HSTS)
+  + Input sanitization (regex-based XSS/SQL prevention)
+  + Parameterized SQL queries (pgx prevents SQL injection)
+  + CORS configured for specific origins
+
+CRITICAL VULNERABILITIES:
+  CRITICAL: OTP "123456" always accepted (auth.controller.go:87)
+  CRITICAL: GetProfile returns hardcoded data (user.controller.go:102)
+  HIGH: No rate limiting on auth endpoints (brute force risk)
+  HIGH: No request logging for security events
+  HIGH: OTP stored in c.Locals without cleanup (memory leak)
+
+MODERATE ISSUES:
+  - Hardcoded JWT_SECRET default: "your-super-secret-jwt-key"
+  - Password requirements too strict (might reduce adoption)
+  - CSRF token validated only by length (< 32 chars rejected)
+  - No account lockout after failed attempts
+  - No device fingerprinting or session management
+
+================================================================================
+                    WHAT'S WORKING vs NEEDS WORK
+================================================================================
+
+WORKING WELL (Production Ready):
+  ✓ User registration & authentication flow
+  ✓ JWT token generation & validation
+  ✓ Basic survey CRUD operations
+  ✓ Filler dashboard & survey browsing
+  ✓ Billing cost calculation
+  ✓ Repository pattern with transactions
+  ✓ Security headers & CORS middleware
+  ✓ Database connection pooling (pgx)
+
+NEEDS IMMEDIATE ATTENTION (Blocking Features):
+  ✗ Payment processing (Paystack integration)
+  ✗ Withdrawal/payout system
+  ✗ File uploads & KYC verification
+  ✗ Remove OTP bypass vulnerability
+  ✗ Fix GetProfile hardcoded data
+  ✗ Add rate limiting to auth endpoints
+  ✗ Standardize error response format
+
+NEEDS REFINEMENT (Quality Issues):
+  ~ Response format inconsistency across controllers
+  ~ Validation logic scattered across layers
+  ~ Admin approval workflow incomplete
+  ~ Referral system not implemented
+  ~ Export/analytics not aggregating correctly
+  ~ Cache invalidation strategy missing
+  ~ Database migrations incomplete
+
+NOT YET STARTED:
+  - Advanced analytics dashboards
+  - Survey template system
+  - Survey import/export functionality
+  - Notification system (email beyond OTP)
+  - Advanced demographic targeting
+  - Fraud detection system
+
+================================================================================
+                        FILE ORGANIZATION
+================================================================================
+
+/backend/
+  ├── /cmd/onetimer-backend/main.go           - Entry point
+  ├── /api/
+  │   ├── /controllers/                        - 30+ controller files
+  │   │   ├── auth.controller.go               - OTP, token generation
+  │   │   ├── user.controller.go               - Register, profile
+  │   │   ├── survey.controller.go             - CRUD operations
+  │   │   ├── creator.controller.go            - Creator dashboard
+  │   │   ├── filler.controller.go             - Filler dashboard
+  │   │   ├── payment.controller.go            - STUB
+  │   │   ├── withdrawal.controller.go         - STUB
+  │   │   └── [15+ more...]
+  │   ├── /middleware/
+  │   │   └── auth.go                          - JWT validation
+  │   ├── /routes/
+  │   │   ├── routes.go                        - Route definitions
+  │   │   └── api.go                           - Fiber app setup
+  │   └── /handlers/
+  │       └── kyc.go                           - KYC handler
+  ├── /services/
+  │   ├── billing.go                           - Cost calculation
+  │   ├── email.go                             - Email service
+  │   ├── otp.go                               - OTP generation
+  │   ├── paystack.go                          - Payment gateway
+  │   ├── s3.go                                - File uploads
+  │   ├── prembly.go                           - KYC verification
+  │   └── [5+ more...]
+  ├── /repository/
+  │   ├── base.repository.go                   - Transaction wrapper
+  │   ├── survey_repository.go                 - Survey CRUD
+  │   └── user_repository.go                   - User CRUD
+  ├── /models/
+  │   ├── user.go                              - User struct
+  │   ├── survey.go                            - Survey, Question, Response
+  │   └── requests.go                          - Request DTOs
+  ├── /database/
+  │   ├── temp_db.go                           - Migrations, seed data
+  │   ├── db.go                                - Connection helpers
+  │   └── supabase.go                          - Supabase integration
+  ├── /security/
+  │   ├── middleware.go                        - CSP, rate limiting
+  │   ├── validator.go                         - Input validation
+  │   ├── cookies.go                           - Cookie management
+  │   └── audit.go                             - Audit logging
+  ├── /cache/
+  │   └── redis.go                             - Redis wrapper
+  ├── /config/
+  │   └── config.go                            - Environment config
+  └── /utils/
+      └── password.go                          - Password hashing
+
+================================================================================
+                            KEY METRICS
+================================================================================
+
+Code Quality:
+  - Controllers: 30+ files (mix of complete & stub)
+  - Services: 10+ files (mix of complete & incomplete)
+  - Lines of code (backend): ~5000 lines
+
+Endpoint Coverage:
+  - Total endpoints: 50+ defined
+  - Fully working: 25+ endpoints
+  - Partially working: 15+ endpoints
+  - Stub/incomplete: 10+ endpoints
+
+Test Coverage: Not visible in provided files
+
+Performance Considerations:
+  - Database: Connection pooling via pgx
+  - Caching: Redis with 5-minute default TTL
+  - Pagination: Implemented in repository layer
+  - Indexes: Missing from database schema
+
+================================================================================

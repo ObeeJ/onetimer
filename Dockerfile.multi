@@ -1,5 +1,5 @@
 # Unified Dockerfile for Render deployment
-FROM golang:1.21-alpine AS go-builder
+FROM golang:1.23-alpine AS go-builder
 
 # Build unified backend (includes all filler functionality)
 WORKDIR /app/backend
@@ -16,10 +16,12 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
 RUN npm run build
+# Ensure standalone directory exists
+RUN ls -la .next/ && ls -la .next/standalone/ || echo "Standalone not found"
 
 # Final runtime image
 FROM alpine:latest
-RUN apk --no-cache add ca-certificates curl nodejs npm supervisor
+RUN apk --no-cache add ca-certificates curl nodejs npm supervisor nginx
 
 WORKDIR /app
 
@@ -31,14 +33,43 @@ COPY --from=frontend-builder /app/.next/standalone ./frontend/
 COPY --from=frontend-builder /app/.next/static ./frontend/.next/static
 COPY --from=frontend-builder /app/public ./frontend/public
 
-# Create supervisor config for 2 services
+# Create nginx config
+RUN echo 'server {' > /etc/nginx/http.d/default.conf && \
+    echo '    listen 80;' >> /etc/nginx/http.d/default.conf && \
+    echo '    location /api/ {' >> /etc/nginx/http.d/default.conf && \
+    echo '        proxy_pass http://localhost:8081/api/;' >> /etc/nginx/http.d/default.conf && \
+    echo '        proxy_set_header Host $host;' >> /etc/nginx/http.d/default.conf && \
+    echo '        proxy_set_header X-Real-IP $remote_addr;' >> /etc/nginx/http.d/default.conf && \
+    echo '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' >> /etc/nginx/http.d/default.conf && \
+    echo '        proxy_set_header X-Forwarded-Proto $scheme;' >> /etc/nginx/http.d/default.conf && \
+    echo '    }' >> /etc/nginx/http.d/default.conf && \
+    echo '    location / {' >> /etc/nginx/http.d/default.conf && \
+    echo '        proxy_pass http://localhost:3001/;' >> /etc/nginx/http.d/default.conf && \
+    echo '        proxy_set_header Host $host;' >> /etc/nginx/http.d/default.conf && \
+    echo '        proxy_set_header X-Real-IP $remote_addr;' >> /etc/nginx/http.d/default.conf && \
+    echo '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' >> /etc/nginx/http.d/default.conf && \
+    echo '        proxy_set_header X-Forwarded-Proto $scheme;' >> /etc/nginx/http.d/default.conf && \
+    echo '    }' >> /etc/nginx/http.d/default.conf && \
+    echo '}' >> /etc/nginx/http.d/default.conf
+
+# Create supervisor config for 3 services
 RUN echo '[supervisord]' > /etc/supervisord.conf && \
     echo 'nodaemon=true' >> /etc/supervisord.conf && \
     echo 'user=root' >> /etc/supervisord.conf && \
     echo '' >> /etc/supervisord.conf && \
+    echo '[program:nginx]' >> /etc/supervisord.conf && \
+    echo 'command=nginx -g "daemon off;"' >> /etc/supervisord.conf && \
+    echo 'autostart=true' >> /etc/supervisord.conf && \
+    echo 'autorestart=true' >> /etc/supervisord.conf && \
+    echo 'stdout_logfile=/dev/stdout' >> /etc/supervisord.conf && \
+    echo 'stdout_logfile_maxbytes=0' >> /etc/supervisord.conf && \
+    echo 'stderr_logfile=/dev/stderr' >> /etc/supervisord.conf && \
+    echo 'stderr_logfile_maxbytes=0' >> /etc/supervisord.conf && \
+    echo '' >> /etc/supervisord.conf && \
     echo '[program:backend]' >> /etc/supervisord.conf && \
     echo 'command=/app/backend-main' >> /etc/supervisord.conf && \
     echo 'directory=/app' >> /etc/supervisord.conf && \
+    echo 'environment=PORT=8081' >> /etc/supervisord.conf && \
     echo 'autostart=true' >> /etc/supervisord.conf && \
     echo 'autorestart=true' >> /etc/supervisord.conf && \
     echo 'stdout_logfile=/dev/stdout' >> /etc/supervisord.conf && \
@@ -49,6 +80,7 @@ RUN echo '[supervisord]' > /etc/supervisord.conf && \
     echo '[program:frontend]' >> /etc/supervisord.conf && \
     echo 'command=node server.js' >> /etc/supervisord.conf && \
     echo 'directory=/app/frontend' >> /etc/supervisord.conf && \
+    echo 'environment=PORT=3001,HOSTNAME=0.0.0.0' >> /etc/supervisord.conf && \
     echo 'autostart=true' >> /etc/supervisord.conf && \
     echo 'autorestart=true' >> /etc/supervisord.conf && \
     echo 'stdout_logfile=/dev/stdout' >> /etc/supervisord.conf && \
@@ -56,13 +88,12 @@ RUN echo '[supervisord]' > /etc/supervisord.conf && \
     echo 'stderr_logfile=/dev/stderr' >> /etc/supervisord.conf && \
     echo 'stderr_logfile_maxbytes=0' >> /etc/supervisord.conf
 
-# Expose ports
-EXPOSE 3000 8080
+# Expose port 80 for nginx
+EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:3000/api/healthz && \
-      curl -f http://localhost:8080/health || exit 1
+  CMD curl -f http://localhost:80/ || exit 1
 
 # Start services
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

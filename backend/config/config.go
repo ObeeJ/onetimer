@@ -15,14 +15,15 @@ type Config struct {
 	JWTSecret      string
 	RateLimit      int
 	CacheTTL       int
-	SupabaseURL    string
-	SupabaseKey    string
-	PaystackSecret string
-	AWSRegion      string
-	AWSAccessKey   string
-	AWSSecretKey   string
-	S3Bucket       string
-	SMTPHost       string
+	SupabaseURL         string
+	SupabaseKey         string
+	PaystackSecret      string
+	AWSRegion           string
+	AWSAccessKeyID      string
+	AWSSecretAccessKey  string
+	S3Bucket            string
+	S3Endpoint          string
+	SMTPHost            string
 	SMTPPort       string
 	SMTPUser       string
 	SMTPPass       string
@@ -45,14 +46,15 @@ func Load() *Config {
 		JWTSecret:      getEnv("JWT_SECRET", "your-super-secret-jwt-key"),
 		RateLimit:      rateLimit,
 		CacheTTL:       cacheTTL,
-		SupabaseURL:    getEnv("SUPABASE_URL", ""),
-		SupabaseKey:    getEnv("SUPABASE_ANON_KEY", ""),
-		PaystackSecret: getEnv("PAYSTACK_SECRET_KEY", ""),
-		AWSRegion:      getEnv("AWS_REGION", "us-east-1"),
-		AWSAccessKey:   getEnv("AWS_ACCESS_KEY_ID", ""),
-		AWSSecretKey:   getEnv("AWS_SECRET_ACCESS_KEY", ""),
-		S3Bucket:       getEnv("S3_BUCKET", ""),
-		SMTPHost:       getEnv("SMTP_HOST", ""),
+		SupabaseURL:        getEnv("SUPABASE_URL", ""),
+		SupabaseKey:        getEnv("SUPABASE_ANON_KEY", ""),
+		PaystackSecret:     getEnv("PAYSTACK_SECRET_KEY", ""),
+		AWSRegion:          getEnv("AWS_REGION", "us-east-1"),
+		AWSAccessKeyID:     getEnv("AWS_ACCESS_KEY_ID", ""),
+		AWSSecretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY", ""),
+		S3Bucket:           getEnv("S3_BUCKET", ""),
+		S3Endpoint:         getEnv("S3_ENDPOINT", ""),
+		SMTPHost:           getEnv("SMTP_HOST", ""),
 		SMTPPort:       getEnv("SMTP_PORT", "587"),
 		SMTPUser:       getEnv("SMTP_USER", ""),
 		SMTPPass:       getEnv("SMTP_PASS", ""),

@@ -1,0 +1,330 @@
+================================================================================
+                    BACKEND ARCHITECTURE QUICK REFERENCE
+================================================================================
+
+BACKEND TECH STACK
+==================
+Language: Go 1.18+
+Framework: Fiber v2
+Database: PostgreSQL (via pgx/v5)
+Cache: Redis
+Auth: JWT (HS256) + OTP
+File Storage: AWS S3 (integration exists)
+
+KEY DIRECTORIES
+================
+/api/routes/        Routes registration & middleware setup
+/api/controllers/   30+ HTTP request handlers
+/api/middleware/    JWT validation, CSRF protection
+/services/          Business logic & external integrations
+/repository/        Database access layer with transactions
+/models/            Data structures (User, Survey, Question, etc.)
+/database/          Migrations, seed data, connection pooling
+/security/          Validation, sanitization, security headers
+/cache/             Redis wrapper for OTP & data caching
+/config/            Environment configuration management
+
+ENTRY POINT
+===========
+File: /cmd/onetimer-backend/main.go
+Function: main()
+Process:
+  1. Load config from environment
+  2. Initialize Fiber app with error handler
+  3. Initialize Redis cache
+  4. Initialize PostgreSQL connection pool
+  5. Initialize email & payment services
+  6. Register all routes via SetupRoutes()
+  7. Start listening on configured port
+
+ROUTE REGISTRATION
+==================
+File: /api/routes/routes.go (SetupRoutes function)
+Structure: Groups with optional middleware
+
+Public Routes:
+  GET    /health
+  POST   /api/user/register
+  POST   /api/auth/login
+  POST   /api/auth/send-otp
+  POST   /api/auth/verify-otp
+
+Protected Routes (require JWT):
+  GET    /api/creator/dashboard
+  GET    /api/filler/dashboard
+  GET    /api/admin/users
+  POST   /api/survey/
+  GET    /api/survey/:id
+
+CONTROLLER PATTERN
+==================
+All controllers follow structure:
+  1. Define controller struct with dependencies
+  2. Create NewXxxController() constructor
+  3. Implement handler methods with *fiber.Ctx receiver
+
+Example:
+  type SurveyController struct {
+    cache          *cache.Cache
+    db             *pgxpool.Pool
+    repo           *repository.SurveyRepository
+    billingService *services.BillingService
+  }
+
+  func (h *SurveyController) CreateSurvey(c *fiber.Ctx) error {
+    userID := c.Locals("user_id").(string)
+    var req models.SurveyRequest
+    c.BodyParser(&req)
+    // ... validation, service calls, database operations
+    return c.JSON(response)
+  }
+
+AUTHENTICATION FLOW
+===================
+Registration:
+  1. POST /api/user/register
+  2. Validate email, password, name
+  3. Hash password with bcrypt (cost 14)
+  4. INSERT user into database
+  5. Return user object
+
+Login (Email/Password):
+  1. POST /api/auth/login
+  2. Find user by email
+  3. Compare password hash
+  4. Generate JWT token (expires in 24 hours)
+  5. Set auth_token cookie
+  6. Return token + user data
+
+OTP Flow (Alternative):
+  1. POST /api/auth/send-otp (email or phone)
+  2. Generate 6-digit OTP
+  3. Store in Redis with 5-minute TTL
+  4. Send via email
+  5. POST /api/auth/verify-otp
+  6. Retrieve and verify OTP
+  7. Generate JWT token
+  8. Return token
+
+Protected Endpoint Access:
+  1. Client sends Authorization: Bearer <token> header
+  2. JWTMiddleware validates token signature
+  3. Extract user_id, role from JWT claims
+  4. Store in c.Locals() for controller access
+  5. RequireRole middleware checks permissions
+  6. Controller executes business logic
+
+JWT TOKEN DETAILS
+=================
+Algorithm: HS256 (HMAC SHA-256)
+Secret: From JWT_SECRET environment variable
+Expiry: 24 hours from generation
+Payload:
+  {
+    "user_id": "uuid",
+    "role": "filler|creator|admin|super_admin",
+    "exp": unix_timestamp
+  }
+
+Cookie Details:
+  Name: auth_token
+  HttpOnly: true (not accessible to JavaScript)
+  Secure: true (HTTPS only)
+  SameSite: Strict
+
+DATABASE OPERATIONS
+===================
+Connection: pgx.Pool (connection pooling)
+Query Style: Parameterized queries with numbered placeholders ($1, $2, etc.)
+
+Example:
+  row := db.QueryRow(ctx, "SELECT * FROM users WHERE id = $1", userID)
+  err := row.Scan(&user.ID, &user.Email, ...)
+
+Transactions:
+  repo.WithTx(ctx, func(tx interface{}) error {
+    // Execute multiple operations
+    // Automatically rolls back on error
+  })
+
+Common Repository Methods:
+  Create(ctx, entity) error
+  GetByID(ctx, id) (*Entity, error)
+  GetAll(ctx, limit, offset) ([]Entity, error)
+  Update(ctx, entity) error
+  Delete(ctx, id) error
+  GetByFilter(ctx, filters) ([]Entity, error)
+
+VALIDATION LAYERS
+=================
+1. Input Sanitization (security.Validator.SanitizeInput):
+   - Removes XSS: <script>, javascript:, onclick=, etc.
+   - Removes SQL: union, select, insert, delete, drop, etc.
+   - Limits length: max 1000 characters
+
+2. Field Validation (security.Validator):
+   - ValidateEmail: RFC 5322 format + regex check
+   - ValidatePassword: 8-128 chars, needs upper/lower/digit/special
+   - ValidateName: 2-100 chars, alphanumeric + space/hyphen/apostrophe
+
+3. Business Validation (Services):
+   - BillingService: Pages > 0, Reward >= 100, Respondents > 0
+   - RewardRange validation based on survey complexity
+
+4. Controller Validation (Inline):
+   - Required fields present
+   - Data relationships valid
+   - User authorization checks
+
+DATA MODELS
+===========
+User:
+  - id (UUID), email, name, password_hash, role
+  - is_verified, is_active, kyc_status
+  - profile_picture_url, referral_code
+  - failed_login_attempts, locked_until (for account lockout)
+
+Survey:
+  - id, creator_id, title, description, category
+  - reward, max_responses, current_responses
+  - status (active|pending|completed|paused)
+  - estimated_time, created_at, updated_at
+
+Question:
+  - id, survey_id, type (single|multi|text|rating|matrix)
+  - title, description, required, options
+  - scale (for rating), rows, cols (for matrix)
+
+Response:
+  - id, survey_id, filler_id, answers (JSON)
+  - status, started_at, completed_at
+
+Earning:
+  - id, user_id, survey_id, amount, type (survey|referral)
+  - status, created_at
+
+CACHING STRATEGY
+================
+Provider: Redis
+Default TTL: 5 minutes
+Connection: redis://localhost:6379 (configurable)
+
+Current Uses:
+  - OTP storage (key: otp:{email}, TTL: 5 min)
+  - Session tokens (if implemented)
+  - Rate limiting counters
+
+Cache Methods:
+  cache.Set(ctx, key, value) - Store with TTL
+  cache.Get(ctx, key, &dest) - Retrieve and unmarshal
+  cache.Delete(ctx, key) - Delete entry
+  cache.Exists(ctx, key) - Check existence
+
+IMPORTANT FILE LOCATIONS
+========================
+Configuration:
+  /config/config.go - Loads from .env (JWT_SECRET, DATABASE_URL, etc.)
+
+Database Initialization:
+  /database/temp_db.go - Migrations & seed data
+  /database/db.go - Connection helpers
+
+Security:
+  /security/validator.go - Input validation & sanitization
+  /security/middleware.go - Security headers, rate limiting, CSRF
+  /security/cookies.go - Cookie management
+  /utils/password.go - Password hashing & verification
+
+Errors:
+  Global handler: /api/routes/api.go (line 12-24)
+  Returns 500 status for unhandled errors
+  No custom error codes or tracking IDs
+
+COMMON RESPONSE PATTERNS
+=======================
+Success (FillerController - recommended):
+  {
+    "success": true,
+    "data": {...},
+    "count": 10,
+    "timestamp": "2024-01-01T00:00:00Z"
+  }
+
+Success (UserController):
+  {
+    "ok": true,
+    "user": {...}
+  }
+
+Error:
+  {
+    "error": "error message",
+    "success": false
+  }
+
+CRITICAL VULNERABILITIES
+=========================
+1. OTP Bypass (auth.controller.go:87)
+   OTP "123456" always accepted - MUST FIX
+
+2. Hardcoded Profile Data (user.controller.go:102)
+   GetProfile returns same data for all users - MUST FIX
+
+3. No Rate Limiting
+   Auth endpoints vulnerable to brute force - ADD IMMEDIATELY
+
+4. Memory Leak
+   OTP data stored in c.Locals without cleanup
+
+SERVICES IMPLEMENTATION STATUS
+==============================
+Complete:
+  - BillingService (cost calculation)
+  - OTPService (generation & expiry checking)
+
+Partial:
+  - EmailService (OTP sending works, others incomplete)
+  - UploadService (S3 integration started)
+
+Not Implemented:
+  - PaystackService (payment processing)
+  - WithdrawalService (payout processing)
+  - ReferralService (referral tracking)
+  - KYC Services (Prembly, VerifyMe, QoreID)
+
+TESTING CREDENTIALS
+===================
+From database seed data:
+  Email: john@example.com
+  Password: password123
+
+Test OTP: 123456 (always works due to bug)
+
+DEPLOYMENT CONSIDERATIONS
+=========================
+Environment Variables Required:
+  DATABASE_URL=postgres://user:pass@host:5432/db
+  REDIS_URL=redis://localhost:6379
+  JWT_SECRET=<strong-secret-key>
+  PORT=8080
+  ENV=production
+  PAYSTACK_SECRET_KEY=<key>
+  AWS_ACCESS_KEY_ID=<key>
+  AWS_SECRET_ACCESS_KEY=<key>
+  S3_BUCKET=<bucket>
+  SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
+
+Performance Tuning:
+  - Increase pgx.Pool connection limits
+  - Configure Redis persistence
+  - Add database indexes on frequently queried columns
+  - Implement query caching for surveys list
+  - Set up CDN for static files
+
+Monitoring:
+  - No built-in logging system (add structured logging)
+  - No health check endpoints for dependencies
+  - No metrics collection (add Prometheus)
+  - No error tracking (add Sentry or similar)
+
+================================================================================

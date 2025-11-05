@@ -21,15 +21,15 @@ type S3Service struct {
 }
 
 func NewS3Service(cfg *config.Config) (*S3Service, error) {
-	if cfg.AWSAccessKey == "" || cfg.AWSSecretKey == "" {
+	if cfg.AWSAccessKeyID == "" || cfg.AWSSecretAccessKey == "" {
 		return nil, fmt.Errorf("AWS credentials not configured")
 	}
 
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(cfg.AWSRegion),
 		Credentials: credentials.NewStaticCredentials(
-			cfg.AWSAccessKey,
-			cfg.AWSSecretKey,
+			cfg.AWSAccessKeyID,
+			cfg.AWSSecretAccessKey,
 			"",
 		),
 	})

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/csv"
 	"fmt"
 	"onetimer-backend/cache"
@@ -9,57 +10,79 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type CreatorController struct {
 	cache *cache.Cache
+	db    *pgxpool.Pool
 }
 
-func NewCreatorController(cache *cache.Cache) *CreatorController {
-	return &CreatorController{cache: cache}
+func NewCreatorController(cache *cache.Cache, db *pgxpool.Pool) *CreatorController {
+	return &CreatorController{cache: cache, db: db}
 }
 
 func (h *CreatorController) GetDashboard(c *fiber.Ctx) error {
-	_ = c.Locals("user_id").(string)
-	
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	var totalSurveys, activeSurveys, totalResponses int
+
+	h.db.QueryRow(context.Background(), "SELECT COUNT(*) FROM surveys WHERE creator_id = $1", userID).Scan(&totalSurveys)
+	h.db.QueryRow(context.Background(), "SELECT COUNT(*) FROM surveys WHERE creator_id = $1 AND status = 'active'", userID).Scan(&activeSurveys)
+	h.db.QueryRow(context.Background(), "SELECT COUNT(*) FROM responses r JOIN surveys s ON r.survey_id = s.id WHERE s.creator_id = $1", userID).Scan(&totalResponses)
+
 	dashboard := fiber.Map{
-		"total_surveys":    12,
-		"active_surveys":   8,
-		"total_responses":  1450,
-		"credits_balance":  2500,
-		"monthly_responses": 340,
+		"total_surveys":    totalSurveys,
+		"active_surveys":   activeSurveys,
+		"total_responses":  totalResponses,
+		"user_id":          userID,
 	}
 
 	return c.JSON(dashboard)
 }
 
 func (h *CreatorController) GetMySurveys(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(string)
-	
-	surveys := []models.Survey{
-		{
-			ID:               uuid.New(),
-			CreatorID:        uuid.MustParse(userID),
-			Title:           "My Consumer Survey",
-			Description:     "Understanding consumer behavior",
-			Status:          "active",
-			CurrentResponses: 45,
-			MaxResponses:    100,
-			CreatedAt:       time.Now().AddDate(0, 0, -5),
-		},
-		{
-			ID:               uuid.New(),
-			CreatorID:        uuid.MustParse(userID),
-			Title:           "Product Feedback Survey",
-			Description:     "Collecting product feedback",
-			Status:          "draft",
-			CurrentResponses: 0,
-			MaxResponses:    200,
-			CreatedAt:       time.Now().AddDate(0, 0, -2),
-		},
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	return c.JSON(fiber.Map{"surveys": surveys})
+	rows, err := h.db.Query(context.Background(),
+		"SELECT id, creator_id, title, description, status, current_responses, max_responses, created_at FROM surveys WHERE creator_id = $1 ORDER BY created_at DESC",
+		userID)
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch surveys"})
+	}
+	defer rows.Close()
+
+	var surveys []models.Survey
+	for rows.Next() {
+		var survey models.Survey
+		var id, creatorID string
+
+		if err := rows.Scan(&id, &creatorID, &survey.Title, &survey.Description, &survey.Status,
+			&survey.CurrentResponses, &survey.MaxResponses, &survey.CreatedAt); err != nil {
+			continue
+		}
+
+		survey.ID = uuid.MustParse(id)
+		survey.CreatorID = uuid.MustParse(creatorID)
+		surveys = append(surveys, survey)
+	}
+
+	if surveys == nil {
+		surveys = []models.Survey{}
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data": surveys,
+		"count": len(surveys),
+	})
 }
 
 func (h *CreatorController) UpdateSurvey(c *fiber.Ctx) error {
@@ -128,8 +151,8 @@ func (h *CreatorController) GetAnalytics(c *fiber.Ctx) error {
 
 func (h *CreatorController) GetCredits(c *fiber.Ctx) error {
 	_ = c.Locals("user_id").(string)
-	
-	credits := fiber.Map{
+
+	creditsData := fiber.Map{
 		"balance":      2500,
 		"spent":        7500,
 		"transactions": []fiber.Map{
@@ -148,7 +171,10 @@ func (h *CreatorController) GetCredits(c *fiber.Ctx) error {
 		},
 	}
 
-	return c.JSON(credits)
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    creditsData,
+	})
 }
 
 func (h *CreatorController) ExportSurveyResponses(c *fiber.Ctx) error {
