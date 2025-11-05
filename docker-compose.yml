@@ -1,5 +1,13 @@
 version: '3.8'
 
+# Shared logging configuration for persistent log storage
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "100m"
+    max-file: "10"
+    labels: "service=onetimer"
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -13,6 +21,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - onetimer-network
+    logging: *default-logging
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U onetimer"]
       interval: 10s
@@ -25,6 +34,7 @@ services:
       - "6379:6379"
     networks:
       - onetimer-network
+    logging: *default-logging
 
   onetimer:
     build:
@@ -34,21 +44,22 @@ services:
       - "3000:80"
     environment:
       # PostgreSQL Database (Local Development)
-      - DATABASE_URL=postgresql://onetimer:onetimer2025@postgres:5432/onetimer?sslmode=disable
-      - SUPABASE_URL=https://bgjhqmgpxrciogmuounh.supabase.co
+      - DATABASE_URL=${DATABASE_URL:-postgresql://onetimer:onetimer2025@postgres:5432/onetimer?sslmode=disable}
+      # Supabase Configuration - Load from .env file
+      - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
       - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
-      # JWT
+      # JWT Secret - Load from .env file
       - JWT_SECRET=${JWT_SECRET}
-      # Paystack
+      # Paystack Configuration - Load from .env file
       - PAYSTACK_SECRET_KEY=${PAYSTACK_SECRET_KEY:-sk_test_dummy}
       - PAYSTACK_PUBLIC_KEY=${PAYSTACK_PUBLIC_KEY:-pk_test_dummy}
-      # Supabase Storage (replaces AWS S3)
-      - AWS_REGION=us-west-1
+      # Supabase Storage Configuration - Load from .env file
+      - AWS_REGION=${AWS_REGION:-us-west-1}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - S3_BUCKET=onetimer-uploads
-      - S3_ENDPOINT=https://bgjhqmgpxrciogmuounh.storage.supabase.co
+      - S3_BUCKET=${S3_BUCKET:-onetimer-uploads}
+      - S3_ENDPOINT=${S3_ENDPOINT}
       # Cache
       - REDIS_URL=redis://redis:6379
       - CACHE_TTL=3600
@@ -62,6 +73,7 @@ services:
         condition: service_started
     networks:
       - onetimer-network
+    logging: *default-logging
 
 networks:
   onetimer-network:
