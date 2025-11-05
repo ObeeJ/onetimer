@@ -33,24 +33,30 @@ COPY --from=frontend-builder /app/.next/standalone ./frontend/
 COPY --from=frontend-builder /app/.next/static ./frontend/.next/static
 COPY --from=frontend-builder /app/public ./frontend/public
 
-# Create nginx config
-RUN echo 'server {' > /etc/nginx/http.d/default.conf && \
-    echo '    listen 80;' >> /etc/nginx/http.d/default.conf && \
-    echo '    location /api/ {' >> /etc/nginx/http.d/default.conf && \
-    echo '        proxy_pass http://localhost:8081/api/;' >> /etc/nginx/http.d/default.conf && \
-    echo '        proxy_set_header Host $host;' >> /etc/nginx/http.d/default.conf && \
-    echo '        proxy_set_header X-Real-IP $remote_addr;' >> /etc/nginx/http.d/default.conf && \
-    echo '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' >> /etc/nginx/http.d/default.conf && \
-    echo '        proxy_set_header X-Forwarded-Proto $scheme;' >> /etc/nginx/http.d/default.conf && \
-    echo '    }' >> /etc/nginx/http.d/default.conf && \
-    echo '    location / {' >> /etc/nginx/http.d/default.conf && \
-    echo '        proxy_pass http://localhost:3001/;' >> /etc/nginx/http.d/default.conf && \
-    echo '        proxy_set_header Host $host;' >> /etc/nginx/http.d/default.conf && \
-    echo '        proxy_set_header X-Real-IP $remote_addr;' >> /etc/nginx/http.d/default.conf && \
-    echo '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' >> /etc/nginx/http.d/default.conf && \
-    echo '        proxy_set_header X-Forwarded-Proto $scheme;' >> /etc/nginx/http.d/default.conf && \
-    echo '    }' >> /etc/nginx/http.d/default.conf && \
-    echo '}' >> /etc/nginx/http.d/default.conf
+# Create entrypoint script to handle dynamic PORT
+RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
+    echo 'PORT=${PORT:-80}' >> /app/entrypoint.sh && \
+    echo 'cat > /etc/nginx/http.d/default.conf <<EOF' >> /app/entrypoint.sh && \
+    echo 'server {' >> /app/entrypoint.sh && \
+    echo '    listen $PORT;' >> /app/entrypoint.sh && \
+    echo '    location /api/ {' >> /app/entrypoint.sh && \
+    echo '        proxy_pass http://localhost:8081/api/;' >> /app/entrypoint.sh && \
+    echo '        proxy_set_header Host \$host;' >> /app/entrypoint.sh && \
+    echo '        proxy_set_header X-Real-IP \$remote_addr;' >> /app/entrypoint.sh && \
+    echo '        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;' >> /app/entrypoint.sh && \
+    echo '        proxy_set_header X-Forwarded-Proto \$scheme;' >> /app/entrypoint.sh && \
+    echo '    }' >> /app/entrypoint.sh && \
+    echo '    location / {' >> /app/entrypoint.sh && \
+    echo '        proxy_pass http://localhost:3001/;' >> /app/entrypoint.sh && \
+    echo '        proxy_set_header Host \$host;' >> /app/entrypoint.sh && \
+    echo '        proxy_set_header X-Real-IP \$remote_addr;' >> /app/entrypoint.sh && \
+    echo '        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;' >> /app/entrypoint.sh && \
+    echo '        proxy_set_header X-Forwarded-Proto \$scheme;' >> /app/entrypoint.sh && \
+    echo '    }' >> /app/entrypoint.sh && \
+    echo '}' >> /app/entrypoint.sh && \
+    echo 'EOF' >> /app/entrypoint.sh && \
+    echo 'exec /usr/bin/supervisord -c /etc/supervisord.conf' >> /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
 
 # Create supervisor config for 3 services
 RUN echo '[supervisord]' > /etc/supervisord.conf && \
@@ -90,12 +96,12 @@ RUN echo '[supervisord]' > /etc/supervisord.conf && \
     echo 'stderr_logfile=/dev/stderr' >> /etc/supervisord.conf && \
     echo 'stderr_logfile_maxbytes=0' >> /etc/supervisord.conf
 
-# Expose port 80 for nginx
-EXPOSE 80
+# Expose dynamic port (default 80, overridable via PORT env var)
+EXPOSE 80 3000
 
-# Health check
+# Health check - check nginx on PORT env var (defaults to 80)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:80/ || exit 1
+  CMD curl -f http://localhost:${PORT:-80}/ || exit 1
 
-# Start services
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+# Start services via entrypoint script that handles dynamic PORT
+CMD ["/app/entrypoint.sh"]
