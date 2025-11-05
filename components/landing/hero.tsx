@@ -96,8 +96,27 @@ export default function Hero() {
             className="mt-16 mx-auto max-w-4xl"
           >
             <form onSubmit={handleWaitlistSubmit} className="relative">
-              {/* Light glassmorphism container */}
-              <div className="backdrop-blur-lg bg-slate-50/80 border border-slate-200 rounded-2xl p-6 shadow-lg">
+              {/* Light glassmorphism container with bubble animation */}
+              <motion.div
+                className="backdrop-blur-lg bg-slate-50/80 border border-slate-200 rounded-2xl p-6 shadow-lg"
+                animate={
+                  reduceMotion
+                    ? {}
+                    : {
+                        y: [0, -8, 0],
+                        boxShadow: [
+                          "0 10px 30px rgba(0,0,0,0.1)",
+                          "0 20px 40px rgba(0,0,0,0.15)",
+                          "0 10px 30px rgba(0,0,0,0.1)",
+                        ],
+                      }
+                }
+                transition={{
+                  duration: 4,
+                  repeat: Number.POSITIVE_INFINITY,
+                  ease: "easeInOut",
+                }}
+              >
                 <div className="flex items-center gap-4 flex-wrap md:flex-nowrap">
                   {/* Social Media Icons - Left Side */}
                   <motion.div
@@ -187,17 +206,16 @@ export default function Hero() {
                     {message.text}
                   </motion.div>
                 )}
-              </div>
+              </motion.div>
 
-              {/* Animated background glow */}
+              {/* Subtle animated background glow */}
               <motion.div
-                className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-xl -z-10"
+                className="absolute -inset-1 bg-gradient-to-r from-[#013F5C]/5 via-[#C1654B]/5 to-[#013F5C]/5 rounded-2xl blur-xl -z-10"
                 animate={
                   reduceMotion
                     ? {}
                     : {
-                        opacity: [0.3, 0.5, 0.3],
-                        scale: [1, 1.02, 1],
+                        opacity: [0.2, 0.35, 0.2],
                       }
                 }
                 transition={{
