@@ -28,12 +28,13 @@ func TestSystemComprehensive(t *testing.T) {
 
 	cacheInstance := cache.NewCache()
 	db := database.InitTempDB()
-	
+
 	app := routes.New()
 	emailService := services.NewEmailService(cfg)
 	paystackService := services.NewPaystackService(cfg.PaystackSecret)
-	
-	routes.SetupRoutes(app, cacheInstance, cfg, db, emailService, paystackService)
+	wsHub := services.NewHub()
+
+	routes.SetupRoutes(app, cacheInstance, cfg, db, emailService, paystackService, nil, nil, wsHub)
 
 	// Test helper function
 	makeRequest := func(method, url string, body interface{}) (*http.Response, map[string]interface{}) {

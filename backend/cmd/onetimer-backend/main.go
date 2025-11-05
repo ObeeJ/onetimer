@@ -11,7 +11,6 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
