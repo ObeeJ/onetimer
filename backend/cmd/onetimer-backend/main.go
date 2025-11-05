@@ -27,34 +27,23 @@ func main() {
 	// Initialize cache
 	cacheInstance := cache.NewRedisCache(cfg.RedisURL, cfg.CacheTTL)
 
-	// Initialize database (prefer Supabase if DATABASE_URL is set)
-	var dbPool *pgxpool.Pool
-
-	if cfg.DatabaseURL != "" {
-		// Use Supabase connection
-		supabaseDB, err := database.NewSupabaseConnection(cfg)
-		if err != nil {
-			log.Printf("⚠️ Supabase connection failed: %v", err)
-			log.Println("⚠️ Falling back to local database...")
-			dbPool = database.InitTempDB()
-		} else {
-			log.Println("✅ Supabase database connected successfully")
-			if err := supabaseDB.InitSchema(); err != nil {
-				log.Printf("⚠️ Schema initialization failed: %v", err)
-			}
-			dbPool = supabaseDB.Pool
-		}
-	} else {
-		// Fallback to temp database
-		log.Println("⚠️ DATABASE_URL not set, using local database")
-		dbPool = database.InitTempDB()
+	// Initialize database - DATABASE_URL is required
+	if cfg.DatabaseURL == "" {
+		log.Fatal("❌ DATABASE_URL environment variable is required")
 	}
 
-	if dbPool != nil {
-		log.Println("✅ Database ready")
-	} else {
-		log.Println("⚠️ Running without database - using mock data")
+	// Connect to Supabase PostgreSQL database
+	supabaseDB, err := database.NewSupabaseConnection(cfg)
+	if err != nil {
+		log.Fatalf("❌ Failed to connect to database: %v", err)
 	}
+
+	log.Println("✅ Database connected successfully")
+	if err := supabaseDB.InitSchema(); err != nil {
+		log.Printf("⚠️ Schema initialization failed: %v", err)
+	}
+
+	dbPool := supabaseDB.Pool
 
 	// Initialize services
 	emailService := services.NewEmailService(cfg)
