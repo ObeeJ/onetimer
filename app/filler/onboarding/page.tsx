@@ -128,7 +128,7 @@ export default function FillerOnboardingPage() {
         },
       };
 
-      await api.post('/api/v1/auth/register', registrationData);
+      await api.post('/api/auth/register', registrationData);
       await signIn(formData.email, formData.password);
       
       toast({ title: "Success", description: "Account created successfully!", variant: "success" });

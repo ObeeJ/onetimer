@@ -1,6 +1,4 @@
-const API_BASE = process.env.NODE_ENV === 'production'
-  ? '' // Use relative URLs - nginx routes /api to backend
-  : 'http://localhost:8081' // Backend runs on port 8081 locally
+const API_BASE = '/api'
 
 class ApiError extends Error {
   constructor(public status: number, message: string, public data?: any) {

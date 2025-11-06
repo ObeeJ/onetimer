@@ -99,7 +99,7 @@ export default function WithdrawDialog({
     setErrors({})
 
     try {
-      const response = await fetch("/api/v1/payments/withdraw", {
+      const response = await fetch("/api/payment/withdraw", {
         method: "POST",
         credentials: 'include',
         headers: { "Content-Type": "application/json" },

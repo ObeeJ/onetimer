@@ -23,7 +23,7 @@ export function useSurveys() {
 export function useSurvey(id: string) {
   return useQuery({
     queryKey: ['survey', id],
-    queryFn: () => api.get<Survey>(`/api/v1/surveys/${id}`),
+    queryFn: () => api.get<Survey>(`/api/survey/${id}`),
     enabled: !!id
   })
 }
@@ -33,7 +33,7 @@ export function useSubmitSurvey() {
   
   return useMutation({
     mutationFn: ({ surveyId, responses }: { surveyId: string, responses: SurveyResponse[] }) =>
-      api.post(`/api/v1/surveys/${surveyId}/submit`, { responses }),
+      api.post(`/api/survey/${surveyId}/submit`, { responses }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surveys'] })
       queryClient.invalidateQueries({ queryKey: ['earnings'] })

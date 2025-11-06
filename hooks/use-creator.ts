@@ -31,14 +31,14 @@ export interface SurveyAnalytics {
 export function useCreatorDashboard() {
   return useQuery({
     queryKey: ['creator', 'dashboard'],
-    queryFn: () => api.get<CreatorDashboard>('/api/v1/creator/dashboard')
+    queryFn: () => api.get<CreatorDashboard>('/api/creator/dashboard')
   })
 }
 
 export function useCreatorSurveys() {
   return useQuery({
     queryKey: ['creator', 'surveys'],
-    queryFn: () => api.get<{ surveys: CreatorSurvey[] }>('/api/v1/creator/surveys')
+    queryFn: () => api.get<{ surveys: CreatorSurvey[] }>('/api/creator/surveys')
   })
 }
 
@@ -46,7 +46,7 @@ export function useCreateSurvey() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: (surveyData: any) => api.post('/api/v1/creator/surveys', surveyData),
+    mutationFn: (surveyData: any) => api.post('/api/survey', surveyData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['creator', 'surveys'] })
     }
@@ -58,7 +58,7 @@ export function useUpdateSurvey() {
   
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
-      api.put(`/api/v1/creator/surveys/${id}`, data),
+      api.put(`/api/survey/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['creator', 'surveys'] })
     }
@@ -69,7 +69,7 @@ export function useDeleteSurvey() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: (id: string) => api.delete(`/api/v1/creator/surveys/${id}`),
+    mutationFn: (id: string) => api.delete(`/api/survey/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['creator', 'surveys'] })
     }
@@ -79,7 +79,7 @@ export function useDeleteSurvey() {
 export function useSurveyAnalytics(surveyId: string) {
   return useQuery({
     queryKey: ['creator', 'analytics', surveyId],
-    queryFn: () => api.get<SurveyAnalytics>(`/api/v1/creator/surveys/${surveyId}/analytics`),
+    queryFn: () => api.get<SurveyAnalytics>(`/api/creator/surveys/${surveyId}/analytics`),
     enabled: !!surveyId
   })
 }
@@ -101,6 +101,6 @@ export interface CreatorCredits {
 export function useCreatorCredits() {
   return useQuery({
     queryKey: ['creator', 'credits'],
-    queryFn: () => api.get<CreatorCredits>('/api/v1/creator/credits')
+    queryFn: () => api.get<CreatorCredits>('/api/creator/credits')
   })
 }

@@ -14,7 +14,7 @@ function VerifyOTPContent() {
 
   const handleVerify = async (otp: string) => {
     try {
-      const response = await fetch('/api/v1/auth/verify-otp', {
+      const response = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -39,7 +39,7 @@ function VerifyOTPContent() {
 
   const handleResend = async () => {
     try {
-      await fetch('/api/v1/auth/send-otp', {
+      await fetch('/api/auth/send-otp', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

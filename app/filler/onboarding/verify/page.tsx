@@ -23,7 +23,7 @@ export default function VerifyPage() {
 
     setVerifying(true)
     try {
-      const response = await fetch("/api/v1/auth/verify-otp", {
+      const response = await fetch("/api/auth/verify-otp", {
         method: "POST",
         credentials: 'include',
         headers: { "Content-Type": "application/json" },
@@ -45,7 +45,7 @@ export default function VerifyPage() {
   const resend = async () => {
     setResending(true)
     try {
-      await fetch("/api/v1/auth/send-otp", {
+      await fetch("/api/auth/send-otp", {
         method: "POST",
         credentials: 'include',
         headers: { "Content-Type": "application/json" },
