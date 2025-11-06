@@ -1,6 +1,6 @@
-const API_BASE = process.env.NODE_ENV === 'production' 
-  ? 'https://api.onetimesurvey.com' 
-  : 'http://localhost:8080'
+const API_BASE = process.env.NODE_ENV === 'production'
+  ? '' // Use relative URLs - nginx routes /api to backend
+  : 'http://localhost:8081' // Backend runs on port 8081 locally
 
 class ApiError extends Error {
   constructor(public status: number, message: string, public data?: any) {
