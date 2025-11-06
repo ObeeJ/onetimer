@@ -75,10 +75,12 @@ RUN echo '[supervisord]' > /etc/supervisord.conf && \
     echo '[program:backend]' >> /etc/supervisord.conf && \
     echo 'command=/app/backend-main' >> /etc/supervisord.conf && \
     echo 'directory=/app' >> /etc/supervisord.conf && \
-    echo 'environment=PORT=8081' >> /etc/supervisord.conf && \
+    echo 'environment=PORT=8081,NODE_ENV=production' >> /etc/supervisord.conf && \
     echo 'passenv=true' >> /etc/supervisord.conf && \
     echo 'autostart=true' >> /etc/supervisord.conf && \
     echo 'autorestart=true' >> /etc/supervisord.conf && \
+    echo 'startsecs=10' >> /etc/supervisord.conf && \
+    echo 'priority=10' >> /etc/supervisord.conf && \
     echo 'stdout_logfile=/dev/stdout' >> /etc/supervisord.conf && \
     echo 'stdout_logfile_maxbytes=0' >> /etc/supervisord.conf && \
     echo 'stderr_logfile=/dev/stderr' >> /etc/supervisord.conf && \
@@ -87,10 +89,12 @@ RUN echo '[supervisord]' > /etc/supervisord.conf && \
     echo '[program:frontend]' >> /etc/supervisord.conf && \
     echo 'command=node server.js' >> /etc/supervisord.conf && \
     echo 'directory=/app/frontend' >> /etc/supervisord.conf && \
-    echo 'environment=PORT=3001,HOSTNAME=0.0.0.0,BACKEND_URL=http://localhost:8081' >> /etc/supervisord.conf && \
+    echo 'environment=PORT=3001,HOSTNAME=0.0.0.0,BACKEND_URL=http://localhost:8081,NODE_ENV=production' >> /etc/supervisord.conf && \
     echo 'passenv=true' >> /etc/supervisord.conf && \
     echo 'autostart=true' >> /etc/supervisord.conf && \
     echo 'autorestart=true' >> /etc/supervisord.conf && \
+    echo 'startsecs=15' >> /etc/supervisord.conf && \
+    echo 'priority=999' >> /etc/supervisord.conf && \
     echo 'stdout_logfile=/dev/stdout' >> /etc/supervisord.conf && \
     echo 'stdout_logfile_maxbytes=0' >> /etc/supervisord.conf && \
     echo 'stderr_logfile=/dev/stderr' >> /etc/supervisord.conf && \
