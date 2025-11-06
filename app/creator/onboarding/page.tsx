@@ -216,48 +216,44 @@ export default function CreatorOnboardingPage() {
                     className="h-11 border-slate-300 focus:border-[#C1654B] focus:ring-1 focus:ring-[#C1654B]"
                     value={formData.firstName}
                     onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                    required
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Last name</label>
-                  <Input 
-                    placeholder="Enter last name" 
+                  <Input
+                    placeholder="Enter last name"
                     className="h-11 border-slate-300 focus:border-[#C1654B] focus:ring-1 focus:ring-[#C1654B]"
                     value={formData.lastName}
                     onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                    required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Email</label>
-                <Input 
+                <Input
                   type="email"
-                  placeholder="Enter email address" 
+                  placeholder="Enter email address"
                   className="h-11 border-slate-300 focus:border-[#C1654B] focus:ring-1 focus:ring-[#C1654B]"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  required
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Password</label>
-                <Input 
+                <Input
                   type="password"
-                  placeholder="Create password" 
+                  placeholder="Create password"
                   className="h-11 border-slate-300 focus:border-[#C1654B] focus:ring-1 focus:ring-[#C1654B]"
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  required
                 />
               </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">User type</label>
-              <Select>
+              <Select value={formData.userType} onValueChange={(value) => setFormData(prev => ({ ...prev, userType: value }))}>
                 <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select user type" />
                 </SelectTrigger>
@@ -277,12 +273,12 @@ export default function CreatorOnboardingPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">School/Company/Organization</label>
-              <Input placeholder="Enter school, company or organization name" className="h-11 border-slate-300 focus:border-[#C1654B] focus:ring-1 focus:ring-[#C1654B]" />
+              <Input placeholder="Enter school, company or organization name" className="h-11 border-slate-300 focus:border-[#C1654B] focus:ring-1 focus:ring-[#C1654B]" value={formData.organization} onChange={(e) => setFormData(prev => ({ ...prev, organization: e.target.value }))} />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Job title</label>
-              <Input placeholder="Enter job title" className="h-11 border-slate-300 focus:border-[#C1654B] focus:ring-1 focus:ring-[#C1654B]" />
+              <Input placeholder="Enter job title" className="h-11 border-slate-300 focus:border-[#C1654B] focus:ring-1 focus:ring-[#C1654B]" value={formData.jobTitle} onChange={(e) => setFormData(prev => ({ ...prev, jobTitle: e.target.value }))} />
             </div>
 
             <div className="space-y-2">
@@ -334,24 +330,24 @@ export default function CreatorOnboardingPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Phone number</label>
-              <Input placeholder="Enter phone number" className="h-11 border-slate-300 focus:border-[#C1654B] focus:ring-1 focus:ring-[#C1654B]" />
+              <Input placeholder="Enter phone number" className="h-11 border-slate-300 focus:border-[#C1654B] focus:ring-1 focus:ring-[#C1654B]" value={formData.phone} onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))} />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Company Description</label>
-              <Textarea placeholder="Brief description of your company/organization" />
+              <Textarea placeholder="Brief description of your company/organization" value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Survey Goals</label>
-              <Textarea placeholder="What do you hope to achieve with surveys?" />
+              <Textarea placeholder="What do you hope to achieve with surveys?" value={formData.goals} onChange={(e) => setFormData(prev => ({ ...prev, goals: e.target.value }))} />
             </div>
 
             <div className="space-y-4">
               <label className="text-sm font-medium text-slate-700">How did you hear about Onetime Survey? (Select all that apply)</label>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="chatgpt" />
+                  <Checkbox id="chatgpt" checked={formData.sources.includes("chatgpt")} onCheckedChange={(checked) => handleSourceChange("chatgpt", checked as boolean)} />
                   <label htmlFor="chatgpt" className="text-sm">ChatGPT</label>
                 </div>
                 <div className="flex items-center space-x-2">
