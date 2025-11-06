@@ -41,9 +41,10 @@ export default function FillerOnboardingPage() {
     lastName: "",
     email: "",
     password: "",
+    phone: "",
     age: "",
     gender: "",
-    country: "",
+    country: "Nigeria",
     state: "",
     education: "",
     employment: "",
@@ -57,7 +58,7 @@ export default function FillerOnboardingPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const validate = (name, value) => {
+  const validate = (name: string, value: any) => {
     let error = '';
     switch (name) {
       case 'firstName':
@@ -70,6 +71,9 @@ export default function FillerOnboardingPage() {
       case 'password':
         if (value.length < 8) error = 'Must be at least 8 characters long.';
         else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])/.test(value)) error = 'Must include uppercase, lowercase, and a number.';
+        break;
+      case 'phone':
+        // Phone is optional, no error
         break;
       default:
         if (!value) error = 'This field is required.';
@@ -91,10 +95,10 @@ export default function FillerOnboardingPage() {
   };
 
   const isFormValid = useMemo(() => {
-    return Object.values(formData).every(value => {
-        if (Array.isArray(value)) return true; // Assuming interests are optional
-        return value !== '';
-    }) && Object.values(errors).every(error => error === '');
+    const requiredFields = ['firstName', 'lastName', 'email', 'password', 'age', 'gender', 'state', 'education', 'employment', 'income'];
+    const allRequiredFilled = requiredFields.every(field => formData[field as keyof typeof formData] !== '');
+    const noErrors = Object.values(errors).every(error => error === '');
+    return allRequiredFilled && noErrors;
   }, [formData, errors]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -175,7 +179,145 @@ export default function FillerOnboardingPage() {
                 {errors.password && <p className="text-xs text-red-600 flex items-center"><AlertCircle className="h-3 w-3 mr-1"/>{errors.password}</p>}
               </div>
 
-              {/* ... Other fields with validation ... */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-slate-700">Age Range</label>
+                  <Select value={formData.age} onValueChange={(value) => handleChange('age', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select age range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="18-24">18-24</SelectItem>
+                      <SelectItem value="25-34">25-34</SelectItem>
+                      <SelectItem value="35-44">35-44</SelectItem>
+                      <SelectItem value="45-54">45-54</SelectItem>
+                      <SelectItem value="55+">55+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-slate-700">Gender</label>
+                  <Select value={formData.gender} onValueChange={(value) => handleChange('gender', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-slate-700">Country</label>
+                  <Input placeholder="Nigeria" value="Nigeria" disabled className="bg-slate-100 text-slate-600" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-slate-700">Phone Number</label>
+                  <Input type="tel" placeholder="Enter phone number" value={formData.phone || ""} onChange={(e) => handleChange('phone', e.target.value)} />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-700">Nigerian State</label>
+                <Select value={formData.state} onValueChange={(value) => handleChange('state', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="abia">Abia</SelectItem>
+                    <SelectItem value="adamawa">Adamawa</SelectItem>
+                    <SelectItem value="akwa-ibom">Akwa Ibom</SelectItem>
+                    <SelectItem value="anambra">Anambra</SelectItem>
+                    <SelectItem value="bauchi">Bauchi</SelectItem>
+                    <SelectItem value="bayelsa">Bayelsa</SelectItem>
+                    <SelectItem value="benue">Benue</SelectItem>
+                    <SelectItem value="borno">Borno</SelectItem>
+                    <SelectItem value="cross-river">Cross River</SelectItem>
+                    <SelectItem value="delta">Delta</SelectItem>
+                    <SelectItem value="ebonyi">Ebonyi</SelectItem>
+                    <SelectItem value="edo">Edo</SelectItem>
+                    <SelectItem value="ekiti">Ekiti</SelectItem>
+                    <SelectItem value="enugu">Enugu</SelectItem>
+                    <SelectItem value="gombe">Gombe</SelectItem>
+                    <SelectItem value="imo">Imo</SelectItem>
+                    <SelectItem value="jigawa">Jigawa</SelectItem>
+                    <SelectItem value="kaduna">Kaduna</SelectItem>
+                    <SelectItem value="kano">Kano</SelectItem>
+                    <SelectItem value="katsina">Katsina</SelectItem>
+                    <SelectItem value="kebbi">Kebbi</SelectItem>
+                    <SelectItem value="kogi">Kogi</SelectItem>
+                    <SelectItem value="kwara">Kwara</SelectItem>
+                    <SelectItem value="lagos">Lagos</SelectItem>
+                    <SelectItem value="nasarawa">Nasarawa</SelectItem>
+                    <SelectItem value="niger">Niger</SelectItem>
+                    <SelectItem value="ogun">Ogun</SelectItem>
+                    <SelectItem value="ondo">Ondo</SelectItem>
+                    <SelectItem value="osun">Osun</SelectItem>
+                    <SelectItem value="oyo">Oyo</SelectItem>
+                    <SelectItem value="plateau">Plateau</SelectItem>
+                    <SelectItem value="rivers">Rivers</SelectItem>
+                    <SelectItem value="sokoto">Sokoto</SelectItem>
+                    <SelectItem value="taraba">Taraba</SelectItem>
+                    <SelectItem value="yobe">Yobe</SelectItem>
+                    <SelectItem value="zamfara">Zamfara</SelectItem>
+                    <SelectItem value="fct">FCT (Abuja)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-slate-700">Education Level</label>
+                  <Select value={formData.education} onValueChange={(value) => handleChange('education', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select education level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="secondary">Secondary School</SelectItem>
+                      <SelectItem value="diploma">Diploma</SelectItem>
+                      <SelectItem value="bachelor">Bachelor's Degree</SelectItem>
+                      <SelectItem value="master">Master's Degree</SelectItem>
+                      <SelectItem value="phd">PhD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-slate-700">Employment Status</label>
+                  <Select value={formData.employment} onValueChange={(value) => handleChange('employment', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select employment status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="employed">Employed</SelectItem>
+                      <SelectItem value="self-employed">Self-Employed</SelectItem>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="freelancer">Freelancer</SelectItem>
+                      <SelectItem value="unemployed">Unemployed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-700">Monthly Income Range (NGN)</label>
+                <Select value={formData.income} onValueChange={(value) => handleChange('income', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select income range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="under-50k">Under ₦50,000</SelectItem>
+                    <SelectItem value="50k-100k">₦50,000 - ₦100,000</SelectItem>
+                    <SelectItem value="100k-250k">₦100,000 - ₦250,000</SelectItem>
+                    <SelectItem value="250k-500k">₦250,000 - ₦500,000</SelectItem>
+                    <SelectItem value="500k-1m">₦500,000 - ₦1,000,000</SelectItem>
+                    <SelectItem value="1m+">₦1,000,000+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               <Button type="submit" variant="filler" className="w-full h-12 text-base font-semibold" disabled={!isFormValid || isLoading}>
                 {isLoading ? "Creating account..." : "Complete Setup & View Surveys"}
