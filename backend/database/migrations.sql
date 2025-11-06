@@ -119,6 +119,14 @@ CREATE TABLE IF NOT EXISTS referrals (
     UNIQUE(referrer_id, referred_id)
 );
 
+-- Waitlist table
+CREATE TABLE IF NOT EXISTS waitlist (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    source VARCHAR(100) DEFAULT 'hero_section',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Audit logs table
 CREATE TABLE IF NOT EXISTS audit_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -139,3 +147,4 @@ CREATE INDEX IF NOT EXISTS idx_responses_survey ON responses(survey_id);
 CREATE INDEX IF NOT EXISTS idx_responses_filler ON responses(filler_id);
 CREATE INDEX IF NOT EXISTS idx_earnings_user ON earnings(user_id);
 CREATE INDEX IF NOT EXISTS idx_withdrawals_user ON withdrawals(user_id);
+CREATE INDEX IF NOT EXISTS idx_waitlist_email ON waitlist(email);
