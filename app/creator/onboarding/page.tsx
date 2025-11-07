@@ -168,7 +168,7 @@ export default function CreatorOnboardingPage() {
   const { signIn } = useAuth()
   const router = useRouter()
 
-  const availableRoles = selectedIndustry ? industryRoles[selectedIndustry] || [] : []
+  const availableRoles = selectedIndustry ? industryRoles[selectedIndustry as keyof typeof industryRoles] || [] : []
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
