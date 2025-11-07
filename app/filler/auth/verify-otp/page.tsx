@@ -9,8 +9,8 @@ function VerifyOTPContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { signIn } = useAuth()
-  const email = searchParams.get("email")
-  const phone = searchParams.get("phone")
+  const email = searchParams?.get("email")
+  const phone = searchParams?.get("phone")
 
   const handleVerify = async (otp: string) => {
     try {

@@ -164,8 +164,13 @@ export default function CreatorSurveysPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+<<<<<<< HEAD
                         <CardTitle className="text-lg truncate">{survey.title ?? ""}</CardTitle>
                         {getStatusBadge(survey.status)}
+=======
+                        <CardTitle className="text-lg truncate">{survey.title}</CardTitle>
+                        {getStatusBadge(survey.status ?? "unknown")}
+>>>>>>> c92bcd1 (fix: resolve typescript build errors)
                       </div>
                       <p className="text-slate-600 text-sm line-clamp-2">{survey.description ?? ""}</p>
                     </div>
