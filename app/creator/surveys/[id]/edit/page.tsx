@@ -9,7 +9,7 @@ import { Lock } from "lucide-react"
 
 export default function EditSurveyPage() {
   const params = useParams()
-  const surveyId = params.id as string
+  const surveyId = params ? params.id as string : ""
   const { isAuthenticated } = useCreatorAuth()
 
   // Mock survey data - would come from API
