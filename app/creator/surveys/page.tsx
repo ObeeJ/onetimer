@@ -1,4 +1,4 @@
-use client
+"use client"
 
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -164,13 +164,8 @@ export default function CreatorSurveysPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-<<<<<<< HEAD
                         <CardTitle className="text-lg truncate">{survey.title ?? ""}</CardTitle>
                         {getStatusBadge(survey.status)}
-=======
-                        <CardTitle className="text-lg truncate">{survey.title}</CardTitle>
-                        {getStatusBadge(survey.status ?? "unknown")}
->>>>>>> c92bcd1 (fix: resolve typescript build errors)
                       </div>
                       <p className="text-slate-600 text-sm line-clamp-2">{survey.description ?? ""}</p>
                     </div>
@@ -245,12 +240,14 @@ export default function CreatorSurveysPage() {
                   
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button asChild variant="creator-outline" size="sm" className="w-full sm:w-auto">
-                      <Link href={`/creator/surveys/${survey.id}`}>\n                        <Eye className="h-4 w-4 mr-2" />
+                      <Link href={`/creator/surveys/${survey.id}`}>
+                        <Eye className="h-4 w-4 mr-2" />
                         View Details
                       </Link>
                     </Button>
                     <Button asChild variant="creator" size="sm" className="w-full sm:w-auto">
-                      <Link href={`/creator/analytics?survey=${survey.id}`}>\n                        <BarChart3 className="h-4 w-4 mr-2" />
+                      <Link href={`/creator/analytics?survey=${survey.id}`}>
+                        <BarChart3 className="h-4 w-4 mr-2" />
                         Analytics
                       </Link>
                     </Button>
