@@ -1,4 +1,4 @@
-"use client"
+use client
 
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -34,7 +34,7 @@ export default function CreatorSurveysPage() {
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status?: string) => {
     switch (status) {
       case "active":
         return <Badge className="bg-green-100 text-green-700">Active</Badge>
@@ -45,13 +45,15 @@ export default function CreatorSurveysPage() {
       case "paused":
         return <Badge className="bg-gray-100 text-gray-700">Paused</Badge>
       default:
-        return <Badge variant="secondary">{status}</Badge>
+        return <Badge variant="secondary">{status ?? "Unknown"}</Badge>
     }
   }
 
   const filteredSurveys = surveys.filter(survey => {
-    const matchesSearch = survey.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         survey.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const title = (survey.title ?? "").toLowerCase()
+    const description = (survey.description ?? "").toLowerCase()
+    const q = searchQuery.toLowerCase()
+    const matchesSearch = title.includes(q) || description.includes(q)
     const matchesStatus = statusFilter === "all" || survey.status === statusFilter
     return matchesSearch && matchesStatus
   })
@@ -162,10 +164,10 @@ export default function CreatorSurveysPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                        <CardTitle className="text-lg truncate">{survey.title}</CardTitle>
+                        <CardTitle className="text-lg truncate">{survey.title ?? ""}</CardTitle>
                         {getStatusBadge(survey.status)}
                       </div>
-                      <p className="text-slate-600 text-sm line-clamp-2">{survey.description}</p>
+                      <p className="text-slate-600 text-sm line-clamp-2">{survey.description ?? ""}</p>
                     </div>
                     <div className="flex-shrink-0">
                     <DropdownMenu>
@@ -230,7 +232,7 @@ export default function CreatorSurveysPage() {
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-slate-500" />
                       <div>
-                        <p className="text-sm font-medium">{survey.expiresAt}</p>
+                        <p className="text-sm font-medium">{survey.expiresAt ?? "—"}</p>
                         <p className="text-xs text-slate-500">Expires</p>
                       </div>
                     </div>
@@ -238,14 +240,12 @@ export default function CreatorSurveysPage() {
                   
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button asChild variant="creator-outline" size="sm" className="w-full sm:w-auto">
-                      <Link href={`/creator/surveys/${survey.id}`}>
-                        <Eye className="h-4 w-4 mr-2" />
+                      <Link href={`/creator/surveys/${survey.id}`}>\n                        <Eye className="h-4 w-4 mr-2" />
                         View Details
                       </Link>
                     </Button>
                     <Button asChild variant="creator" size="sm" className="w-full sm:w-auto">
-                      <Link href={`/creator/analytics?survey=${survey.id}`}>
-                        <BarChart3 className="h-4 w-4 mr-2" />
+                      <Link href={`/creator/analytics?survey=${survey.id}`}>\n                        <BarChart3 className="h-4 w-4 mr-2" />
                         Analytics
                       </Link>
                     </Button>
