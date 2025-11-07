@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 import { AlertCircle, CheckCircle } from "lucide-react"
 
-const PasswordStrengthIndicator = ({ password }) => {
+const PasswordStrengthIndicator = ({ password }: { password: string }) => {
   const getStrength = () => {
     let score = 0;
     if (password.length >= 8) score++;
@@ -25,12 +25,13 @@ const PasswordStrengthIndicator = ({ password }) => {
   };
 
   const strength = getStrength();
-  const color = ['', 'red', 'orange', 'yellow', 'lime', 'green'][strength];
-  const width = `${(strength / 5) * 100}%`;
+  const strengthColors = ['bg-gray-300', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-green-500'];
+  const strengthClass = strengthColors[strength] || 'bg-gray-300';
+  const widthClass = strength === 0 ? 'w-0' : strength === 1 ? 'w-1/5' : strength === 2 ? 'w-2/5' : strength === 3 ? 'w-3/5' : strength === 4 ? 'w-4/5' : 'w-full';
 
   return (
     <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1">
-      <div className="h-1.5 rounded-full transition-all" style={{ width, backgroundColor: color }}></div>
+      <div className={`h-1.5 rounded-full transition-all ${widthClass} ${strengthClass}`}></div>
     </div>
   );
 };
@@ -128,7 +129,7 @@ export default function FillerOnboardingPage() {
         },
       };
 
-      await api.post('/api/auth/register', registrationData);
+      await api.post('/api/user/register', registrationData);
       await signIn(formData.email, formData.password);
       
       toast({ title: "Success", description: "Account created successfully!", variant: "success" });

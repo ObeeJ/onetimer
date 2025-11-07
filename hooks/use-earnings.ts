@@ -15,7 +15,7 @@ export function useWithdraw() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: (data: WithdrawalRequest) => api.post('/api/payment/withdraw', data),
+    mutationFn: (data: WithdrawalRequest) => api.post('/api/earnings/withdraw', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['earnings'] })
     }

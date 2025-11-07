@@ -7,12 +7,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const backendUrl = `http://localhost:8081/api/${path}`;
   
   try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Copy relevant headers from request
+    if (req.headers.authorization) headers.authorization = req.headers.authorization as string;
+    if (req.headers['x-requested-with']) headers['x-requested-with'] = req.headers['x-requested-with'] as string;
+    
     const response = await fetch(backendUrl, {
       method: req.method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...req.headers,
-      },
+      headers,
       body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
     });
 
