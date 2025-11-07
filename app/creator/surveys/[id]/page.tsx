@@ -161,7 +161,7 @@ export default function SurveyDetailsPage({ params }: { params: Promise<{ id: st
       response.respondent,
       response.completedAt,
       response.quality,
-      ...survey.questions.map(q => response.answers[q.id] || '')
+      ...survey.questions.map(q => response.answers[q.id as keyof typeof response.answers] || '')
     ])
     return [headers, ...rows].map(row => row.map(field => `"${field}"`).join(',')).join('\n')
   }
@@ -349,7 +349,7 @@ export default function SurveyDetailsPage({ params }: { params: Promise<{ id: st
                           <div key={question.id} className="border-l-2 border-slate-200 pl-4">
                             <p className="font-medium text-slate-900 text-sm">{question.question}</p>
                             <p className="text-slate-600 text-sm mt-1">
-                              {response.answers[question.id] || "No answer"}
+                              {response.answers[question.id as keyof typeof response.answers] || "No answer"}
                             </p>
                           </div>
                         ))}
