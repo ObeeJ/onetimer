@@ -13,7 +13,7 @@ export default function NotFound() {
   const pathname = usePathname()
   
   const getHomeUrl = () => {
-    if (pathname.startsWith('/creator') || isCreatorAuth) return '/creator/dashboard'
+    if (pathname && pathname.startsWith('/creator') || isCreatorAuth) return '/creator/dashboard'
     if (isFillerAuth) return '/filler'
     return '/'
   }

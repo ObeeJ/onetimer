@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 // --- Reusable Validation Logic ---
-const validateField = (name, value, password = '') => {
+const validateField = (name: string, value: string, password = '') => {
   switch (name) {
     case 'first_name':
     case 'last_name':
@@ -61,7 +61,7 @@ function SecuritySettings() {
     onError: (error) => toast({ title: "Error", description: error.message, variant: "destructive" }),
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: validateField(name, value, name === 'confirmPassword' ? formData.newPassword : '') }));
@@ -71,7 +71,7 @@ function SecuritySettings() {
     return Object.values(formData).every(v => v) && Object.values(errors).every(e => !e);
   }, [formData, errors]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) return;
     mutation.mutate({ old_password: formData.currentPassword, new_password: formData.newPassword });

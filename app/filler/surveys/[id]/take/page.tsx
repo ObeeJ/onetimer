@@ -18,7 +18,7 @@ import { useDebounce } from '@/hooks/use-debounce'
 
 // ... (SurveyCompletedScreen and type definitions remain the same)
 
-const SaveStatusIndicator = ({ status }) => {
+const SaveStatusIndicator = ({ status }: { status: string }) => {
   let content = null;
   switch (status) {
     case 'saving':

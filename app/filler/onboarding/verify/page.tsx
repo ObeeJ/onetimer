@@ -8,7 +8,7 @@ import { useState } from "react"
 
 export default function VerifyPage() {
   const search = useSearchParams()
-  const email = search.get("email") ?? ""
+  const email = search?.get("email") ?? ""
   const router = useRouter()
   const [verifying, setVerifying] = useState(false)
   const [resending, setResending] = useState(false)
