@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"onetimer-backend/models"
 
-
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -24,7 +23,7 @@ func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 		INSERT INTO users (id, email, name, role, password_hash, phone, is_verified, is_active, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`
-	
+
 	_, err := r.db.Exec(ctx, query,
 		user.ID, user.Email, user.Name, user.Role, user.PasswordHash,
 		user.Phone, user.IsVerified, user.IsActive, user.CreatedAt, user.UpdatedAt,
@@ -39,14 +38,14 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 		       gender, location, is_verified, is_active, kyc_status, 
 		       profile_picture_url, created_at, updated_at
 		FROM users WHERE email = $1`
-	
+
 	err := r.db.QueryRow(ctx, query, email).Scan(
 		&user.ID, &user.Email, &user.Name, &user.Role, &user.PasswordHash,
 		&user.Phone, &user.DateOfBirth, &user.Gender, &user.Location,
 		&user.IsVerified, &user.IsActive, &user.KYCStatus,
 		&user.ProfilePictureURL, &user.CreatedAt, &user.UpdatedAt,
 	)
-	
+
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("user not found")
 	}
@@ -60,14 +59,14 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Use
 		       gender, location, is_verified, is_active, kyc_status,
 		       profile_picture_url, created_at, updated_at
 		FROM users WHERE id = $1`
-	
+
 	err := r.db.QueryRow(ctx, query, id).Scan(
 		&user.ID, &user.Email, &user.Name, &user.Role, &user.PasswordHash,
 		&user.Phone, &user.DateOfBirth, &user.Gender, &user.Location,
 		&user.IsVerified, &user.IsActive, &user.KYCStatus,
 		&user.ProfilePictureURL, &user.CreatedAt, &user.UpdatedAt,
 	)
-	
+
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("user not found")
 	}
@@ -80,7 +79,7 @@ func (r *UserRepository) Update(ctx context.Context, user *models.User) error {
 		               location = $6, kyc_status = $7, profile_picture_url = $8,
 		               updated_at = NOW()
 		WHERE id = $1`
-	
+
 	_, err := r.db.Exec(ctx, query,
 		user.ID, user.Name, user.Phone, user.DateOfBirth, user.Gender,
 		user.Location, user.KYCStatus, user.ProfilePictureURL,
@@ -121,22 +120,22 @@ func (r *UserRepository) CreateReferral(ctx context.Context, referral *models.Re
 
 func (r *UserRepository) GetReferralStats(ctx context.Context, userID uuid.UUID) (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
-	
+
 	// Get referral count and earnings
 	query := `
 		SELECT COUNT(*), COALESCE(SUM(earnings), 0)
 		FROM referrals WHERE referrer_id = $1 AND status = 'active'`
-	
+
 	var count int
 	var earnings int
 	err := r.db.QueryRow(ctx, query, userID).Scan(&count, &earnings)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	stats["total_referrals"] = count
 	stats["total_earnings"] = earnings
 	stats["referral_code"] = fmt.Sprintf("REF%s", userID.String()[:8])
-	
+
 	return stats, nil
 }

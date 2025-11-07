@@ -1,7 +1,5 @@
 package models
 
-
-
 type QuestionRequest struct {
 	ID          string   `json:"id"`
 	Type        string   `json:"type"` // single, multi, text, rating, matrix
@@ -9,9 +7,9 @@ type QuestionRequest struct {
 	Description string   `json:"description,omitempty"`
 	Required    bool     `json:"required"`
 	Options     []string `json:"options,omitempty"`
-	Scale       int      `json:"scale,omitempty"`       // for rating questions
-	Rows        []string `json:"rows,omitempty"`        // for matrix questions
-	Cols        []string `json:"cols,omitempty"`        // for matrix questions
+	Scale       int      `json:"scale,omitempty"` // for rating questions
+	Rows        []string `json:"rows,omitempty"`  // for matrix questions
+	Cols        []string `json:"cols,omitempty"`  // for matrix questions
 	Order       int      `json:"order"`
 }
 
@@ -29,7 +27,7 @@ type SurveyRequest struct {
 	DataExport         bool              `json:"data_export,omitempty"`
 	Demographics       struct {
 		AgeGroups    []string `json:"age_groups,omitempty"`
-		Genders      []string `json:"genders,omitempty"`	
+		Genders      []string `json:"genders,omitempty"`
 		Locations    []string `json:"locations,omitempty"`
 		Education    []string `json:"education,omitempty"`
 		Employment   []string `json:"employment,omitempty"`

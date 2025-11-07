@@ -16,7 +16,7 @@ type Cache struct {
 func NewRedisCache(url string, ttl int) *Cache {
 	opt, _ := redis.ParseURL(url)
 	client := redis.NewClient(opt)
-	
+
 	return &Cache{
 		client: client,
 		ttl:    time.Duration(ttl) * time.Second,
@@ -90,7 +90,7 @@ func NewCache() *Cache {
 		Addr: "localhost:6379",
 		DB:   0,
 	})
-	
+
 	return &Cache{
 		client: client,
 		ttl:    time.Hour,

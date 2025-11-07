@@ -23,35 +23,35 @@ func (r *SurveyRepository) Create(ctx context.Context, survey *models.Survey) er
 			estimated_time, reward, status, max_responses, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 	`
-	
+
 	_, err := r.db.Exec(ctx, query, survey.ID, survey.CreatorID, survey.Title, survey.Description,
 		survey.Category, survey.TargetAudience, survey.EstimatedTime, survey.Reward,
 		survey.Status, survey.MaxResponses, survey.CreatedAt, survey.UpdatedAt)
-	
+
 	return err
 }
 
 func (r *SurveyRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Survey, error) {
 	var survey models.Survey
-	
+
 	query := `
 		SELECT id, creator_id, title, description, category, target_audience,
 			estimated_time, reward, status, max_responses, current_responses,
 			created_at, updated_at
 		FROM surveys WHERE id = $1
 	`
-	
+
 	err := r.db.QueryRow(ctx, query, id).Scan(
 		&survey.ID, &survey.CreatorID, &survey.Title, &survey.Description,
 		&survey.Category, &survey.TargetAudience, &survey.EstimatedTime,
 		&survey.Reward, &survey.Status, &survey.MaxResponses,
 		&survey.CurrentResponses, &survey.CreatedAt, &survey.UpdatedAt,
 	)
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &survey, nil
 }
 
@@ -59,7 +59,7 @@ func (r *SurveyRepository) GetAll(ctx context.Context, limit, offset int, status
 	var surveys []models.Survey
 	var query string
 	var args []interface{}
-	
+
 	if status != "" {
 		query = `
 			SELECT id, creator_id, title, description, category, target_audience,
@@ -79,13 +79,13 @@ func (r *SurveyRepository) GetAll(ctx context.Context, limit, offset int, status
 		`
 		args = []interface{}{limit, offset}
 	}
-	
+
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	for rows.Next() {
 		var survey models.Survey
 		err := rows.Scan(
@@ -99,7 +99,7 @@ func (r *SurveyRepository) GetAll(ctx context.Context, limit, offset int, status
 		}
 		surveys = append(surveys, survey)
 	}
-	
+
 	return surveys, nil
 }
 
@@ -110,11 +110,11 @@ func (r *SurveyRepository) Update(ctx context.Context, survey *models.Survey) er
 			status = $8, max_responses = $9, updated_at = $10
 		WHERE id = $1
 	`
-	
+
 	_, err := r.db.Exec(ctx, query, survey.ID, survey.Title, survey.Description,
 		survey.Category, survey.TargetAudience, survey.EstimatedTime,
 		survey.Reward, survey.Status, survey.MaxResponses, survey.UpdatedAt)
-	
+
 	return err
 }
 
@@ -132,13 +132,13 @@ func (r *SurveyRepository) GetByCreator(ctx context.Context, creatorID uuid.UUID
 		FROM surveys WHERE creator_id = $1
 		ORDER BY created_at DESC
 	`
-	
+
 	rows, err := r.db.Query(ctx, query, creatorID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	var surveys []models.Survey
 	for rows.Next() {
 		var survey models.Survey
@@ -153,37 +153,37 @@ func (r *SurveyRepository) GetByCreator(ctx context.Context, creatorID uuid.UUID
 		}
 		surveys = append(surveys, survey)
 	}
-	
+
 	return surveys, nil
 }
 
 func (r *SurveyRepository) SubmitResponse(ctx context.Context, response *models.Response) error {
 	answersJSON, _ := json.Marshal(response.Answers)
-	
+
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(ctx)
-	
+
 	// Insert response
 	query := `
 		INSERT INTO survey_responses (id, survey_id, user_id, answers, status, started_at, completed_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
-	
+
 	_, err = tx.Exec(ctx, query, response.ID, response.SurveyID, response.FillerID,
 		answersJSON, response.Status, response.StartedAt, response.CompletedAt)
 	if err != nil {
 		return err
 	}
-	
+
 	// Update survey response count
 	_, err = tx.Exec(ctx, "UPDATE surveys SET current_responses = current_responses + 1 WHERE id = $1", response.SurveyID)
 	if err != nil {
 		return err
 	}
-	
+
 	return tx.Commit(ctx)
 }
 
@@ -193,18 +193,18 @@ func (r *SurveyRepository) GetResponses(ctx context.Context, surveyID uuid.UUID)
 		FROM survey_responses WHERE survey_id = $1
 		ORDER BY completed_at DESC
 	`
-	
+
 	rows, err := r.db.Query(ctx, query, surveyID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	var responses []models.Response
 	for rows.Next() {
 		var response models.Response
 		var answersJSON []byte
-		
+
 		err := rows.Scan(
 			&response.ID, &response.SurveyID, &response.FillerID,
 			&answersJSON, &response.Status, &response.StartedAt, &response.CompletedAt,
@@ -212,11 +212,11 @@ func (r *SurveyRepository) GetResponses(ctx context.Context, surveyID uuid.UUID)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		json.Unmarshal(answersJSON, &response.Answers)
 		responses = append(responses, response)
 	}
-	
+
 	return responses, nil
 }
 

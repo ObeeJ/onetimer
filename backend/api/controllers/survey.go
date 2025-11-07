@@ -3,10 +3,10 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"strings"
 	"onetimer-backend/cache"
 	"onetimer-backend/models"
 	"onetimer-backend/repository"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -54,16 +54,16 @@ func (h *SurveyHandler) GetSurveys(c *fiber.Ctx) error {
 		var id, title, description, category string
 		var estimatedTime, reward, currentResponses int
 		rows.Scan(&id, &title, &description, &category, &estimatedTime, &reward, &currentResponses)
-		
+
 		surveys = append(surveys, fiber.Map{
-			"ID": id,
-			"Title": title,
-			"Description": description,
-			"Category": category,
-			"EstimatedTime": estimatedTime,
-			"Reward": reward,
+			"ID":               id,
+			"Title":            title,
+			"Description":      description,
+			"Category":         category,
+			"EstimatedTime":    estimatedTime,
+			"Reward":           reward,
 			"CurrentResponses": currentResponses,
-			"difficulty": "Easy",
+			"difficulty":       "Easy",
 		})
 	}
 
@@ -76,13 +76,13 @@ func (h *SurveyHandler) GetSurvey(c *fiber.Ctx) error {
 	if h.db == nil {
 		// Mock data
 		survey := fiber.Map{
-			"Title": "Consumer Preferences Study",
-			"Description": "Help brands understand your shopping habits and preferences.",
-			"Category": "lifestyle",
-			"EstimatedTime": 5,
-			"Reward": 200,
+			"Title":            "Consumer Preferences Study",
+			"Description":      "Help brands understand your shopping habits and preferences.",
+			"Category":         "lifestyle",
+			"EstimatedTime":    5,
+			"Reward":           200,
 			"CurrentResponses": 45,
-			"difficulty": "Easy",
+			"difficulty":       "Easy",
 		}
 		questions := []fiber.Map{
 			{"id": "q1", "type": "single", "text": "What is your age group?", "options": []string{"18-25", "26-35", "36-45", "46-55", "55+"}},
@@ -112,7 +112,7 @@ func (h *SurveyHandler) GetSurvey(c *fiber.Ctx) error {
 	for rows.Next() {
 		var qid, qtype, qtext, options string
 		rows.Scan(&qid, &qtype, &qtext, &options)
-		
+
 		q := fiber.Map{"id": qid, "type": qtype, "text": qtext}
 		if options != "" {
 			if qtype == "rating" {
@@ -128,13 +128,13 @@ func (h *SurveyHandler) GetSurvey(c *fiber.Ctx) error {
 	}
 
 	survey := fiber.Map{
-		"Title": title,
-		"Description": description,
-		"Category": category,
-		"EstimatedTime": estimatedTime,
-		"Reward": reward,
+		"Title":            title,
+		"Description":      description,
+		"Category":         category,
+		"EstimatedTime":    estimatedTime,
+		"Reward":           reward,
 		"CurrentResponses": currentResponses,
-		"difficulty": "Easy",
+		"difficulty":       "Easy",
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{"survey": survey, "questions": questions}, "questions": questions, "reward": reward})
@@ -156,33 +156,33 @@ func (h *SurveyHandler) SubmitResponse(c *fiber.Ctx) error {
 	reward := 200
 	if h.db != nil {
 		h.db.QueryRow(c.Context(), "SELECT reward FROM surveys WHERE id = $1", surveyID).Scan(&reward)
-		
+
 		// Save response
 		answersJSON, _ := json.Marshal(req.Responses)
-		h.db.Exec(c.Context(), "INSERT INTO responses (id, survey_id, user_id, answers) VALUES ($1, $2, $3, $4)", 
+		h.db.Exec(c.Context(), "INSERT INTO responses (id, survey_id, user_id, answers) VALUES ($1, $2, $3, $4)",
 			uuid.New().String(), surveyID, userID, string(answersJSON))
-		
+
 		// Add earning
 		h.db.Exec(c.Context(), "INSERT INTO earnings (id, user_id, amount, source) VALUES ($1, $2, $3, $4)",
 			uuid.New().String(), userID, reward, "Survey #"+surveyID+" completion")
-		
+
 		// Update response count
 		h.db.Exec(c.Context(), "UPDATE surveys SET current_responses = current_responses + 1 WHERE id = $1", surveyID)
 	}
 
 	return c.JSON(fiber.Map{
-		"ok": true,
-		"success": true,
-		"message": "Survey submitted successfully! Your reward has been added to your account.",
-		"survey_id": surveyID,
-		"reward": reward,
+		"ok":              true,
+		"success":         true,
+		"message":         "Survey submitted successfully! Your reward has been added to your account.",
+		"survey_id":       surveyID,
+		"reward":          reward,
 		"responses_count": len(req.Responses),
 	})
 }
 
 func (h *SurveyHandler) CreateSurvey(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	var survey models.Survey
 	if err := c.BodyParser(&survey); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
@@ -197,7 +197,7 @@ func (h *SurveyHandler) CreateSurvey(c *fiber.Ctx) error {
 		INSERT INTO surveys (id, creator_id, title, description, category, reward_amount, target_responses, estimated_duration, status, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending', NOW())
 	`
-	_, err := h.db.Exec(context.Background(), insertQuery, survey.ID, survey.CreatorID, survey.Title, survey.Description, 
+	_, err := h.db.Exec(context.Background(), insertQuery, survey.ID, survey.CreatorID, survey.Title, survey.Description,
 		survey.Category, survey.Reward, survey.MaxResponses, survey.EstimatedTime)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to create survey"})

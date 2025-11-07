@@ -35,10 +35,10 @@ func (h *CreatorController) GetDashboard(c *fiber.Ctx) error {
 	h.db.QueryRow(context.Background(), "SELECT COUNT(*) FROM responses r JOIN surveys s ON r.survey_id = s.id WHERE s.creator_id = $1", userID).Scan(&totalResponses)
 
 	dashboard := fiber.Map{
-		"total_surveys":    totalSurveys,
-		"active_surveys":   activeSurveys,
-		"total_responses":  totalResponses,
-		"user_id":          userID,
+		"total_surveys":   totalSurveys,
+		"active_surveys":  activeSurveys,
+		"total_responses": totalResponses,
+		"user_id":         userID,
 	}
 
 	return c.JSON(dashboard)
@@ -80,15 +80,15 @@ func (h *CreatorController) GetMySurveys(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data": surveys,
-		"count": len(surveys),
+		"data":    surveys,
+		"count":   len(surveys),
 	})
 }
 
 func (h *CreatorController) UpdateSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
 	_ = c.Locals("user_id").(string)
-	
+
 	var survey models.Survey
 	if err := c.BodyParser(&survey); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
@@ -103,7 +103,7 @@ func (h *CreatorController) UpdateSurvey(c *fiber.Ctx) error {
 
 func (h *CreatorController) DeleteSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
-	
+
 	return c.JSON(fiber.Map{
 		"ok":        true,
 		"survey_id": surveyID,
@@ -113,7 +113,7 @@ func (h *CreatorController) DeleteSurvey(c *fiber.Ctx) error {
 
 func (h *CreatorController) GetSurveyResponses(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
-	
+
 	responses := []models.Response{
 		{
 			ID:          uuid.New(),
@@ -130,12 +130,12 @@ func (h *CreatorController) GetSurveyResponses(c *fiber.Ctx) error {
 
 func (h *CreatorController) GetAnalytics(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
-	
+
 	analytics := fiber.Map{
-		"survey_id":        surveyID,
-		"total_responses":  145,
-		"completion_rate":  87.5,
-		"avg_time":         "6m 30s",
+		"survey_id":       surveyID,
+		"total_responses": 145,
+		"completion_rate": 87.5,
+		"avg_time":        "6m 30s",
 		"demographics": fiber.Map{
 			"age_groups": fiber.Map{
 				"18-25": 35,
@@ -153,8 +153,8 @@ func (h *CreatorController) GetCredits(c *fiber.Ctx) error {
 	_ = c.Locals("user_id").(string)
 
 	creditsData := fiber.Map{
-		"balance":      2500,
-		"spent":        7500,
+		"balance": 2500,
+		"spent":   7500,
 		"transactions": []fiber.Map{
 			{
 				"id":     uuid.New().String(),
@@ -180,7 +180,7 @@ func (h *CreatorController) GetCredits(c *fiber.Ctx) error {
 func (h *CreatorController) ExportSurveyResponses(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
 	format := c.Query("format", "csv")
-	
+
 	// Mock responses for now
 	responses := []fiber.Map{
 		{
@@ -204,7 +204,7 @@ func (h *CreatorController) ExportSurveyResponses(c *fiber.Ctx) error {
 			},
 		},
 	}
-	
+
 	switch format {
 	case "csv":
 		return h.exportCSV(c, responses, surveyID)
@@ -217,7 +217,7 @@ func (h *CreatorController) ExportSurveyResponses(c *fiber.Ctx) error {
 
 func (h *CreatorController) exportCSV(c *fiber.Ctx, responses []fiber.Map, surveyID string) error {
 	filename := fmt.Sprintf("survey_%s_responses_%s.csv", surveyID[:8], time.Now().Format("20060102"))
-	
+
 	c.Set("Content-Type", "text/csv")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
 
@@ -252,7 +252,7 @@ func (h *CreatorController) exportCSV(c *fiber.Ctx, responses []fiber.Map, surve
 
 func (h *CreatorController) exportJSON(c *fiber.Ctx, responses []fiber.Map, surveyID string) error {
 	filename := fmt.Sprintf("survey_%s_responses_%s.json", surveyID[:8], time.Now().Format("20060102"))
-	
+
 	c.Set("Content-Type", "application/json")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
 
@@ -269,14 +269,14 @@ func (h *CreatorController) exportJSON(c *fiber.Ctx, responses []fiber.Map, surv
 // GetSurveyAnalytics returns detailed analytics for a survey
 func (h *CreatorController) GetSurveyAnalytics(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
-	
+
 	analytics := fiber.Map{
-		"survey_id":        surveyID,
-		"total_responses":  145,
-		"completion_rate":  87.5,
-		"avg_time":         "6m 30s",
-		"bounce_rate":      12.5,
-		"quality_score":    8.2,
+		"survey_id":       surveyID,
+		"total_responses": 145,
+		"completion_rate": 87.5,
+		"avg_time":        "6m 30s",
+		"bounce_rate":     12.5,
+		"quality_score":   8.2,
 		"demographics": fiber.Map{
 			"age_groups": fiber.Map{
 				"18-25": 35,
@@ -308,9 +308,9 @@ func (h *CreatorController) GetSurveyAnalytics(c *fiber.Ctx) error {
 func (h *CreatorController) PauseSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
 	userID := c.Locals("user_id").(string)
-	
+
 	// TODO: Update survey status in database
-	
+
 	return c.JSON(fiber.Map{
 		"ok":        true,
 		"survey_id": surveyID,
@@ -324,9 +324,9 @@ func (h *CreatorController) PauseSurvey(c *fiber.Ctx) error {
 func (h *CreatorController) ResumeSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
 	userID := c.Locals("user_id").(string)
-	
+
 	// TODO: Update survey status in database
-	
+
 	return c.JSON(fiber.Map{
 		"ok":        true,
 		"survey_id": surveyID,
@@ -340,15 +340,15 @@ func (h *CreatorController) ResumeSurvey(c *fiber.Ctx) error {
 func (h *CreatorController) DuplicateSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
 	userID := c.Locals("user_id").(string)
-	
+
 	newSurveyID := uuid.New()
-	
+
 	return c.JSON(fiber.Map{
-		"ok":             true,
-		"original_id":    surveyID,
-		"new_survey_id":  newSurveyID,
-		"user_id":        userID,
-		"message":        "Survey duplicated successfully",
+		"ok":            true,
+		"original_id":   surveyID,
+		"new_survey_id": newSurveyID,
+		"user_id":       userID,
+		"message":       "Survey duplicated successfully",
 	})
 }
 
@@ -356,14 +356,14 @@ func (h *CreatorController) DuplicateSurvey(c *fiber.Ctx) error {
 func (h *CreatorController) GetResponseDetails(c *fiber.Ctx) error {
 	surveyID := c.Params("survey_id")
 	responseID := c.Params("response_id")
-	
+
 	response := fiber.Map{
-		"id":           responseID,
-		"survey_id":    surveyID,
-		"filler_email": "user@example.com",
-		"started_at":   time.Now().AddDate(0, 0, -1),
-		"completed_at": time.Now().AddDate(0, 0, -1).Add(5 * time.Minute),
-		"time_taken":   "5m 23s",
+		"id":            responseID,
+		"survey_id":     surveyID,
+		"filler_email":  "user@example.com",
+		"started_at":    time.Now().AddDate(0, 0, -1),
+		"completed_at":  time.Now().AddDate(0, 0, -1).Add(5 * time.Minute),
+		"time_taken":    "5m 23s",
 		"quality_score": 8.5,
 		"answers": []fiber.Map{
 			{"question_id": "q1", "question": "Age group?", "answer": "25-35"},

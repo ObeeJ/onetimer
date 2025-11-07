@@ -28,7 +28,7 @@ func main() {
 
 	for _, path := range auditPaths {
 		fmt.Printf("📁 Auditing %s/\n", path)
-		
+
 		err := filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -38,7 +38,7 @@ func main() {
 				totalFiles++
 				functions := auditGoFile(filePath)
 				totalFunctions += functions
-				
+
 				fmt.Printf("  ✅ %s (%d functions)\n", filePath, functions)
 			}
 			return nil

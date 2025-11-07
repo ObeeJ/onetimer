@@ -47,13 +47,13 @@ func JWTMiddleware(secret string) fiber.Handler {
 func RequireRole(roles ...string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userRole := c.Locals("role").(string)
-		
+
 		for _, role := range roles {
 			if userRole == role {
 				return c.Next()
 			}
 		}
-		
+
 		return c.Status(403).JSON(fiber.Map{"error": "Insufficient permissions"})
 	}
 }

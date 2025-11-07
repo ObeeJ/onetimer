@@ -39,20 +39,20 @@ func (h *AuthHandler) SendOTP(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate OTP"})
 	}
-	
+
 	// Store OTP in cache with timestamp
 	key := "otp:" + req.Email
 	otpData := fiber.Map{
-		"code": otp,
+		"code":       otp,
 		"created_at": time.Now(),
 	}
 	h.cache.Set(c.Context(), key, otpData)
 
 	// TODO: Send OTP via email service (Supabase Auth or SMTP)
-	
+
 	return c.JSON(fiber.Map{
-		"ok":      true,
-		"channel": "email",
+		"ok":         true,
+		"channel":    "email",
 		"expires_in": 300, // 5 minutes
 	})
 }

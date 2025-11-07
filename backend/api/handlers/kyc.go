@@ -26,7 +26,7 @@ type KYCRequest struct {
 
 func (h *KYCHandler) VerifyKYC(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uuid.UUID)
-	
+
 	var req KYCRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
@@ -61,7 +61,7 @@ func (h *KYCHandler) VerifyKYC(c *fiber.Ctx) error {
 
 func (h *KYCHandler) GetKYCStatus(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uuid.UUID)
-	
+
 	return c.JSON(fiber.Map{
 		"user_id": userID,
 		"status":  "pending",

@@ -10,11 +10,11 @@ import (
 )
 
 var (
-	emailRegex    = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	phoneRegex    = regexp.MustCompile(`^\+?[1-9]\d{1,14}$`)
-	nameRegex     = regexp.MustCompile(`^[a-zA-Z\s'-]{2,50}$`)
-	sqlInjection  = regexp.MustCompile(`(?i)(union|select|insert|update|delete|drop|create|alter|exec|script|javascript|<script|</script>)`)
-	xssPattern    = regexp.MustCompile(`(?i)(<script|</script>|javascript:|on\w+\s*=|<iframe|</iframe>)`)
+	emailRegex   = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	phoneRegex   = regexp.MustCompile(`^\+?[1-9]\d{1,14}$`)
+	nameRegex    = regexp.MustCompile(`^[a-zA-Z\s'-]{2,50}$`)
+	sqlInjection = regexp.MustCompile(`(?i)(union|select|insert|update|delete|drop|create|alter|exec|script|javascript|<script|</script>)`)
+	xssPattern   = regexp.MustCompile(`(?i)(<script|</script>|javascript:|on\w+\s*=|<iframe|</iframe>)`)
 )
 
 type ValidationError struct {
@@ -32,26 +32,26 @@ func NewValidator() *Validator {
 
 func (v *Validator) ValidateEmail(email string) *Validator {
 	email = strings.TrimSpace(strings.ToLower(email))
-	
+
 	if email == "" {
 		v.errors = append(v.errors, ValidationError{"email", "Email is required"})
 		return v
 	}
-	
+
 	if len(email) > 255 {
 		v.errors = append(v.errors, ValidationError{"email", "Email too long"})
 		return v
 	}
-	
+
 	if _, err := mail.ParseAddress(email); err != nil {
 		v.errors = append(v.errors, ValidationError{"email", "Invalid email format"})
 		return v
 	}
-	
+
 	if !emailRegex.MatchString(email) {
 		v.errors = append(v.errors, ValidationError{"email", "Invalid email format"})
 	}
-	
+
 	return v
 }
 
@@ -60,12 +60,12 @@ func (v *Validator) ValidatePassword(password string) *Validator {
 		v.errors = append(v.errors, ValidationError{"password", "Password must be at least 8 characters"})
 		return v
 	}
-	
+
 	if len(password) > 128 {
 		v.errors = append(v.errors, ValidationError{"password", "Password too long"})
 		return v
 	}
-	
+
 	var hasUpper, hasLower, hasDigit, hasSpecial bool
 	for _, char := range password {
 		switch {
@@ -79,31 +79,31 @@ func (v *Validator) ValidatePassword(password string) *Validator {
 			hasSpecial = true
 		}
 	}
-	
+
 	if !hasUpper || !hasLower || !hasDigit || !hasSpecial {
 		v.errors = append(v.errors, ValidationError{"password", "Password must contain uppercase, lowercase, digit, and special character"})
 	}
-	
+
 	return v
 }
 
 func (v *Validator) ValidateName(name string) *Validator {
 	name = strings.TrimSpace(name)
-	
+
 	if name == "" {
 		v.errors = append(v.errors, ValidationError{"name", "Name is required"})
 		return v
 	}
-	
+
 	if len(name) < 2 || len(name) > 100 {
 		v.errors = append(v.errors, ValidationError{"name", "Name must be 2-100 characters"})
 		return v
 	}
-	
+
 	if !nameRegex.MatchString(name) {
 		v.errors = append(v.errors, ValidationError{"name", "Name contains invalid characters"})
 	}
-	
+
 	return v
 }
 

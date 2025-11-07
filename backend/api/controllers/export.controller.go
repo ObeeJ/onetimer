@@ -58,7 +58,7 @@ func (h *ExportController) ExportSurveyResponses(c *fiber.Ctx) error {
 
 func (h *ExportController) exportCSV(c *fiber.Ctx, responses []SurveyResponse, surveyID string) error {
 	filename := fmt.Sprintf("survey_%s_responses_%s.csv", surveyID[:8], time.Now().Format("20060102"))
-	
+
 	c.Set("Content-Type", "text/csv")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
 
@@ -72,7 +72,7 @@ func (h *ExportController) exportCSV(c *fiber.Ctx, responses []SurveyResponse, s
 
 	// Write header
 	header := []string{"Response ID", "Filler Email", "Submitted At", "Quality Score"}
-	
+
 	// Add question headers
 	if len(responses) > 0 {
 		for questionID := range responses[0].Answers {
@@ -106,15 +106,15 @@ func (h *ExportController) exportCSV(c *fiber.Ctx, responses []SurveyResponse, s
 
 func (h *ExportController) exportJSON(c *fiber.Ctx, responses []SurveyResponse, surveyID string) error {
 	filename := fmt.Sprintf("survey_%s_responses_%s.json", surveyID[:8], time.Now().Format("20060102"))
-	
+
 	c.Set("Content-Type", "application/json")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
 
 	exportData := fiber.Map{
-		"survey_id": surveyID,
-		"exported_at": time.Now(),
+		"survey_id":       surveyID,
+		"exported_at":     time.Now(),
 		"total_responses": len(responses),
-		"responses": responses,
+		"responses":       responses,
 	}
 
 	return c.JSON(exportData)
@@ -172,13 +172,13 @@ func (h *ExportController) getSurveyResponsesForExport(surveyID string) ([]Surve
 
 func (h *ExportController) exportPDF(c *fiber.Ctx, responses []SurveyResponse, surveyID string) error {
 	filename := fmt.Sprintf("survey_%s_responses_%s.pdf", surveyID[:8], time.Now().Format("20060102"))
-	
+
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 16)
 	pdf.Cell(40, 10, fmt.Sprintf("Survey Responses - %s", surveyID[:8]))
 	pdf.Ln(12)
-	
+
 	pdf.SetFont("Arial", "", 12)
 	for i, response := range responses {
 		pdf.Cell(40, 10, fmt.Sprintf("Response %d: %s", i+1, response.FillerEmail))
@@ -189,10 +189,10 @@ func (h *ExportController) exportPDF(c *fiber.Ctx, responses []SurveyResponse, s
 		}
 		pdf.Ln(4)
 	}
-	
+
 	var buf bytes.Buffer
 	pdf.Output(&buf)
-	
+
 	c.Set("Content-Type", "application/pdf")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
 	return c.Send(buf.Bytes())
@@ -200,30 +200,30 @@ func (h *ExportController) exportPDF(c *fiber.Ctx, responses []SurveyResponse, s
 
 func (h *ExportController) exportDOCX(c *fiber.Ctx, responses []SurveyResponse, surveyID string) error {
 	filename := fmt.Sprintf("survey_%s_responses_%s.docx", surveyID[:8], time.Now().Format("20060102"))
-	
+
 	doc := document.New()
 	para := doc.AddParagraph()
 	run := para.AddRun()
 	run.AddText(fmt.Sprintf("Survey Responses - %s", surveyID[:8]))
 	run.Properties().SetBold(true)
 	run.Properties().SetSize(16)
-	
+
 	for i, response := range responses {
 		para = doc.AddParagraph()
 		run = para.AddRun()
 		run.AddText(fmt.Sprintf("Response %d: %s", i+1, response.FillerEmail))
 		run.Properties().SetBold(true)
-		
+
 		for qID, answer := range response.Answers {
 			para = doc.AddParagraph()
 			run = para.AddRun()
 			run.AddText(fmt.Sprintf("Q%s: %v", qID[:4], answer))
 		}
 	}
-	
+
 	var buf bytes.Buffer
 	doc.Save(&buf)
-	
+
 	c.Set("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
 	return c.Send(buf.Bytes())

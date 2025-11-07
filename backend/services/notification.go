@@ -101,7 +101,7 @@ func (n *NotificationService) sendNotification(notification *Notification) error
 	_, err := n.db.Exec(context.Background(), query,
 		notification.ID, notification.UserID, notification.Type,
 		notification.Title, notification.Message, notification.Data, false)
-	
+
 	if err != nil {
 		log.Printf("Failed to save notification: %v", err)
 		return err

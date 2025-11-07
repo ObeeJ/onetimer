@@ -32,7 +32,7 @@ type AuditLog struct {
 func (h *AuditController) LogAction(userID, action, resource string, details map[string]interface{}, c *fiber.Ctx) error {
 	// TODO: Save to database
 	// TODO: Send to monitoring system if critical action
-	
+
 	return nil
 }
 
@@ -125,10 +125,10 @@ func (h *AuditController) GetAuditLogs(c *fiber.Ctx) error {
 	paginatedLogs := filteredLogs[start:end]
 
 	return c.JSON(fiber.Map{
-		"logs":        paginatedLogs,
-		"total":       len(filteredLogs),
-		"limit":       limit,
-		"offset":      offset,
+		"logs":   paginatedLogs,
+		"total":  len(filteredLogs),
+		"limit":  limit,
+		"offset": offset,
 		"filters": fiber.Map{
 			"type":       actionType,
 			"user_id":    userID,
@@ -144,12 +144,12 @@ func (h *AuditController) GetAuditStats(c *fiber.Ctx) error {
 
 	// Mock statistics - TODO: Calculate from database
 	stats := fiber.Map{
-		"total_actions":    1247,
-		"security_events":  23,
-		"approvals":        456,
-		"payouts":          189,
-		"config_changes":   34,
-		"period":           period,
+		"total_actions":   1247,
+		"security_events": 23,
+		"approvals":       456,
+		"payouts":         189,
+		"config_changes":  34,
+		"period":          period,
 		"breakdown": fiber.Map{
 			"approval":   456,
 			"payout":     189,
@@ -165,14 +165,14 @@ func (h *AuditController) GetAuditStats(c *fiber.Ctx) error {
 // ExportAuditLogs exports audit logs to CSV
 func (h *AuditController) ExportAuditLogs(c *fiber.Ctx) error {
 	format := c.Query("format", "csv")
-	
+
 	filename := fmt.Sprintf("audit_logs_%s.%s", time.Now().Format("20060102"), format)
-	
+
 	// TODO: Generate export file with filtered data
-	
+
 	c.Set("Content-Type", "text/csv")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
-	
+
 	// Mock CSV content
 	csvContent := `ID,Timestamp,Admin,Action,Target,Type,IP Address,Details
 audit_001,2024-01-20 14:30:25,John Admin,Approved Survey,Survey #1234,approval,192.168.1.100,Survey approved after review
@@ -184,7 +184,7 @@ audit_002,2024-01-20 14:25:12,Jane Admin,Processed Payout,User: john@example.com
 // GetSecurityEvents returns security-related audit events
 func (h *AuditController) GetSecurityEvents(c *fiber.Ctx) error {
 	severity := c.Query("severity", "all") // low, medium, high, critical
-	
+
 	// Mock security events
 	events := []fiber.Map{
 		{
@@ -211,7 +211,7 @@ func (h *AuditController) GetSecurityEvents(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"security_events": events,
-		"total":          len(events),
+		"total":           len(events),
 		"severity_filter": severity,
 	})
 }
@@ -230,16 +230,16 @@ func (h *AuditController) CreateAuditReport(c *fiber.Ctx) error {
 	}
 
 	reportID := uuid.New()
-	
+
 	// TODO: Generate comprehensive report
 	// TODO: Include charts and statistics
 	// TODO: Save report for download
-	
+
 	return c.Status(201).JSON(fiber.Map{
-		"ok":        true,
-		"report_id": reportID,
-		"status":    "generating",
-		"message":   "Audit report generation started",
+		"ok":             true,
+		"report_id":      reportID,
+		"status":         "generating",
+		"message":        "Audit report generation started",
 		"estimated_time": "2-5 minutes",
 	})
 }

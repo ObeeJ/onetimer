@@ -98,7 +98,7 @@ func (h *UserController) Register(c *fiber.Ctx) error {
 
 func (h *UserController) GetProfile(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	user := models.User{
 		ID:         uuid.MustParse(userID),
 		Email:      "user@example.com",
@@ -113,7 +113,7 @@ func (h *UserController) GetProfile(c *fiber.Ctx) error {
 
 func (h *UserController) UpdateProfile(c *fiber.Ctx) error {
 	_ = c.Locals("user_id").(string)
-	
+
 	var req struct {
 		Name  string `json:"name"`
 		Email string `json:"email"`
@@ -131,7 +131,7 @@ func (h *UserController) UpdateProfile(c *fiber.Ctx) error {
 
 func (h *UserController) UploadKYC(c *fiber.Ctx) error {
 	_ = c.Locals("user_id").(string)
-	
+
 	file, err := c.FormFile("document")
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "No file uploaded"})

@@ -12,8 +12,8 @@ import (
 )
 
 type PaymentController struct {
-	cache              *cache.Cache
-	paystackService    *services.PaystackService
+	cache           *cache.Cache
+	paystackService *services.PaystackService
 }
 
 // Initialize with Paystack secret key from environment
@@ -63,12 +63,12 @@ func (h *PaymentController) PurchaseCredits(c *fiber.Ctx) error {
 		utils.LogWarn("Paystack not configured, returning mock response for user %s", userID)
 		transactionID := uuid.New()
 		return c.Status(201).JSON(fiber.Map{
-			"ok":              true,
-			"transaction_id":  transactionID,
-			"amount":          req.Amount,
-			"credits":         req.Credits,
-			"status":          "pending",
-			"message":         "Payment initialization (mock mode)",
+			"ok":             true,
+			"transaction_id": transactionID,
+			"amount":         req.Amount,
+			"credits":        req.Credits,
+			"status":         "pending",
+			"message":        "Payment initialization (mock mode)",
 		})
 	}
 
@@ -83,14 +83,14 @@ func (h *PaymentController) PurchaseCredits(c *fiber.Ctx) error {
 	utils.LogInfo("Payment initialized for user %s: reference=%s, amount=%d, credits=%d", userID, result.Data.Reference, req.Amount, req.Credits)
 
 	return c.Status(201).JSON(fiber.Map{
-		"ok":                   true,
-		"reference":            result.Data.Reference,
-		"access_code":          result.Data.AccessCode,
-		"authorization_url":    result.Data.AuthorizationURL,
-		"amount":               req.Amount,
-		"credits":              req.Credits,
-		"user_id":              userID,
-		"message":              "Payment initialized successfully",
+		"ok":                true,
+		"reference":         result.Data.Reference,
+		"access_code":       result.Data.AccessCode,
+		"authorization_url": result.Data.AuthorizationURL,
+		"amount":            req.Amount,
+		"credits":           req.Credits,
+		"user_id":           userID,
+		"message":           "Payment initialized successfully",
 	})
 }
 
@@ -112,13 +112,13 @@ func (h *PaymentController) VerifyPayment(c *fiber.Ctx) error {
 	if h.paystackService == nil {
 		utils.LogWarn("Paystack not configured, returning mock verification for reference %s", reference)
 		return c.JSON(fiber.Map{
-			"ok":              true,
-			"status":          "success",
-			"reference":       reference,
-			"user_id":         userID,
-			"amount":          50000,
-			"credits_added":   150,
-			"message":         "Payment verified (mock mode)",
+			"ok":            true,
+			"status":        "success",
+			"reference":     reference,
+			"user_id":       userID,
+			"amount":        50000,
+			"credits_added": 150,
+			"message":       "Payment verified (mock mode)",
 		})
 	}
 
@@ -149,15 +149,15 @@ func (h *PaymentController) VerifyPayment(c *fiber.Ctx) error {
 	utils.LogInfo("Payment verified successfully: reference=%s, user=%s, amount=%d, credits=%d", reference, userID, result.Data.Amount, creditsAdded)
 
 	return c.JSON(fiber.Map{
-		"ok":              true,
-		"status":          "success",
-		"reference":       reference,
-		"user_id":         userID,
-		"amount":          result.Data.Amount,
-		"credits_added":   creditsAdded,
-		"last4":           result.Data.Authorization.Last4,
-		"brand":           result.Data.Authorization.Brand,
-		"message":         "Payment verified and credits added",
+		"ok":            true,
+		"status":        "success",
+		"reference":     reference,
+		"user_id":       userID,
+		"amount":        result.Data.Amount,
+		"credits_added": creditsAdded,
+		"last4":         result.Data.Authorization.Last4,
+		"brand":         result.Data.Authorization.Brand,
+		"message":       "Payment verified and credits added",
 	})
 }
 
@@ -176,11 +176,11 @@ func (h *PaymentController) ProcessBatchPayouts(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-	
+
 	// TODO: Process each withdrawal via Paystack
 	// TODO: Update withdrawal statuses
 	// TODO: Create audit log entries
-	
+
 	processed := 0
 	failed := 0
 	totalAmount := 0
@@ -211,23 +211,23 @@ func (h *PaymentController) GetPaymentMethods(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-	
+
 	// Mock payment methods
 	methods := []fiber.Map{
 		{
-			"id":          "pm_001",
-			"type":        "card",
-			"last4":       "4242",
-			"brand":       "visa",
-			"exp_month":   12,
-			"exp_year":    2025,
-			"is_default":  true,
+			"id":         "pm_001",
+			"type":       "card",
+			"last4":      "4242",
+			"brand":      "visa",
+			"exp_month":  12,
+			"exp_year":   2025,
+			"is_default": true,
 		},
 	}
 
 	return c.JSON(fiber.Map{
 		"payment_methods": methods,
-		"user_id":        userID,
+		"user_id":         userID,
 	})
 }
 
@@ -237,10 +237,10 @@ func (h *PaymentController) AddPaymentMethod(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-	
+
 	var req struct {
-		CardToken string `json:"card_token"`
-		SetDefault bool  `json:"set_default"`
+		CardToken  string `json:"card_token"`
+		SetDefault bool   `json:"set_default"`
 	}
 
 	if err := c.BodyParser(&req); err != nil {
@@ -248,7 +248,7 @@ func (h *PaymentController) AddPaymentMethod(c *fiber.Ctx) error {
 	}
 
 	// TODO: Save payment method via Paystack
-	
+
 	methodID := uuid.New()
 
 	return c.Status(201).JSON(fiber.Map{
@@ -265,7 +265,7 @@ func (h *PaymentController) GetTransactionHistory(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-	
+
 	// Mock transaction history
 	transactions := []fiber.Map{
 		{
@@ -292,7 +292,7 @@ func (h *PaymentController) GetTransactionHistory(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"transactions": transactions,
-		"user_id":     userID,
+		"user_id":      userID,
 	})
 }
 
@@ -303,7 +303,7 @@ func (h *PaymentController) RefundTransaction(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-	
+
 	var req struct {
 		Reason string `json:"reason"`
 		Amount int    `json:"amount,omitempty"` // partial refund amount
@@ -316,7 +316,7 @@ func (h *PaymentController) RefundTransaction(c *fiber.Ctx) error {
 	// TODO: Process refund via Paystack
 	// TODO: Update transaction status
 	// TODO: Create audit log
-	
+
 	refundID := uuid.New()
 
 	return c.JSON(fiber.Map{

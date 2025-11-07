@@ -13,14 +13,14 @@ import (
 type WSMessageType string
 
 const (
-	WSMsgNewSurvey         WSMessageType = "new_survey"
-	WSMsgSurveyCompleted   WSMessageType = "survey_completed"
-	WSMsgEarningsUpdate    WSMessageType = "earnings_update"
-	WSMsgPaymentReceived   WSMessageType = "payment_received"
+	WSMsgNewSurvey          WSMessageType = "new_survey"
+	WSMsgSurveyCompleted    WSMessageType = "survey_completed"
+	WSMsgEarningsUpdate     WSMessageType = "earnings_update"
+	WSMsgPaymentReceived    WSMessageType = "payment_received"
 	WSMsgWithdrawalApproved WSMessageType = "withdrawal_approved"
-	WSMsgSystemAlert       WSMessageType = "system_alert"
-	WSMsgResponseReceived  WSMessageType = "response_received"
-	WSMsgSurveyApproved    WSMessageType = "survey_approved"
+	WSMsgSystemAlert        WSMessageType = "system_alert"
+	WSMsgResponseReceived   WSMessageType = "response_received"
+	WSMsgSurveyApproved     WSMessageType = "survey_approved"
 )
 
 // WSMessage represents a real-time WebSocket notification message
@@ -252,6 +252,7 @@ func (c *Client) WritePump() {
 		}
 	}
 }
+
 // Helper functions for sending common notifications via Hub
 // These are convenience wrappers around hub.SendNotification
 

@@ -39,14 +39,14 @@ func (h *AuthController) SendOTP(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate OTP"})
 	}
-	
+
 	// Store OTP in cache with timestamp
 	key := "otp:" + req.Email
 	otpData := fiber.Map{
-		"code": otp,
+		"code":       otp,
 		"created_at": time.Now().Format(time.RFC3339),
 	}
-	
+
 	// Try to store in cache, fallback to memory if cache fails
 	if h.cache != nil {
 		err = h.cache.Set(c.Context(), key, otpData)
@@ -65,10 +65,10 @@ func (h *AuthController) SendOTP(c *fiber.Ctx) error {
 		// Log error but don't fail the request
 		// In development, OTP is still stored for manual verification
 	}
-	
+
 	return c.JSON(fiber.Map{
-		"ok":      true,
-		"channel": "email",
+		"ok":         true,
+		"channel":    "email",
 		"expires_in": 300, // 5 minutes
 	})
 }
@@ -91,13 +91,13 @@ func (h *AuthController) VerifyOTP(c *fiber.Ctx) error {
 		key := "otp:" + req.Email
 		var otpData fiber.Map
 		var found bool
-		
+
 		if h.cache != nil {
 			if err := h.cache.Get(c.Context(), key, &otpData); err == nil {
 				found = true
 			}
 		}
-		
+
 		if !found {
 			// Fallback: check memory storage
 			if localData := c.Locals("otp_" + req.Email); localData != nil {
@@ -105,7 +105,7 @@ func (h *AuthController) VerifyOTP(c *fiber.Ctx) error {
 				found = true
 			}
 		}
-		
+
 		if !found {
 			return c.Status(400).JSON(fiber.Map{"error": "Invalid or expired OTP"})
 		}

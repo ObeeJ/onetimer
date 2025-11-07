@@ -62,11 +62,11 @@ func (h *AdminController) GetUsers(c *fiber.Ctx) error {
 
 	query += " GROUP BY u.id, u.email, u.name, u.role, u.is_verified, u.is_active, u.kyc_status, u.created_at"
 	query += " ORDER BY u.created_at DESC"
-	
+
 	argCount++
 	query += fmt.Sprintf(" LIMIT $%d", argCount)
 	args = append(args, limit)
-	
+
 	argCount++
 	query += fmt.Sprintf(" OFFSET $%d", argCount)
 	args = append(args, offset)
@@ -114,9 +114,9 @@ func (h *AdminController) GetUsers(c *fiber.Ctx) error {
 	h.db.QueryRow(context.Background(), countQuery, countArgs...).Scan(&total)
 
 	return c.JSON(fiber.Map{
-		"users": users,
-		"total": total,
-		"limit": limit,
+		"users":  users,
+		"total":  total,
+		"limit":  limit,
 		"offset": offset,
 	})
 }
@@ -127,7 +127,7 @@ func (h *AdminController) ApproveUser(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-	
+
 	// Update user status
 	updateQuery := `UPDATE users SET kyc_status = 'approved', is_verified = true, updated_at = NOW() WHERE id = $1`
 	_, err := h.db.Exec(context.Background(), updateQuery, userID)
@@ -226,14 +226,14 @@ func (h *AdminController) GetSurveys(c *fiber.Ctx) error {
 		}
 
 		surveys = append(surveys, fiber.Map{
-			"id": id,
-			"title": title,
-			"description": description,
-			"status": status,
-			"reward": reward,
-			"max_responses": maxResponses,
+			"id":                id,
+			"title":             title,
+			"description":       description,
+			"status":            status,
+			"reward":            reward,
+			"max_responses":     maxResponses,
 			"current_responses": currentResponses,
-			"created_at": createdAt,
+			"created_at":        createdAt,
 		})
 	}
 
@@ -243,8 +243,8 @@ func (h *AdminController) GetSurveys(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data": surveys,
-		"count": len(surveys),
+		"data":    surveys,
+		"count":   len(surveys),
 	})
 }
 
@@ -279,10 +279,10 @@ func (h *AdminController) GetPayments(c *fiber.Ctx) error {
 		}
 
 		payments = append(payments, fiber.Map{
-			"id": id,
-			"user_id": userID,
-			"amount": amount,
-			"status": status,
+			"id":         id,
+			"user_id":    userID,
+			"amount":     amount,
+			"status":     status,
 			"created_at": createdAt,
 		})
 	}
@@ -351,7 +351,7 @@ func (h *AdminController) ProcessPayouts(c *fiber.Ctx) error {
 func (h *AdminController) ExportUsers(c *fiber.Ctx) error {
 	format := c.Query("format", "csv")
 	filename := fmt.Sprintf("users_export_%s.%s", time.Now().Format("20060102"), format)
-	
+
 	// Mock user data
 	users := []fiber.Map{
 		{"id": "1", "name": "John Doe", "email": "john@example.com", "role": "filler", "status": "active"},
@@ -361,13 +361,13 @@ func (h *AdminController) ExportUsers(c *fiber.Ctx) error {
 	if format == "csv" {
 		c.Set("Content-Type", "text/csv")
 		c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
-		
+
 		writer := csv.NewWriter(c)
 		defer writer.Flush()
-		
+
 		// Header
 		writer.Write([]string{"ID", "Name", "Email", "Role", "Status"})
-		
+
 		// Data
 		for _, user := range users {
 			writer.Write([]string{
@@ -408,17 +408,17 @@ func (h *AdminController) GetUserDetails(c *fiber.Ctx) error {
 	h.db.QueryRow(context.Background(), "SELECT COUNT(*) FROM responses WHERE user_id = $1", userID).Scan(&surveysCompleted)
 
 	user := fiber.Map{
-		"id": userID,
-		"name": name,
-		"email": email,
-		"role": role,
-		"status": "active",
-		"kyc_status": kycStatus,
-		"is_active": isActive,
-		"phone": phone,
-		"location": location,
-		"created_at": createdAt,
-		"total_earnings": totalEarnings,
+		"id":                userID,
+		"name":              name,
+		"email":             email,
+		"role":              role,
+		"status":            "active",
+		"kyc_status":        kycStatus,
+		"is_active":         isActive,
+		"phone":             phone,
+		"location":          location,
+		"created_at":        createdAt,
+		"total_earnings":    totalEarnings,
 		"surveys_completed": surveysCompleted,
 	}
 
@@ -428,7 +428,7 @@ func (h *AdminController) GetUserDetails(c *fiber.Ctx) error {
 // SuspendUser suspends a user account
 func (h *AdminController) SuspendUser(c *fiber.Ctx) error {
 	userID := c.Params("id")
-	
+
 	var req struct {
 		Reason   string `json:"reason"`
 		Duration int    `json:"duration"` // days
@@ -436,10 +436,10 @@ func (h *AdminController) SuspendUser(c *fiber.Ctx) error {
 	c.BodyParser(&req)
 
 	return c.JSON(fiber.Map{
-		"ok":      true,
-		"message": "User suspended successfully",
-		"user_id": userID,
-		"reason":  req.Reason,
+		"ok":       true,
+		"message":  "User suspended successfully",
+		"user_id":  userID,
+		"reason":   req.Reason,
 		"duration": req.Duration,
 	})
 }

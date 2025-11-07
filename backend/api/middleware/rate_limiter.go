@@ -71,8 +71,8 @@ func (rl *RateLimiter) RateLimitMiddleware(max int, window time.Duration) fiber.
 		if count > int64(max) {
 			c.Set("Retry-After", strconv.FormatInt(int64(window.Seconds()), 10))
 			return c.Status(429).JSON(fiber.Map{
-				"error":   "Rate limit exceeded",
-				"message": fmt.Sprintf("Too many requests. Please try again in %v", window),
+				"error":       "Rate limit exceeded",
+				"message":     fmt.Sprintf("Too many requests. Please try again in %v", window),
 				"retry_after": int64(window.Seconds()),
 			})
 		}
@@ -89,19 +89,19 @@ func (rl *RateLimiter) PerEndpointRateLimit() fiber.Handler {
 		window time.Duration
 	}{
 		// Public endpoints - more restrictive
-		"/api/waitlist/join":     {max: 5, window: time.Minute},
-		"/api/auth/login":        {max: 10, window: time.Minute},
-		"/api/auth/register":     {max: 5, window: time.Minute},
+		"/api/waitlist/join": {max: 5, window: time.Minute},
+		"/api/auth/login":    {max: 10, window: time.Minute},
+		"/api/auth/register": {max: 5, window: time.Minute},
 
 		// Upload endpoints - moderate limits
-		"/api/upload/kyc":        {max: 10, window: time.Hour},
+		"/api/upload/kyc":          {max: 10, window: time.Hour},
 		"/api/upload/survey-media": {max: 20, window: time.Hour},
 
 		// Survey creation - moderate limits
-		"/api/creator/surveys":   {max: 30, window: time.Hour},
+		"/api/creator/surveys": {max: 30, window: time.Hour},
 
 		// Response submission
-		"/api/filler/surveys":    {max: 100, window: time.Hour},
+		"/api/filler/surveys": {max: 100, window: time.Hour},
 
 		// Payment endpoints - strict limits
 		"/api/payment/initialize": {max: 5, window: time.Minute},
@@ -136,8 +136,8 @@ func (rl *RateLimiter) PerEndpointRateLimit() fiber.Handler {
 
 			if count > int64(limit.max) {
 				return c.Status(429).JSON(fiber.Map{
-					"error":   "Rate limit exceeded for this endpoint",
-					"message": fmt.Sprintf("Too many requests to %s. Please try again in %v", path, limit.window),
+					"error":       "Rate limit exceeded for this endpoint",
+					"message":     fmt.Sprintf("Too many requests to %s. Please try again in %v", path, limit.window),
 					"retry_after": int64(limit.window.Seconds()),
 				})
 			}

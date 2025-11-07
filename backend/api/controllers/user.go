@@ -34,7 +34,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 	// Validate input
 	validator := security.NewValidator()
 	validator.ValidateEmail(req.Email).ValidateName(req.Name).ValidatePassword(req.Password)
-	
+
 	if validator.HasErrors() {
 		return validator.SendErrorResponse(c)
 	}
@@ -47,7 +47,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to hash password"})
 	}
-	
+
 	user := models.User{
 		ID:         uuid.New(),
 		Email:      req.Email,
@@ -67,7 +67,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 
 func (h *UserHandler) GetProfile(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	user := models.User{
 		ID:         uuid.MustParse(userID),
 		Email:      "user@example.com",
@@ -82,7 +82,7 @@ func (h *UserHandler) GetProfile(c *fiber.Ctx) error {
 
 func (h *UserHandler) UpdateProfile(c *fiber.Ctx) error {
 	_ = c.Locals("user_id").(string)
-	
+
 	var req struct {
 		Name  string `json:"name"`
 		Email string `json:"email"`
@@ -100,7 +100,7 @@ func (h *UserHandler) UpdateProfile(c *fiber.Ctx) error {
 
 func (h *UserHandler) UploadKYC(c *fiber.Ctx) error {
 	_ = c.Locals("user_id").(string)
-	
+
 	file, err := c.FormFile("document")
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "No file uploaded"})

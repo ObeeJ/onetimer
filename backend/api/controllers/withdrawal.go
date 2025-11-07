@@ -15,9 +15,9 @@ import (
 )
 
 type WithdrawalHandler struct {
-	cache         *cache.Cache
-	db            *pgxpool.Pool
-	paystackKey   string
+	cache       *cache.Cache
+	db          *pgxpool.Pool
+	paystackKey string
 }
 
 func NewWithdrawalHandler(cache *cache.Cache, db *pgxpool.Pool, paystackKey string) *WithdrawalHandler {
@@ -27,7 +27,7 @@ func NewWithdrawalHandler(cache *cache.Cache, db *pgxpool.Pool, paystackKey stri
 // RequestWithdrawal handles withdrawal requests from fillers
 func (h *WithdrawalHandler) RequestWithdrawal(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	var req struct {
 		Amount        int    `json:"amount"`
 		BankName      string `json:"bank_name"`
@@ -75,18 +75,18 @@ func (h *WithdrawalHandler) RequestWithdrawal(c *fiber.Ctx) error {
 		INSERT INTO withdrawals (id, user_id, amount, bank_name, account_number, account_name, bank_code, status, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', NOW())
 	`
-	_, err = h.db.Exec(context.Background(), insertQuery, withdrawalID, userID, req.Amount, 
+	_, err = h.db.Exec(context.Background(), insertQuery, withdrawalID, userID, req.Amount,
 		req.BankName, req.AccountNumber, accountName, req.BankCode)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to create withdrawal request"})
 	}
 
 	return c.Status(201).JSON(fiber.Map{
-		"ok":            true,
-		"withdrawal_id": withdrawalID,
-		"amount":        req.Amount,
-		"status":        "pending",
-		"message":       "Withdrawal request submitted successfully",
+		"ok":              true,
+		"withdrawal_id":   withdrawalID,
+		"amount":          req.Amount,
+		"status":          "pending",
+		"message":         "Withdrawal request submitted successfully",
 		"processing_time": "1-3 business days",
 	})
 }
@@ -94,7 +94,7 @@ func (h *WithdrawalHandler) RequestWithdrawal(c *fiber.Ctx) error {
 // GetWithdrawals returns user's withdrawal history
 func (h *WithdrawalHandler) GetWithdrawals(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	// Mock data - TODO: Replace with database query
 	withdrawals := []fiber.Map{
 		{
@@ -107,7 +107,7 @@ func (h *WithdrawalHandler) GetWithdrawals(c *fiber.Ctx) error {
 			"processed_at":   time.Now().AddDate(0, 0, -3),
 		},
 		{
-			"id":             "w_002", 
+			"id":             "w_002",
 			"amount":         8500,
 			"status":         "pending",
 			"bank_name":      "GTBank",
@@ -169,22 +169,22 @@ func (h *WithdrawalHandler) VerifyAccount(c *fiber.Ctx) error {
 // verifyBankAccount verifies bank account with Paystack
 func (h *WithdrawalHandler) verifyBankAccount(accountNumber, bankCode string) (bool, string, error) {
 	url := fmt.Sprintf("https://api.paystack.co/bank/resolve?account_number=%s&bank_code=%s", accountNumber, bankCode)
-	
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return false, "", err
 	}
-	
+
 	req.Header.Set("Authorization", "Bearer "+h.paystackKey)
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return false, "", err
 	}
 	defer resp.Body.Close()
-	
+
 	var result struct {
 		Status bool `json:"status"`
 		Data   struct {
@@ -192,59 +192,59 @@ func (h *WithdrawalHandler) verifyBankAccount(accountNumber, bankCode string) (b
 			AccountNumber string `json:"account_number"`
 		} `json:"data"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return false, "", err
 	}
-	
+
 	return result.Status, result.Data.AccountName, nil
 }
 
 // processPaystackTransfer processes withdrawal via Paystack
 func (h *WithdrawalHandler) processPaystackTransfer(withdrawalID uuid.UUID, amount int, accountNumber, bankCode, reason string) error {
 	url := "https://api.paystack.co/transfer"
-	
+
 	payload := map[string]interface{}{
-		"source":      "balance",
-		"amount":      amount * 100, // Convert to kobo
-		"recipient":   fmt.Sprintf("%s-%s", bankCode, accountNumber),
-		"reason":      reason,
-		"reference":   withdrawalID.String(),
+		"source":    "balance",
+		"amount":    amount * 100, // Convert to kobo
+		"recipient": fmt.Sprintf("%s-%s", bankCode, accountNumber),
+		"reason":    reason,
+		"reference": withdrawalID.String(),
 	}
-	
+
 	jsonPayload, _ := json.Marshal(payload)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return err
 	}
-	
+
 	req.Header.Set("Authorization", "Bearer "+h.paystackKey)
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	
+
 	var result struct {
 		Status bool `json:"status"`
 		Data   struct {
-			Reference     string `json:"reference"`
-			TransferCode  string `json:"transfer_code"`
+			Reference    string `json:"reference"`
+			TransferCode string `json:"transfer_code"`
 		} `json:"data"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return err
 	}
-	
+
 	if result.Status {
 		// Update withdrawal with Paystack reference
 		updateQuery := `UPDATE withdrawals SET paystack_reference = $1, status = 'processing' WHERE id = $2`
 		h.db.Exec(context.Background(), updateQuery, result.Data.TransferCode, withdrawalID)
 	}
-	
+
 	return nil
 }

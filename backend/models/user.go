@@ -70,16 +70,16 @@ type Referral struct {
 }
 
 type KYCVerification struct {
-	ID            uuid.UUID  `json:"id" db:"id"`
-	UserID        uuid.UUID  `json:"user_id" db:"user_id"`
-	NIN           string     `json:"nin" db:"nin"`
-	Status        string     `json:"status" db:"status"`
-	FirstName     string     `json:"first_name" db:"first_name"`
-	LastName      string     `json:"last_name" db:"last_name"`
-	Phone         string     `json:"phone" db:"phone"`
-	DateOfBirth   string     `json:"date_of_birth" db:"date_of_birth"`
-	Gender        string     `json:"gender" db:"gender"`
-	VerifiedAt    *time.Time `json:"verified_at" db:"verified_at"`
-	CreatedAt     time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt     time.Time  `json:"updated_at" db:"updated_at"`
+	ID          uuid.UUID  `json:"id" db:"id"`
+	UserID      uuid.UUID  `json:"user_id" db:"user_id"`
+	NIN         string     `json:"nin" db:"nin"`
+	Status      string     `json:"status" db:"status"`
+	FirstName   string     `json:"first_name" db:"first_name"`
+	LastName    string     `json:"last_name" db:"last_name"`
+	Phone       string     `json:"phone" db:"phone"`
+	DateOfBirth string     `json:"date_of_birth" db:"date_of_birth"`
+	Gender      string     `json:"gender" db:"gender"`
+	VerifiedAt  *time.Time `json:"verified_at" db:"verified_at"`
+	CreatedAt   time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at"`
 }

@@ -3,8 +3,8 @@ package routes
 import (
 	"onetimer-backend/api/controllers"
 	"onetimer-backend/api/middleware"
-	"onetimer-backend/config"
 	"onetimer-backend/cache"
+	"onetimer-backend/config"
 	"onetimer-backend/services"
 
 	"github.com/gofiber/fiber/v2"
@@ -31,9 +31,9 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgx
 
 	api.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"status": "ok",
-			"env":    cfg.Env,
-			"api":    "ready",
+			"status":    "ok",
+			"env":       cfg.Env,
+			"api":       "ready",
 			"ratelimit": rateLimiter != nil,
 		})
 	})

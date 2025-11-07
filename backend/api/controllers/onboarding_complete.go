@@ -25,19 +25,19 @@ func NewOnboardingCompleteHandler(cache *cache.Cache, db *pgxpool.Pool) *Onboard
 // CompleteFillerOnboarding handles complete filler registration with profile
 func (h *OnboardingCompleteHandler) CompleteFillerOnboarding(c *fiber.Ctx) error {
 	var req struct {
-		FirstName  string   `json:"first_name"`
-		LastName   string   `json:"last_name"`
-		Email      string   `json:"email"`
-		Password   string   `json:"password"`
-		Profile    struct {
-			AgeRange     string   `json:"age_range"`
-			Gender       string   `json:"gender"`
-			Country      string   `json:"country"`
-			State        string   `json:"state"`
-			Education    string   `json:"education"`
-			Employment   string   `json:"employment"`
-			IncomeRange  string   `json:"income_range"`
-			Interests    []string `json:"interests"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+		Profile   struct {
+			AgeRange    string   `json:"age_range"`
+			Gender      string   `json:"gender"`
+			Country     string   `json:"country"`
+			State       string   `json:"state"`
+			Education   string   `json:"education"`
+			Employment  string   `json:"employment"`
+			IncomeRange string   `json:"income_range"`
+			Interests   []string `json:"interests"`
 		} `json:"profile"`
 	}
 
@@ -76,8 +76,8 @@ func (h *OnboardingCompleteHandler) CompleteFillerOnboarding(c *fiber.Ctx) error
 		INSERT INTO user_profiles (user_id, age_range, gender, country, state, education, employment, income_range, interests, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
 	`
-	_, err = h.db.Exec(context.Background(), profileQuery, userID, req.Profile.AgeRange, req.Profile.Gender, 
-		req.Profile.Country, req.Profile.State, req.Profile.Education, req.Profile.Employment, 
+	_, err = h.db.Exec(context.Background(), profileQuery, userID, req.Profile.AgeRange, req.Profile.Gender,
+		req.Profile.Country, req.Profile.State, req.Profile.Education, req.Profile.Employment,
 		req.Profile.IncomeRange, string(interestsJSON))
 	if err != nil {
 		// Rollback user creation if profile fails
@@ -105,9 +105,9 @@ func (h *OnboardingCompleteHandler) CompleteFillerOnboarding(c *fiber.Ctx) error
 	}
 
 	return c.Status(201).JSON(fiber.Map{
-		"ok":      true,
-		"user":    user,
-		"message": "Account created successfully",
+		"ok":        true,
+		"user":      user,
+		"message":   "Account created successfully",
 		"next_step": "Please verify your email to start earning",
 	})
 }
@@ -115,7 +115,7 @@ func (h *OnboardingCompleteHandler) CompleteFillerOnboarding(c *fiber.Ctx) error
 // UpdateDemographics updates user demographic information
 func (h *OnboardingCompleteHandler) UpdateDemographics(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	var req struct {
 		AgeRange    string   `json:"age_range"`
 		Gender      string   `json:"gender"`
@@ -138,16 +138,16 @@ func (h *OnboardingCompleteHandler) UpdateDemographics(c *fiber.Ctx) error {
 			employment = $6, income_range = $7, interests = $8, updated_at = NOW()
 		WHERE user_id = $1
 	`
-	_, err := h.db.Exec(context.Background(), updateQuery, userID, req.AgeRange, req.Gender, 
+	_, err := h.db.Exec(context.Background(), updateQuery, userID, req.AgeRange, req.Gender,
 		req.Location, req.Education, req.Employment, req.IncomeRange, string(interestsJSON))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to update demographics"})
 	}
 
 	return c.JSON(fiber.Map{
-		"ok":      true,
-		"user_id": userID,
-		"message": "Demographics updated successfully",
+		"ok":             true,
+		"user_id":        userID,
+		"message":        "Demographics updated successfully",
 		"updated_fields": req,
 	})
 }
@@ -155,7 +155,7 @@ func (h *OnboardingCompleteHandler) UpdateDemographics(c *fiber.Ctx) error {
 // GetEligibleSurveys returns surveys user is eligible for based on demographics
 func (h *OnboardingCompleteHandler) GetEligibleSurveys(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	// Query database for surveys matching user demographics
 	query := `
 		SELECT s.id, s.title, s.description, s.reward_amount, s.estimated_duration, s.category,
@@ -169,7 +169,7 @@ func (h *OnboardingCompleteHandler) GetEligibleSurveys(c *fiber.Ctx) error {
 		ORDER BY s.created_at DESC
 		LIMIT 20
 	`
-	
+
 	rows, err := h.db.Query(context.Background(), query, userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch eligible surveys"})
@@ -181,12 +181,12 @@ func (h *OnboardingCompleteHandler) GetEligibleSurveys(c *fiber.Ctx) error {
 		var survey fiber.Map = make(fiber.Map)
 		var id, title, description, category string
 		var rewardAmount, duration, currentResponses, targetResponses int
-		
+
 		err := rows.Scan(&id, &title, &description, &rewardAmount, &duration, &category, &currentResponses, &targetResponses)
 		if err != nil {
 			continue
 		}
-		
+
 		survey["id"] = id
 		survey["title"] = title
 		survey["description"] = description
@@ -195,13 +195,13 @@ func (h *OnboardingCompleteHandler) GetEligibleSurveys(c *fiber.Ctx) error {
 		survey["category"] = category
 		survey["progress"] = float64(currentResponses) / float64(targetResponses) * 100
 		survey["match_score"] = 85 + (len(title) % 15) // Simple match score
-		
+
 		eligibleSurveys = append(eligibleSurveys, survey)
 	}
 
 	return c.JSON(fiber.Map{
 		"eligible_surveys": eligibleSurveys,
-		"user_id":         userID,
-		"total_count":     len(eligibleSurveys),
+		"user_id":          userID,
+		"total_count":      len(eligibleSurveys),
 	})
 }

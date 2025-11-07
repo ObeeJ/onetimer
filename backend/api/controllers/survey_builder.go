@@ -17,27 +17,27 @@ func NewSurveyBuilderController(cache *cache.Cache) *SurveyBuilderController {
 }
 
 type Question struct {
-	ID          string      `json:"id"`
-	Type        string      `json:"type"` // single, multi, text, rating, matrix
-	Title       string      `json:"title"`
-	Description string      `json:"description,omitempty"`
-	Required    bool        `json:"required"`
-	Options     []string    `json:"options,omitempty"`
-	Scale       int         `json:"scale,omitempty"`       // for rating questions
-	Rows        []string    `json:"rows,omitempty"`        // for matrix questions
-	Cols        []string    `json:"cols,omitempty"`        // for matrix questions
-	Order       int         `json:"order"`
+	ID          string   `json:"id"`
+	Type        string   `json:"type"` // single, multi, text, rating, matrix
+	Title       string   `json:"title"`
+	Description string   `json:"description,omitempty"`
+	Required    bool     `json:"required"`
+	Options     []string `json:"options,omitempty"`
+	Scale       int      `json:"scale,omitempty"` // for rating questions
+	Rows        []string `json:"rows,omitempty"`  // for matrix questions
+	Cols        []string `json:"cols,omitempty"`  // for matrix questions
+	Order       int      `json:"order"`
 }
 
 type SurveyRequest struct {
-	Title         string     `json:"title"`
-	Description   string     `json:"description"`
-	Category      string     `json:"category"`
-	RewardAmount  int        `json:"reward_amount"`
-	TargetCount   int        `json:"target_count"`
-	Duration      int        `json:"estimated_duration"`
-	Questions     []Question `json:"questions"`
-	Demographics  struct {
+	Title        string     `json:"title"`
+	Description  string     `json:"description"`
+	Category     string     `json:"category"`
+	RewardAmount int        `json:"reward_amount"`
+	TargetCount  int        `json:"target_count"`
+	Duration     int        `json:"estimated_duration"`
+	Questions    []Question `json:"questions"`
+	Demographics struct {
 		AgeGroups    []string `json:"age_groups,omitempty"`
 		Genders      []string `json:"genders,omitempty"`
 		Locations    []string `json:"locations,omitempty"`
@@ -50,7 +50,7 @@ type SurveyRequest struct {
 // CreateSurvey creates a new survey with questions
 func (h *SurveyBuilderController) CreateSurvey(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	var req SurveyRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid survey data"})
@@ -71,28 +71,28 @@ func (h *SurveyBuilderController) CreateSurvey(c *fiber.Ctx) error {
 
 	// TODO: Check creator has enough credits
 	totalCost := req.TargetCount * 1 // 1 credit per response
-	
+
 	surveyID := uuid.New()
-	
+
 	// TODO: Save survey and questions to database
 	// TODO: Deduct credits from creator
 	// TODO: Set survey status based on auto-approval settings
 
 	survey := fiber.Map{
-		"id":                surveyID,
-		"creator_id":        userID,
-		"title":             req.Title,
-		"description":       req.Description,
-		"category":          req.Category,
-		"reward_amount":     req.RewardAmount,
-		"target_responses":  req.TargetCount,
-		"current_responses": 0,
+		"id":                 surveyID,
+		"creator_id":         userID,
+		"title":              req.Title,
+		"description":        req.Description,
+		"category":           req.Category,
+		"reward_amount":      req.RewardAmount,
+		"target_responses":   req.TargetCount,
+		"current_responses":  0,
 		"estimated_duration": req.Duration,
-		"status":            "pending", // pending, active, paused, completed
-		"questions":         req.Questions,
-		"demographics":      req.Demographics,
-		"total_cost":        totalCost,
-		"created_at":        time.Now(),
+		"status":             "pending", // pending, active, paused, completed
+		"questions":          req.Questions,
+		"demographics":       req.Demographics,
+		"total_cost":         totalCost,
+		"created_at":         time.Now(),
 	}
 
 	return c.Status(201).JSON(fiber.Map{
@@ -106,7 +106,7 @@ func (h *SurveyBuilderController) CreateSurvey(c *fiber.Ctx) error {
 func (h *SurveyBuilderController) UpdateSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
 	userID := c.Locals("user_id").(string)
-	
+
 	var req SurveyRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid survey data"})
@@ -128,25 +128,25 @@ func (h *SurveyBuilderController) UpdateSurvey(c *fiber.Ctx) error {
 func (h *SurveyBuilderController) DuplicateSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
 	userID := c.Locals("user_id").(string)
-	
+
 	// TODO: Get original survey from database
 	// TODO: Create new survey with same content
-	
+
 	newSurveyID := uuid.New()
-	
+
 	return c.Status(201).JSON(fiber.Map{
-		"ok":             true,
-		"original_id":    surveyID,
-		"new_survey_id":  newSurveyID,
-		"user_id":        userID,
-		"message":        "Survey duplicated successfully",
+		"ok":            true,
+		"original_id":   surveyID,
+		"new_survey_id": newSurveyID,
+		"user_id":       userID,
+		"message":       "Survey duplicated successfully",
 	})
 }
 
 // ImportSurvey imports survey from JSON/CSV file
 func (h *SurveyBuilderController) ImportSurvey(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	file, err := c.FormFile("survey_file")
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "No file uploaded"})
@@ -155,11 +155,11 @@ func (h *SurveyBuilderController) ImportSurvey(c *fiber.Ctx) error {
 	// TODO: Parse uploaded file (JSON/CSV)
 	// TODO: Validate survey structure
 	// TODO: Create survey from imported data
-	
+
 	return c.Status(201).JSON(fiber.Map{
-		"ok":      true,
-		"user_id": userID,
-		"message": "Survey imported successfully",
+		"ok":       true,
+		"user_id":  userID,
+		"message":  "Survey imported successfully",
 		"filename": file.Filename,
 	})
 }
@@ -216,16 +216,16 @@ func (h *SurveyBuilderController) GetSurveyTemplates(c *fiber.Ctx) error {
 // SaveSurveyDraft saves survey as draft
 func (h *SurveyBuilderController) SaveSurveyDraft(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	var req SurveyRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid survey data"})
 	}
 
 	draftID := uuid.New()
-	
+
 	// TODO: Save as draft in database
-	
+
 	return c.JSON(fiber.Map{
 		"ok":       true,
 		"draft_id": draftID,

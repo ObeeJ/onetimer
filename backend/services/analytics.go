@@ -234,20 +234,20 @@ func (s *AnalyticsService) GetCreatorAnalytics(ctx context.Context, userID strin
 
 // AdminAnalytics returns platform-wide analytics
 type AdminAnalytics struct {
-	TotalUsers            int                    `json:"total_users"`
-	TotalFillers          int                    `json:"total_fillers"`
-	TotalCreators         int                    `json:"total_creators"`
-	TotalSurveys          int                    `json:"total_surveys"`
-	ActiveSurveys         int                    `json:"active_surveys"`
-	TotalResponses        int                    `json:"total_responses"`
-	TotalRevenue          int                    `json:"total_revenue"`
-	TotalPayouts          int                    `json:"total_payouts"`
-	ThisMonthUsers        int                    `json:"this_month_users"`
-	ThisMonthRevenue      int                    `json:"this_month_revenue"`
-	ThisMonthResponses    int                    `json:"this_month_responses"`
-	PendingWithdrawals    int                    `json:"pending_withdrawals"`
-	UserGrowthRate        float64                `json:"user_growth_rate"`
-	TopCategories         map[string]int         `json:"top_categories"`
+	TotalUsers         int            `json:"total_users"`
+	TotalFillers       int            `json:"total_fillers"`
+	TotalCreators      int            `json:"total_creators"`
+	TotalSurveys       int            `json:"total_surveys"`
+	ActiveSurveys      int            `json:"active_surveys"`
+	TotalResponses     int            `json:"total_responses"`
+	TotalRevenue       int            `json:"total_revenue"`
+	TotalPayouts       int            `json:"total_payouts"`
+	ThisMonthUsers     int            `json:"this_month_users"`
+	ThisMonthRevenue   int            `json:"this_month_revenue"`
+	ThisMonthResponses int            `json:"this_month_responses"`
+	PendingWithdrawals int            `json:"pending_withdrawals"`
+	UserGrowthRate     float64        `json:"user_growth_rate"`
+	TopCategories      map[string]int `json:"top_categories"`
 }
 
 func (s *AnalyticsService) GetAdminAnalytics(ctx context.Context) (*AdminAnalytics, error) {
@@ -388,13 +388,13 @@ func (s *AnalyticsService) GetAdminAnalytics(ctx context.Context) (*AdminAnalyti
 
 // EarningsBreakdown provides detailed earnings information
 type EarningsBreakdown struct {
-	TotalEarnings     int                    `json:"total_earnings"`
-	PaidEarnings      int                    `json:"paid_earnings"`
-	PendingEarnings   int                    `json:"pending_earnings"`
-	AvailableBalance  int                    `json:"available_balance"`
-	MonthlyEarnings   map[string]int         `json:"monthly_earnings"`
-	EarningsByType    map[string]int         `json:"earnings_by_type"`
-	RecentTransactions []EarningTransaction  `json:"recent_transactions"`
+	TotalEarnings      int                  `json:"total_earnings"`
+	PaidEarnings       int                  `json:"paid_earnings"`
+	PendingEarnings    int                  `json:"pending_earnings"`
+	AvailableBalance   int                  `json:"available_balance"`
+	MonthlyEarnings    map[string]int       `json:"monthly_earnings"`
+	EarningsByType     map[string]int       `json:"earnings_by_type"`
+	RecentTransactions []EarningTransaction `json:"recent_transactions"`
 }
 
 type EarningTransaction struct {

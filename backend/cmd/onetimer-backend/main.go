@@ -16,6 +16,7 @@ import (
 func main() {
 	// Load configuration
 	cfg := config.Load()
+	log.Printf("DATABASE_URL: %s", cfg.DatabaseURL)
 
 	// Initialize Fiber app
 	app := routes.New()

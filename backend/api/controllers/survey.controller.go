@@ -1,4 +1,3 @@
-
 package controllers
 
 import (
@@ -65,17 +64,17 @@ func (h *SurveyController) CreateSurvey(c *fiber.Ctx) error {
 	// Create survey ID and object
 	surveyID := uuid.New()
 	survey := models.Survey{
-		ID:               surveyID,
-		CreatorID:        creatorID,
-		Title:            req.Title,
-		Description:      req.Description,
-		Category:         req.Category,
-		Reward:           req.RewardAmount,
-		MaxResponses:     req.TargetCount,
-		EstimatedTime:    req.Duration,
-		Status:           "pending",
-		CreatedAt:        time.Now(),
-		UpdatedAt:        time.Now(),
+		ID:            surveyID,
+		CreatorID:     creatorID,
+		Title:         req.Title,
+		Description:   req.Description,
+		Category:      req.Category,
+		Reward:        req.RewardAmount,
+		MaxResponses:  req.TargetCount,
+		EstimatedTime: req.Duration,
+		Status:        "pending",
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 
 	ctx := context.Background()
@@ -122,16 +121,16 @@ func (h *SurveyController) CreateSurvey(c *fiber.Ctx) error {
 		"ok":      true,
 		"success": true,
 		"data": fiber.Map{
-			"survey_id":        survey.ID,
-			"title":            survey.Title,
-			"description":      survey.Description,
-			"category":         survey.Category,
-			"reward":           survey.Reward,
-			"target_count":     survey.MaxResponses,
-			"estimated_time":   survey.EstimatedTime,
-			"status":           survey.Status,
-			"created_at":       survey.CreatedAt,
-			"question_count":   len(req.Questions),
+			"survey_id":      survey.ID,
+			"title":          survey.Title,
+			"description":    survey.Description,
+			"category":       survey.Category,
+			"reward":         survey.Reward,
+			"target_count":   survey.MaxResponses,
+			"estimated_time": survey.EstimatedTime,
+			"status":         survey.Status,
+			"created_at":     survey.CreatedAt,
+			"question_count": len(req.Questions),
 		},
 		"message": "Survey created successfully and submitted for review",
 	})
@@ -342,12 +341,12 @@ func (h *SurveyController) SubmitResponse(c *fiber.Ctx) error {
 	}
 
 	earning := models.Earning{
-		ID:       uuid.New(),
-		UserID:   uuid.MustParse(userID),
-		SurveyID: &surveyUUID,
-		Amount:   survey.Reward,
-		Type:     "survey_completion",
-		Status:   "completed",
+		ID:        uuid.New(),
+		UserID:    uuid.MustParse(userID),
+		SurveyID:  &surveyUUID,
+		Amount:    survey.Reward,
+		Type:      "survey_completion",
+		Status:    "completed",
 		CreatedAt: time.Now(),
 	}
 
@@ -550,11 +549,11 @@ func (h *SurveyController) DuplicateSurvey(c *fiber.Ctx) error {
 	}
 
 	return c.Status(201).JSON(fiber.Map{
-		"ok":             true,
-		"original_id":    surveyID,
-		"new_survey_id":  newSurveyID,
-		"user_id":        userID,
-		"message":        "Survey duplicated successfully",
+		"ok":            true,
+		"original_id":   surveyID,
+		"new_survey_id": newSurveyID,
+		"user_id":       userID,
+		"message":       "Survey duplicated successfully",
 	})
 }
 

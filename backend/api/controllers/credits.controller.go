@@ -53,7 +53,7 @@ func (h *CreditsController) GetPackages(c *fiber.Ctx) error {
 
 func (h *CreditsController) PurchaseCredits(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	var req struct {
 		PackageID string `json:"package_id"`
 		Amount    int    `json:"amount"`
@@ -66,7 +66,7 @@ func (h *CreditsController) PurchaseCredits(c *fiber.Ctx) error {
 
 	// TODO: Initialize Paystack payment
 	// For now, return mock success
-	
+
 	return c.JSON(fiber.Map{
 		"ok":             true,
 		"transaction_id": "txn_" + userID[:8],
@@ -79,7 +79,7 @@ func (h *CreditsController) PurchaseCredits(c *fiber.Ctx) error {
 
 func (h *CreditsController) PurchaseCustom(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	var req struct {
 		Credits int `json:"credits"`
 	}
@@ -93,7 +93,7 @@ func (h *CreditsController) PurchaseCustom(c *fiber.Ctx) error {
 	}
 
 	amount := req.Credits * 300 // ₦300 per credit
-	
+
 	return c.JSON(fiber.Map{
 		"ok":             true,
 		"transaction_id": "txn_custom_" + userID[:8],

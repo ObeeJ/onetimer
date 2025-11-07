@@ -57,7 +57,7 @@ func (a *AuditLogger) LogAction(c *fiber.Ctx, action, resourceType string, resou
 // Middleware for automatic audit logging
 func AuditMiddleware() fiber.Handler {
 	logger := NewAuditLogger()
-	
+
 	return func(c *fiber.Ctx) error {
 		// Skip GET requests for performance
 		if c.Method() == "GET" {
@@ -66,11 +66,11 @@ func AuditMiddleware() fiber.Handler {
 
 		// Log the action after processing
 		err := c.Next()
-		
+
 		// Determine action based on method and path
 		action := getActionFromRequest(c)
 		resourceType := getResourceTypeFromPath(c.Path())
-		
+
 		details := map[string]interface{}{
 			"method": c.Method(),
 			"path":   c.Path(),
@@ -78,7 +78,7 @@ func AuditMiddleware() fiber.Handler {
 		}
 
 		logger.LogAction(c, action, resourceType, nil, details)
-		
+
 		return err
 	}
 }
@@ -86,7 +86,7 @@ func AuditMiddleware() fiber.Handler {
 func getActionFromRequest(c *fiber.Ctx) string {
 	method := c.Method()
 	path := c.Path()
-	
+
 	switch method {
 	case "POST":
 		if contains(path, "login") || contains(path, "auth") {
@@ -119,6 +119,6 @@ func getResourceTypeFromPath(path string) string {
 }
 
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || 
+	return len(s) >= len(substr) && (s == substr ||
 		(len(s) > len(substr) && (s[:len(substr)] == substr || s[len(s)-len(substr):] == substr)))
 }

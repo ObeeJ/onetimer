@@ -36,7 +36,7 @@ func (h *LoginHandler) Login(c *fiber.Ctx) error {
 	// TODO: Get user from database
 	// Mock user data with hashed password
 	storedHash := "$2a$14$example.hash.here" // This would come from DB
-	
+
 	if !utils.CheckPassword(req.Password, storedHash) {
 		return c.Status(401).JSON(fiber.Map{"error": "Invalid credentials"})
 	}

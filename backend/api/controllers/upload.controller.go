@@ -26,7 +26,7 @@ func NewUploadController(cache *cache.Cache, storage *services.StorageService) *
 
 func (h *UploadController) UploadKYC(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	file, err := c.FormFile("document")
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "No file uploaded"})
@@ -40,7 +40,7 @@ func (h *UploadController) UploadKYC(c *fiber.Ctx) error {
 	// Validate file type
 	ext := strings.ToLower(filepath.Ext(file.Filename))
 	allowedExts := []string{".jpg", ".jpeg", ".png", ".pdf"}
-	
+
 	valid := false
 	for _, allowedExt := range allowedExts {
 		if ext == allowedExt {
@@ -48,7 +48,7 @@ func (h *UploadController) UploadKYC(c *fiber.Ctx) error {
 			break
 		}
 	}
-	
+
 	if !valid {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid file type"})
 	}
@@ -88,7 +88,7 @@ func (h *UploadController) UploadKYC(c *fiber.Ctx) error {
 
 func (h *UploadController) UploadSurveyMedia(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	file, err := c.FormFile("media")
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "No file uploaded"})
@@ -102,7 +102,7 @@ func (h *UploadController) UploadSurveyMedia(c *fiber.Ctx) error {
 	// Validate file type for survey media
 	ext := strings.ToLower(filepath.Ext(file.Filename))
 	allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".mp4", ".mov"}
-	
+
 	valid := false
 	for _, allowedExt := range allowedExts {
 		if ext == allowedExt {
@@ -110,7 +110,7 @@ func (h *UploadController) UploadSurveyMedia(c *fiber.Ctx) error {
 			break
 		}
 	}
-	
+
 	if !valid {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid file type for survey media"})
 	}
@@ -151,7 +151,7 @@ func (h *UploadController) UploadSurveyMedia(c *fiber.Ctx) error {
 func (h *UploadController) UploadResponseImage(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 	surveyID := c.Params("survey_id")
-	
+
 	file, err := c.FormFile("image")
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "No image uploaded"})
@@ -165,7 +165,7 @@ func (h *UploadController) UploadResponseImage(c *fiber.Ctx) error {
 	// Validate image type
 	ext := strings.ToLower(filepath.Ext(file.Filename))
 	allowedExts := []string{".jpg", ".jpeg", ".png"}
-	
+
 	valid := false
 	for _, allowedExt := range allowedExts {
 		if ext == allowedExt {
@@ -173,7 +173,7 @@ func (h *UploadController) UploadResponseImage(c *fiber.Ctx) error {
 			break
 		}
 	}
-	
+
 	if !valid {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid image format. Only JPG, JPEG, PNG allowed"})
 	}

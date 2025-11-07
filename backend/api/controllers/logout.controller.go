@@ -16,7 +16,7 @@ func (h *LogoutController) Logout(c *fiber.Ctx) error {
 	// Clear all security cookies
 	security.ClearSecureCookie(c, "auth_token")
 	security.ClearSecureCookie(c, "csrf_token")
-	
+
 	// Clear any session data from Redis if needed
 	// sessionID := c.Locals("session_id")
 	// if sessionID != nil {

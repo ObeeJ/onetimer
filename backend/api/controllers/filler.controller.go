@@ -93,9 +93,9 @@ func (h *FillerController) GetDashboard(c *fiber.Ctx) error {
 				"role":  userRole,
 			},
 			"stats": fiber.Map{
-				"active_surveys":   activeSurveyCount,
+				"active_surveys":    activeSurveyCount,
 				"completed_surveys": completedCount,
-				"total_earnings":   totalEarnings,
+				"total_earnings":    totalEarnings,
 			},
 			"recent_surveys": recentSurveys,
 		},
@@ -218,9 +218,9 @@ func (h *FillerController) GetEarningsHistory(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"success":          true,
-		"data":             earnings,
-		"count":            len(earnings),
-		"total_earnings":   totalEarnings,
+		"success":        true,
+		"data":           earnings,
+		"count":          len(earnings),
+		"total_earnings": totalEarnings,
 	})
 }

@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"log"
-	"os"
 	"onetimer-backend/utils"
+	"os"
 
-	_ "github.com/lib/pq"
 	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/lib/pq"
 )
 
 func InitTempDB() *pgxpool.Pool {

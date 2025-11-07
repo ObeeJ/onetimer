@@ -8,20 +8,20 @@ import (
 type BillingService struct{}
 
 type SurveyBilling struct {
-	Pages              int     `json:"pages"`
-	RewardPerUser      int     `json:"reward_per_user"`
-	Respondents        int     `json:"respondents"`
-	PriorityPlacement  bool    `json:"priority_placement"`
-	DemographicFilters int     `json:"demographic_filters"`
-	ExtraDays          int     `json:"extra_days"`
-	DataExport         bool    `json:"data_export"`
+	Pages              int  `json:"pages"`
+	RewardPerUser      int  `json:"reward_per_user"`
+	Respondents        int  `json:"respondents"`
+	PriorityPlacement  bool `json:"priority_placement"`
+	DemographicFilters int  `json:"demographic_filters"`
+	ExtraDays          int  `json:"extra_days"`
+	DataExport         bool `json:"data_export"`
 }
 
 type BillingResult struct {
-	PlatformFee        int    `json:"platform_fee"`
-	TotalCost          int    `json:"total_cost"`
-	ComplexityLevel    string `json:"complexity_level"`
-	EstimatedDuration  string `json:"estimated_duration"`
+	PlatformFee       int    `json:"platform_fee"`
+	TotalCost         int    `json:"total_cost"`
+	ComplexityLevel   string `json:"complexity_level"`
+	EstimatedDuration string `json:"estimated_duration"`
 }
 
 func NewBillingService() *BillingService {

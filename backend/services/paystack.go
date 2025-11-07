@@ -35,10 +35,10 @@ type PaystackVerifyResponse struct {
 	Status  bool   `json:"status"`
 	Message string `json:"message"`
 	Data    struct {
-		Reference   string `json:"reference"`
-		Amount      int    `json:"amount"`
-		Status      string `json:"status"`
-		PaidAt      string `json:"paid_at"`
+		Reference     string `json:"reference"`
+		Amount        int    `json:"amount"`
+		Status        string `json:"status"`
+		PaidAt        string `json:"paid_at"`
 		Authorization struct {
 			AuthorizationCode string `json:"authorization_code"`
 			Bin               string `json:"bin"`
@@ -51,11 +51,11 @@ type PaystackVerifyResponse struct {
 }
 
 type TransferInitRequest struct {
-	Source      string `json:"source"` // "balance"
-	Reason      string `json:"reason,omitempty"`
-	Amount      int    `json:"amount"`
-	Recipient   int    `json:"recipient"`
-	Reference   string `json:"reference,omitempty"`
+	Source    string `json:"source"` // "balance"
+	Reason    string `json:"reason,omitempty"`
+	Amount    int    `json:"amount"`
+	Recipient int    `json:"recipient"`
+	Reference string `json:"reference,omitempty"`
 }
 
 type TransferInitResponse struct {

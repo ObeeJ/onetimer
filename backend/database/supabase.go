@@ -209,7 +209,7 @@ func (db *SupabaseDB) InitSchema() error {
 	CREATE INDEX IF NOT EXISTS idx_surveys_status ON surveys(status);
 	CREATE INDEX IF NOT EXISTS idx_responses_survey ON responses(survey_id);
 	CREATE INDEX IF NOT EXISTS idx_responses_filler ON responses(filler_id);
-	CREATE INDEX IF NOT EXISTS idx_responses_created_at ON responses(created_at);
+	CREATE INDEX IF NOT EXISTS idx_responses_started_at ON responses(started_at);
 	CREATE INDEX IF NOT EXISTS idx_earnings_user ON earnings(user_id);
 	CREATE INDEX IF NOT EXISTS idx_withdrawals_user ON withdrawals(user_id);
 	CREATE INDEX IF NOT EXISTS idx_withdrawals_status ON withdrawals(status);

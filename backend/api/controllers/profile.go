@@ -69,7 +69,7 @@ func (h *ProfileHandler) UpdateProfile(c *fiber.Ctx) error {
 	time.Sleep(500 * time.Millisecond)
 
 	if h.db != nil {
-		_, err := h.db.Exec(c.Context(), "UPDATE users SET name = $1, email = $2, phone = $3 WHERE id = $4", 
+		_, err := h.db.Exec(c.Context(), "UPDATE users SET name = $1, email = $2, phone = $3 WHERE id = $4",
 			req.Name, req.Email, req.Phone, userID)
 		if err != nil {
 			return c.Status(500).JSON(fiber.Map{"error": "Failed to update profile"})

@@ -8,28 +8,28 @@ import (
 )
 
 type Config struct {
-	Port           string
-	Env            string
-	DatabaseURL    string
-	RedisURL       string
-	JWTSecret      string
-	RateLimit      int
-	CacheTTL       int
-	SupabaseURL         string
-	SupabaseKey         string
-	PaystackSecret      string
-	AWSRegion           string
-	AWSAccessKeyID      string
-	AWSSecretAccessKey  string
-	S3Bucket            string
-	S3Endpoint          string
-	SMTPHost            string
-	SMTPPort       string
-	SMTPUser       string
-	SMTPPass       string
+	Port               string
+	Env                string
+	DatabaseURL        string
+	RedisURL           string
+	JWTSecret          string
+	RateLimit          int
+	CacheTTL           int
+	SupabaseURL        string
+	SupabaseKey        string
+	PaystackSecret     string
+	AWSRegion          string
+	AWSAccessKeyID     string
+	AWSSecretAccessKey string
+	S3Bucket           string
+	S3Endpoint         string
+	SMTPHost           string
+	SMTPPort           string
+	SMTPUser           string
+	SMTPPass           string
 	// QoreIDClientID string
 	// QoreIDSecret   string
-	PremblyAPIKey  string
+	PremblyAPIKey string
 }
 
 func Load() *Config {
@@ -39,13 +39,13 @@ func Load() *Config {
 	cacheTTL, _ := strconv.Atoi(getEnv("CACHE_TTL", "300"))
 
 	return &Config{
-		Port:           getEnv("PORT", "8080"),
-		Env:            getEnv("ENV", "development"),
-		DatabaseURL:    getEnv("DATABASE_URL", ""),
-		RedisURL:       getEnv("REDIS_URL", "redis://localhost:6379"),
-		JWTSecret:      getEnv("JWT_SECRET", "your-super-secret-jwt-key"),
-		RateLimit:      rateLimit,
-		CacheTTL:       cacheTTL,
+		Port:               getEnv("PORT", "8080"),
+		Env:                getEnv("ENV", "development"),
+		DatabaseURL:        getEnv("DATABASE_URL", ""),
+		RedisURL:           getEnv("REDIS_URL", "redis://localhost:6379"),
+		JWTSecret:          getEnv("JWT_SECRET", "your-super-secret-jwt-key"),
+		RateLimit:          rateLimit,
+		CacheTTL:           cacheTTL,
 		SupabaseURL:        getEnv("SUPABASE_URL", ""),
 		SupabaseKey:        getEnv("SUPABASE_ANON_KEY", ""),
 		PaystackSecret:     getEnv("PAYSTACK_SECRET_KEY", ""),
@@ -55,12 +55,12 @@ func Load() *Config {
 		S3Bucket:           getEnv("S3_BUCKET", ""),
 		S3Endpoint:         getEnv("S3_ENDPOINT", ""),
 		SMTPHost:           getEnv("SMTP_HOST", ""),
-		SMTPPort:       getEnv("SMTP_PORT", "587"),
-		SMTPUser:       getEnv("SMTP_USER", ""),
-		SMTPPass:       getEnv("SMTP_PASS", ""),
+		SMTPPort:           getEnv("SMTP_PORT", "587"),
+		SMTPUser:           getEnv("SMTP_USER", ""),
+		SMTPPass:           getEnv("SMTP_PASS", ""),
 		// QoreIDClientID: getEnv("QOREID_CLIENT_ID", ""),
 		// QoreIDSecret:   getEnv("QOREID_SECRET_KEY", ""),
-		PremblyAPIKey:  getEnv("PREMBLY_API_KEY", ""),
+		PremblyAPIKey: getEnv("PREMBLY_API_KEY", ""),
 	}
 }
 

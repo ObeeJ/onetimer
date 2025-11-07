@@ -62,7 +62,7 @@ func (h *ReferralController) GetReferrals(c *fiber.Ctx) error {
 	utils.LogInfo("Referral info requested for user %s", userID)
 
 	return c.JSON(fiber.Map{
-		"success":          true,
+		"success": true,
 		"data": fiber.Map{
 			"link":             link,
 			"code":             referralCode,

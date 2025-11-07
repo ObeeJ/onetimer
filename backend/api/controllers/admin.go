@@ -63,11 +63,11 @@ func (h *AdminHandler) GetUsers(c *fiber.Ctx) error {
 
 	query += " GROUP BY u.id, u.email, u.name, u.role, u.is_verified, u.is_active, u.kyc_status, u.created_at"
 	query += " ORDER BY u.created_at DESC"
-	
+
 	argCount++
 	query += fmt.Sprintf(" LIMIT $%d", argCount)
 	args = append(args, limit)
-	
+
 	argCount++
 	query += fmt.Sprintf(" OFFSET $%d", argCount)
 	args = append(args, offset)
@@ -113,9 +113,9 @@ func (h *AdminHandler) GetUsers(c *fiber.Ctx) error {
 	h.db.QueryRow(context.Background(), countQuery).Scan(&total)
 
 	return c.JSON(fiber.Map{
-		"users": users,
-		"total": total,
-		"limit": limit,
+		"users":  users,
+		"total":  total,
+		"limit":  limit,
 		"offset": offset,
 	})
 }
@@ -123,7 +123,7 @@ func (h *AdminHandler) GetUsers(c *fiber.Ctx) error {
 func (h *AdminHandler) ApproveUser(c *fiber.Ctx) error {
 	userID := c.Params("id")
 	adminID := c.Locals("user_id").(string)
-	
+
 	// Update user status
 	updateQuery := `UPDATE users SET kyc_status = 'approved', is_verified = true, updated_at = NOW() WHERE id = $1`
 	_, err := h.db.Exec(context.Background(), updateQuery, userID)
@@ -148,7 +148,7 @@ func (h *AdminHandler) ApproveUser(c *fiber.Ctx) error {
 
 func (h *AdminHandler) RejectUser(c *fiber.Ctx) error {
 	userID := c.Params("id")
-	
+
 	var req struct {
 		Reason string `json:"reason"`
 	}
@@ -185,7 +185,7 @@ func (h *AdminHandler) GetSurveys(c *fiber.Ctx) error {
 
 func (h *AdminHandler) ApproveSurvey(c *fiber.Ctx) error {
 	surveyID := c.Params("id")
-	
+
 	return c.JSON(fiber.Map{
 		"ok":        true,
 		"message":   "Survey approved",
@@ -196,19 +196,19 @@ func (h *AdminHandler) ApproveSurvey(c *fiber.Ctx) error {
 func (h *AdminHandler) GetPayments(c *fiber.Ctx) error {
 	payments := []fiber.Map{
 		{
-			"id":        uuid.New().String(),
-			"user_id":   uuid.New().String(),
-			"amount":    5000,
-			"status":    "pending",
-			"bank_name": "Access Bank",
+			"id":         uuid.New().String(),
+			"user_id":    uuid.New().String(),
+			"amount":     5000,
+			"status":     "pending",
+			"bank_name":  "Access Bank",
 			"created_at": time.Now().AddDate(0, 0, -1),
 		},
 		{
-			"id":        uuid.New().String(),
-			"user_id":   uuid.New().String(),
-			"amount":    3500,
-			"status":    "completed",
-			"bank_name": "GTBank",
+			"id":         uuid.New().String(),
+			"user_id":    uuid.New().String(),
+			"amount":     3500,
+			"status":     "completed",
+			"bank_name":  "GTBank",
 			"created_at": time.Now().AddDate(0, 0, -3),
 		},
 	}
@@ -263,7 +263,7 @@ func (h *AdminHandler) ProcessPayouts(c *fiber.Ctx) error {
 func (h *AdminHandler) ExportUsers(c *fiber.Ctx) error {
 	format := c.Query("format", "csv")
 	filename := fmt.Sprintf("users_export_%s.%s", time.Now().Format("20060102"), format)
-	
+
 	// Mock user data
 	users := []fiber.Map{
 		{"id": "1", "name": "John Doe", "email": "john@example.com", "role": "filler", "status": "active"},
@@ -273,13 +273,13 @@ func (h *AdminHandler) ExportUsers(c *fiber.Ctx) error {
 	if format == "csv" {
 		c.Set("Content-Type", "text/csv")
 		c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
-		
+
 		writer := csv.NewWriter(c)
 		defer writer.Flush()
-		
+
 		// Header
 		writer.Write([]string{"ID", "Name", "Email", "Role", "Status"})
-		
+
 		// Data
 		for _, user := range users {
 			writer.Write([]string{
@@ -299,21 +299,21 @@ func (h *AdminHandler) ExportUsers(c *fiber.Ctx) error {
 // GetUserDetails returns detailed user information
 func (h *AdminHandler) GetUserDetails(c *fiber.Ctx) error {
 	userID := c.Params("id")
-	
+
 	user := fiber.Map{
-		"id":           userID,
-		"name":         "John Doe",
-		"email":        "john@example.com",
-		"role":         "filler",
-		"status":       "active",
-		"kyc_status":   "verified",
-		"phone":        "+234801234567",
-		"location":     "Lagos, Nigeria",
-		"joined_date":  "2024-01-15",
-		"last_active":  "2024-01-20",
-		"total_earnings": 45200,
+		"id":                userID,
+		"name":              "John Doe",
+		"email":             "john@example.com",
+		"role":              "filler",
+		"status":            "active",
+		"kyc_status":        "verified",
+		"phone":             "+234801234567",
+		"location":          "Lagos, Nigeria",
+		"joined_date":       "2024-01-15",
+		"last_active":       "2024-01-20",
+		"total_earnings":    45200,
 		"surveys_completed": 23,
-		"kyc_documents": []string{"id_card.jpg", "selfie.jpg"},
+		"kyc_documents":     []string{"id_card.jpg", "selfie.jpg"},
 	}
 
 	return c.JSON(user)
@@ -322,7 +322,7 @@ func (h *AdminHandler) GetUserDetails(c *fiber.Ctx) error {
 // SuspendUser suspends a user account
 func (h *AdminHandler) SuspendUser(c *fiber.Ctx) error {
 	userID := c.Params("id")
-	
+
 	var req struct {
 		Reason   string `json:"reason"`
 		Duration int    `json:"duration"` // days
@@ -330,10 +330,10 @@ func (h *AdminHandler) SuspendUser(c *fiber.Ctx) error {
 	c.BodyParser(&req)
 
 	return c.JSON(fiber.Map{
-		"ok":      true,
-		"message": "User suspended successfully",
-		"user_id": userID,
-		"reason":  req.Reason,
+		"ok":       true,
+		"message":  "User suspended successfully",
+		"user_id":  userID,
+		"reason":   req.Reason,
 		"duration": req.Duration,
 	})
 }

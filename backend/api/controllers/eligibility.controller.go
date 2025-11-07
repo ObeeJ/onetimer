@@ -29,14 +29,14 @@ func NewEligibilityController(cache *cache.Cache, db *pgxpool.Pool) *Eligibility
 
 func (h *EligibilityController) CheckEligibility(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	if h.userRepo == nil {
 		// Mock eligibility check
 		return c.JSON(fiber.Map{
-			"eligible": true,
-			"reasons": []string{},
+			"eligible":   true,
+			"reasons":    []string{},
 			"kyc_status": "approved",
-			"success": true,
+			"success":    true,
 		})
 	}
 
@@ -72,11 +72,11 @@ func (h *EligibilityController) CheckEligibility(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"eligible":   eligible,
-		"reasons":    reasons,
-		"kyc_status": user.KYCStatus,
-		"is_active":  user.IsActive,
+		"eligible":    eligible,
+		"reasons":     reasons,
+		"kyc_status":  user.KYCStatus,
+		"is_active":   user.IsActive,
 		"is_verified": user.IsVerified,
-		"success":    true,
+		"success":     true,
 	})
 }

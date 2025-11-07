@@ -72,7 +72,7 @@ func TestSystemComprehensive(t *testing.T) {
 
 	// Test 2: Billing System
 	fmt.Printf("\n2️⃣ Testing Billing System...\n")
-	
+
 	// Pricing Tiers
 	resp, result = makeRequest("GET", "/api/billing/pricing-tiers", nil)
 	if resp.StatusCode == 200 && result["success"] == true {
@@ -86,13 +86,13 @@ func TestSystemComprehensive(t *testing.T) {
 
 	// Cost Calculation
 	billingData := map[string]interface{}{
-		"pages":              8,
-		"reward_per_user":    200,
-		"respondents":        100,
-		"priority_placement": true,
+		"pages":               8,
+		"reward_per_user":     200,
+		"respondents":         100,
+		"priority_placement":  true,
 		"demographic_filters": 2,
-		"extra_days":         3,
-		"data_export":        true,
+		"extra_days":          3,
+		"data_export":         true,
 	}
 	resp, result = makeRequest("POST", "/api/billing/calculate", billingData)
 	if resp.StatusCode == 200 && result["success"] == true {
@@ -107,7 +107,7 @@ func TestSystemComprehensive(t *testing.T) {
 
 	// Reward Validation
 	rewardData := map[string]interface{}{
-		"pages":         5,
+		"pages":           5,
 		"reward_per_user": 125,
 	}
 	resp, result = makeRequest("POST", "/api/billing/validate-reward", rewardData)
@@ -170,7 +170,7 @@ func TestSystemComprehensive(t *testing.T) {
 
 	// Test 7: Service Integration
 	fmt.Printf("\n7️⃣ Testing Service Integration...\n")
-	
+
 	// Billing Service
 	billingService := services.NewBillingService()
 	billing := services.SurveyBilling{

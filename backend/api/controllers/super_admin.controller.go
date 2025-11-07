@@ -83,14 +83,14 @@ func (h *SuperAdminController) CreateAdmin(c *fiber.Ctx) error {
 
 func (h *SuperAdminController) GetFinancials(c *fiber.Ctx) error {
 	financials := fiber.Map{
-		"total_revenue":      15000000,
-		"total_payouts":      8500000,
-		"platform_fees":      2250000,
-		"monthly_revenue":    1200000,
-		"monthly_payouts":    650000,
+		"total_revenue":       15000000,
+		"total_payouts":       8500000,
+		"platform_fees":       2250000,
+		"monthly_revenue":     1200000,
+		"monthly_payouts":     650000,
 		"pending_withdrawals": 125000,
-		"active_surveys":     245,
-		"total_users":        12500,
+		"active_surveys":      245,
+		"total_users":         12500,
 	}
 
 	return c.JSON(fiber.Map{
@@ -145,8 +145,8 @@ func (h *SuperAdminController) UpdateSettings(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"success":  true,
-		"message":  "Settings updated successfully",
-		"data":     settings,
+		"success": true,
+		"message": "Settings updated successfully",
+		"data":    settings,
 	})
 }

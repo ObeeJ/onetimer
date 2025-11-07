@@ -18,7 +18,7 @@ func NewReferralHandler(cache *cache.Cache) *ReferralHandler {
 
 func (h *ReferralHandler) GetReferrals(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	if c.Query("list") == "true" {
 		referrals := []fiber.Map{
 			{
@@ -43,19 +43,19 @@ func (h *ReferralHandler) GetReferrals(c *fiber.Ctx) error {
 
 	link := "https://onetime.com/ref/" + userID[:8]
 	return c.JSON(fiber.Map{
-		"link":           link,
-		"code":           userID[:8],
-		"total_referrals": 8,
+		"link":             link,
+		"code":             userID[:8],
+		"total_referrals":  8,
 		"active_referrals": 5,
-		"total_earnings":  6250,
+		"total_earnings":   6250,
 	})
 }
 
 func (h *ReferralHandler) GenerateCode(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	code := userID[:8] + "_" + uuid.New().String()[:4]
-	
+
 	return c.JSON(fiber.Map{
 		"ok":   true,
 		"code": code,
@@ -65,15 +65,15 @@ func (h *ReferralHandler) GenerateCode(c *fiber.Ctx) error {
 
 func (h *ReferralHandler) GetStats(c *fiber.Ctx) error {
 	_ = c.Locals("user_id").(string)
-	
+
 	stats := fiber.Map{
-		"total_referrals":    12,
-		"active_referrals":   8,
-		"pending_referrals":  2,
-		"total_earnings":     12000,
-		"this_month":         3500,
-		"conversion_rate":    67.5,
-		"top_referrer_rank":  15,
+		"total_referrals":   12,
+		"active_referrals":  8,
+		"pending_referrals": 2,
+		"total_earnings":    12000,
+		"this_month":        3500,
+		"conversion_rate":   67.5,
+		"top_referrer_rank": 15,
 	}
 
 	return c.JSON(stats)
