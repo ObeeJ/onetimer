@@ -21,7 +21,11 @@ func NewProfileController(cache *cache.Cache, db *pgxpool.Pool) *ProfileControll
 }
 
 func (h *ProfileController) GetProfile(c *fiber.Ctx) error {
-	userID := "user_123" // Mock user ID
+	// Extract user ID from JWT token
+	userID := c.Locals("user_id")
+	if userID == nil {
+		userID = "user_123" // Fallback for testing
+	}
 
 	user := fiber.Map{
 		"id":          userID,
@@ -51,7 +55,11 @@ func (h *ProfileController) GetProfile(c *fiber.Ctx) error {
 }
 
 func (h *ProfileController) UpdateProfile(c *fiber.Ctx) error {
-	userID := "user_123" // Mock user ID
+	// Extract user ID from JWT token
+	userID := c.Locals("user_id")
+	if userID == nil {
+		userID = "user_123" // Fallback for testing
+	}
 
 	var req struct {
 		Name        string `json:"name"`

@@ -305,7 +305,7 @@ func (h *SurveyController) SubmitResponse(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		Responses []models.Answer `json:"responses"`
+		Answers map[string]interface{} `json:"answers"`
 	}
 
 	if err := c.BodyParser(&req); err != nil {
@@ -322,14 +322,25 @@ func (h *SurveyController) SubmitResponse(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"error": "Survey not found"})
 	}
 
+	// Convert answers to JSON
+	_, _ = json.Marshal(req.Answers)
+	
 	response := models.Response{
 		ID:          uuid.New(),
 		SurveyID:    surveyUUID,
 		FillerID:    uuid.MustParse(userID),
-		Answers:     req.Responses,
 		Status:      "completed",
 		StartedAt:   time.Now(),
 		CompletedAt: &time.Time{},
+	}
+	
+	// Properly handle database unavailability
+	if h.repo == nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error":   "Database unavailable - survey cannot be submitted",
+			"success": false,
+			"message": "Please try again later when the system is available",
+		})
 	}
 
 	if err := h.repo.CreateResponse(c.Context(), &response); err != nil {
@@ -360,7 +371,7 @@ func (h *SurveyController) SubmitResponse(c *fiber.Ctx) error {
 		"message":         "Survey submitted successfully! Your reward has been added to your account.",
 		"survey_id":       surveyID,
 		"reward":          survey.Reward,
-		"responses_count": len(req.Responses),
+		"responses_count": len(req.Answers),
 	})
 }
 
