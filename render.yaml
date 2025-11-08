@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: onetimer-app
+    runtime: docker
+    dockerfilePath: ./Dockerfile.multi
+    plan: starter
+    region: oregon
+    branch: main
+    healthCheckPath: /api/healthz
+    envVars:
+      # Core configuration
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+
+      # Database (Supabase PostgreSQL) - from dashboard
+      - key: DATABASE_URL
+
+      # Authentication - from dashboard
+      - key: JWT_SECRET
+      - key: SUPABASE_URL
+      - key: SUPABASE_ANON_KEY
+      - key: SUPABASE_SERVICE_KEY
+
+      # AWS S3 / Supabase Storage - from dashboard
+      - key: AWS_REGION
+      - key: AWS_ACCESS_KEY_ID
+      - key: AWS_SECRET_ACCESS_KEY
+      - key: S3_BUCKET
+      - key: S3_ENDPOINT
+
+      # Payment Processing - from dashboard
+      - key: PAYSTACK_SECRET_KEY
+
+      # Redis Cache - from dashboard
+      - key: REDIS_URL
+
+      # KYC / Verification - from dashboard
+      - key: PREMBLY_API_KEY
+
+      # Email / SMTP - from dashboard
+      - key: SMTP_HOST
+      - key: SMTP_PORT
+      - key: SMTP_USER
+      - key: SMTP_PASS
+      - key: EMAIL_FROM
