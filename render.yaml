@@ -1,7 +1,7 @@
 services:
   - type: web
     name: onetimer-app
-    env: docker
+    runtime: docker
     dockerfilePath: ./Dockerfile.multi
     plan: starter
     region: oregon
