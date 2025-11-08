@@ -33,9 +33,30 @@ COPY --from=frontend-builder /app/.next/standalone ./frontend/
 COPY --from=frontend-builder /app/.next/static ./frontend/.next/static
 COPY --from=frontend-builder /app/public ./frontend/public
 
-# Create entrypoint script to handle dynamic PORT
+# Create entrypoint script to handle dynamic PORT and pass env vars to supervisor
 RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
     echo 'PORT=${PORT:-80}' >> /app/entrypoint.sh && \
+    echo '' >> /app/entrypoint.sh && \
+    echo '# Export all environment variables for supervisor to inherit' >> /app/entrypoint.sh && \
+    echo 'export DATABASE_URL' >> /app/entrypoint.sh && \
+    echo 'export REDIS_URL' >> /app/entrypoint.sh && \
+    echo 'export JWT_SECRET' >> /app/entrypoint.sh && \
+    echo 'export SUPABASE_URL' >> /app/entrypoint.sh && \
+    echo 'export SUPABASE_ANON_KEY' >> /app/entrypoint.sh && \
+    echo 'export SUPABASE_SERVICE_KEY' >> /app/entrypoint.sh && \
+    echo 'export AWS_REGION' >> /app/entrypoint.sh && \
+    echo 'export AWS_ACCESS_KEY_ID' >> /app/entrypoint.sh && \
+    echo 'export AWS_SECRET_ACCESS_KEY' >> /app/entrypoint.sh && \
+    echo 'export S3_BUCKET' >> /app/entrypoint.sh && \
+    echo 'export S3_ENDPOINT' >> /app/entrypoint.sh && \
+    echo 'export PAYSTACK_SECRET_KEY' >> /app/entrypoint.sh && \
+    echo 'export PREMBLY_API_KEY' >> /app/entrypoint.sh && \
+    echo 'export SMTP_HOST' >> /app/entrypoint.sh && \
+    echo 'export SMTP_PORT' >> /app/entrypoint.sh && \
+    echo 'export SMTP_USER' >> /app/entrypoint.sh && \
+    echo 'export SMTP_PASS' >> /app/entrypoint.sh && \
+    echo 'export EMAIL_FROM' >> /app/entrypoint.sh && \
+    echo '' >> /app/entrypoint.sh && \
     echo 'cat > /etc/nginx/http.d/default.conf <<EOF' >> /app/entrypoint.sh && \
     echo 'server {' >> /app/entrypoint.sh && \
     echo '    listen $PORT;' >> /app/entrypoint.sh && \
@@ -75,8 +96,7 @@ RUN echo '[supervisord]' > /etc/supervisord.conf && \
     echo '[program:backend]' >> /etc/supervisord.conf && \
     echo 'command=/app/backend-main' >> /etc/supervisord.conf && \
     echo 'directory=/app' >> /etc/supervisord.conf && \
-    echo 'environment=PORT=8081,NODE_ENV=production' >> /etc/supervisord.conf && \
-    echo 'passenv=true' >> /etc/supervisord.conf && \
+    echo 'environment=PORT=8081,NODE_ENV=production,DATABASE_URL=%(ENV_DATABASE_URL)s,REDIS_URL=%(ENV_REDIS_URL)s,JWT_SECRET=%(ENV_JWT_SECRET)s,SUPABASE_URL=%(ENV_SUPABASE_URL)s,SUPABASE_ANON_KEY=%(ENV_SUPABASE_ANON_KEY)s,SUPABASE_SERVICE_KEY=%(ENV_SUPABASE_SERVICE_KEY)s,AWS_REGION=%(ENV_AWS_REGION)s,AWS_ACCESS_KEY_ID=%(ENV_AWS_ACCESS_KEY_ID)s,AWS_SECRET_ACCESS_KEY=%(ENV_AWS_SECRET_ACCESS_KEY)s,S3_BUCKET=%(ENV_S3_BUCKET)s,S3_ENDPOINT=%(ENV_S3_ENDPOINT)s,PAYSTACK_SECRET_KEY=%(ENV_PAYSTACK_SECRET_KEY)s,PREMBLY_API_KEY=%(ENV_PREMBLY_API_KEY)s,SMTP_HOST=%(ENV_SMTP_HOST)s,SMTP_PORT=%(ENV_SMTP_PORT)s,SMTP_USER=%(ENV_SMTP_USER)s,SMTP_PASS=%(ENV_SMTP_PASS)s,EMAIL_FROM=%(ENV_EMAIL_FROM)s' >> /etc/supervisord.conf && \
     echo 'autostart=true' >> /etc/supervisord.conf && \
     echo 'autorestart=true' >> /etc/supervisord.conf && \
     echo 'startsecs=10' >> /etc/supervisord.conf && \
