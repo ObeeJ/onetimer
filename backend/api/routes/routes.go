@@ -38,6 +38,14 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgx
 		})
 	})
 
+	// Render health check endpoint
+	api.Get("/healthz", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "ok",
+			"ready":  true,
+		})
+	})
+
 	// Initialize controllers
 	userController := controllers.NewUserControllerWithDB(cache, db)
 	authController := controllers.NewAuthController(cache, cfg.JWTSecret)
