@@ -200,8 +200,8 @@ func (h *WithdrawalHandler) verifyBankAccount(accountNumber, bankCode string) (b
 	return result.Status, result.Data.AccountName, nil
 }
 
-// processPaystackTransfer processes withdrawal via Paystack
-func (h *WithdrawalHandler) processPaystackTransfer(withdrawalID uuid.UUID, amount int, accountNumber, bankCode, reason string) error {
+// _processPaystackTransfer processes withdrawal via Paystack (unused - for future implementation)
+func (h *WithdrawalHandler) _processPaystackTransfer(withdrawalID uuid.UUID, amount int, accountNumber, bankCode, reason string) error {
 	url := "https://api.paystack.co/transfer"
 
 	payload := map[string]interface{}{

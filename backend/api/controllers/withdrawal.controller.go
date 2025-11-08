@@ -201,7 +201,7 @@ func (h *WithdrawalController) verifyBankAccount(accountNumber, bankCode string)
 }
 
 // processPaystackTransfer processes withdrawal via Paystack
-func (h *WithdrawalController) processPaystackTransfer(withdrawalID uuid.UUID, amount int, accountNumber, bankCode, reason string) error {
+func (h *WithdrawalController) _processPaystackTransfer(withdrawalID uuid.UUID, amount int, accountNumber, bankCode, reason string) error {
 	url := "https://api.paystack.co/transfer"
 
 	payload := map[string]interface{}{
