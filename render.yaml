@@ -8,20 +8,28 @@ services:
     branch: main
     healthCheckPath: /api/healthz
     envVars:
+      # Core configuration
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3000
 
+      # Database (Supabase PostgreSQL)
       - key: DATABASE_URL
-        fromDatabase:
-          name: onetimer-db
-          property: connectionString
-      - key: JWT_SECRET
-        generateValue: true
-      - key: PAYSTACK_SECRET_KEY
         sync: false
-      - key: REDIS_URL
+
+      # Authentication
+      - key: JWT_SECRET
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+
+      # AWS S3 / Supabase Storage
+      - key: AWS_REGION
         sync: false
       - key: AWS_ACCESS_KEY_ID
         sync: false
@@ -29,9 +37,29 @@ services:
         sync: false
       - key: S3_BUCKET
         sync: false
+      - key: S3_ENDPOINT
+        sync: false
 
-databases:
-  - name: onetimer-db
-    databaseName: onetimer
-    user: onetimer_user
-    plan: starter
+      # Payment Processing
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+
+      # Redis Cache
+      - key: REDIS_URL
+        sync: false
+
+      # KYC / Verification
+      - key: PREMBLY_API_KEY
+        sync: false
+
+      # Email / SMTP
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
