@@ -1,3 +1,12 @@
+/*
+ * DEPRECATED: This hook has been consolidated into the single useAuth() hook in providers/auth-provider.tsx
+ * DO NOT USE - Kept for reference only
+ *
+ * SECURITY ISSUE: Contains hardcoded password "password" on line 33
+ * Use providers/auth-provider.tsx -> useAuth() instead
+ */
+
+/*
 "use client"
 
 import { useAuth } from "@/providers/auth-provider"
@@ -30,7 +39,7 @@ export function useCreatorAuth() {
   const signIn = useCallback((c: Creator) => {
     localStorage.setItem(KEY, JSON.stringify(c))
     setCreator(c)
-    globalSignIn(c.email, "password")
+    globalSignIn(c.email, "password") // SECURITY ISSUE: Hardcoded password
   }, [globalSignIn])
 
   const signOut = useCallback(() => {
@@ -58,3 +67,4 @@ export function useCreatorAuth() {
     isApproved: true, // Always approved for demo
   }
 }
+*/

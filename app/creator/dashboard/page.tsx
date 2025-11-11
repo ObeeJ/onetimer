@@ -43,15 +43,11 @@ export default function CreatorDashboardPage() {
     return null
   }
 
-  // Use current user data
+  // Use current user data from API
   const currentCreator = {
     name: user?.name || "Creator",
-    email: user?.email || "creator@example.com",
-    organizationType: "Business",
-    organizationName: "Tech Solutions Inc",
-    industry: "Technology",
-    role: "Product Manager",
-    credits: dashboard?.credits_balance || 100,
+    email: user?.email || "",
+    credits: dashboard?.credits_balance || 0,
     hasCreatedSurvey: (dashboard?.total_surveys || 0) > 0
   }
   const isNewUser = (dashboard?.total_surveys || 0) === 0
@@ -59,7 +55,7 @@ export default function CreatorDashboardPage() {
     totalSurveys: dashboard?.total_surveys || 0,
     activeSurveys: dashboard?.active_surveys || 0,
     totalResponses: dashboard?.total_responses || 0,
-    creditsRemaining: dashboard?.credits_balance || 100
+    creditsRemaining: dashboard?.credits_balance || 0
   }
 
   const recentSurveys = surveysData?.surveys?.slice(0, 3).map(survey => ({
@@ -80,7 +76,7 @@ export default function CreatorDashboardPage() {
               {isNewUser ? `Welcome to Onetime Survey, ${currentCreator?.name}!` : `Welcome back, ${currentCreator?.name}!`}
             </h1>
             <p className="text-slate-600 text-lg">
-              {isNewUser ? `As a ${currentCreator?.role} at ${currentCreator?.organizationName}, you're ready to create surveys and collect valuable insights from the ${currentCreator?.industry} industry.` : 'Ready to create surveys and collect insights.'}
+              {isNewUser ? 'Ready to create your first survey and collect valuable insights?' : 'Ready to create surveys and collect insights.'}
             </p>
           </div>
         </div>
@@ -160,9 +156,9 @@ export default function CreatorDashboardPage() {
                 <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg">
                   <Plus className="h-8 w-8 text-[#C1654B]" />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-3">Ready to create your first {currentCreator?.industry} survey?</h2>
+                <h2 className="text-2xl font-bold text-slate-900 mb-3">Ready to create your first survey?</h2>
                 <p className="text-slate-600 mb-6 max-w-md mx-auto">
-                  Perfect for {currentCreator?.role}s like you! Start collecting valuable insights from our community. You have {stats.creditsRemaining} free credits to get started!
+                  Start collecting valuable insights from our community. You have {stats.creditsRemaining} free credits to get started!
                 </p>
                 <Button asChild variant="creator" size="lg" className="px-8">
                   <Link href="/creator/surveys/create" className="flex items-center gap-2">

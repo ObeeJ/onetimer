@@ -18,14 +18,10 @@ export function RoleRedirect() {
           router.push("/creator")
           break
         case "admin":
-          if (typeof window !== 'undefined') {
-            window.location.href = "http://localhost:3001/admin"
-          }
+          router.push("/admin")
           break
         case "super_admin":
-          if (typeof window !== 'undefined') {
-            window.location.href = "http://localhost:3002/super-admin"
-          }
+          router.push("/super-admin")
           break
         default:
           break

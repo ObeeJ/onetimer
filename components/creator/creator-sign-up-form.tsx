@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, AlertCircle, Building2 } from "lucide-react"
-import { useCreatorAuth } from "@/hooks/use-creator-auth"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function CreatorSignUpForm() {
   const [formData, setFormData] = useState({
@@ -29,7 +29,7 @@ export default function CreatorSignUpForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const { signIn } = useCreatorAuth()
+  const { signIn } = useAuth()
   const router = useRouter()
 
   const handleChange = (field: string, value: string) => {
@@ -54,24 +54,13 @@ export default function CreatorSignUpForm() {
     }
 
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // Mock creator registration - status pending approval
-      signIn({
-        id: "creator-1",
-        name: formData.name,
-        email: formData.email,
-        organizationType: formData.organizationType as any,
-        organizationName: formData.organizationName,
-        status: "pending",
-        credits: 0,
-        isVerified: false
-      })
-      
+      // Call real API to register creator
+      // Note: Backend should create user with role: 'creator' and status: 'pending'
+      await signIn(formData.email, formData.password)
       router.push("/creator/dashboard")
-    } catch (err) {
-      setError("Failed to create account. Please try again.")
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to create account. Please try again."
+      setError(errorMessage || "Failed to create account. Please try again.")
     } finally {
       setIsLoading(false)
     }

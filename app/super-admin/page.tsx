@@ -1,8 +1,11 @@
 "use client"
 
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-
+import { SuperAdminDashboardSkeleton } from "@/components/ui/skeleton-loader"
+import { useAuth } from "@/providers/auth-provider"
 import { 
   Users, 
   Shield, 
@@ -17,6 +20,22 @@ import {
 } from "lucide-react"
 
 export default function SuperAdminDashboard() {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || user?.role !== "super_admin")) {
+      router.push("/super-admin/auth/login")
+    }
+  }, [isAuthenticated, isLoading, user?.role, router])
+
+  if (isLoading) {
+    return <SuperAdminDashboardSkeleton />
+  }
+
+  if (!isAuthenticated || user?.role !== "super_admin") {
+    return null
+  }
   const globalStats = [
     { title: "Total Users", value: "12,847", change: "+18%", icon: Users, color: "blue" },
     { title: "Active Admins", value: "8", change: "+1", icon: Shield, color: "blue" },

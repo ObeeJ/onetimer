@@ -2,7 +2,8 @@
 
 import { BarChart3, CreditCard, FileText, Home, LogOut, Settings, User2, Plus } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import Image from "next/image"
+import { usePathname, useRouter } from "next/navigation"
 import {
   Sidebar,
   SidebarContent,
@@ -17,7 +18,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Badge } from "@/components/ui/badge"
-import { useCreatorAuth } from "@/hooks/use-creator-auth"
+import { useAuth } from "@/hooks/use-auth"
 
 const navItems = [
   { title: "Dashboard", url: "/creator/dashboard", icon: Home },
@@ -29,30 +30,16 @@ const navItems = [
 ]
 
 export function CreatorSidebar() {
-  const { creator, isAuthenticated, isApproved, signOut } = useCreatorAuth()
+  const { user, isAuthenticated, signOut } = useAuth()
   const pathname = usePathname()
-
-  const getStatusBadge = () => {
-    if (!creator) return null
-    
-    switch (creator.status) {
-      case "pending":
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">Pending</Badge>
-      case "approved":
-        return <Badge variant="secondary" className="bg-green-100 text-green-700">Approved</Badge>
-      case "rejected":
-        return <Badge variant="secondary" className="bg-red-100 text-red-700">Rejected</Badge>
-      default:
-        return null
-    }
-  }
+  const router = useRouter()
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex items-center justify-between px-3">
         <div className="flex items-center justify-between w-full">
           <Link href="/creator/dashboard" className="hover:opacity-80 transition-opacity group-data-[collapsible=icon]:hidden">
-            <img src="/Logo.png" alt="OneTime Survey Creator" className="h-10 sm:h-14 md:h-12 w-auto" />
+            <Image src="/Logo.png" alt="OneTime Survey Creator" width={128} height={48} priority className="h-10 sm:h-14 md:h-12 w-auto" />
           </Link>
           <SidebarTrigger className="rounded-xl group-data-[collapsible=icon]:mx-auto" />
         </div>
@@ -106,18 +93,17 @@ export function CreatorSidebar() {
             </div>
             <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
               <div className="flex items-center gap-2">
-                <div className="truncate text-sm font-semibold">{creator?.name ?? "Creator"}</div>
-                {getStatusBadge()}
+                <div className="truncate text-sm font-semibold">{user?.name ?? "Creator"}</div>
               </div>
               <div className="truncate text-xs text-slate-500">
-                {creator?.credits ?? 0} credits
+                {user?.email}
               </div>
             </div>
             <button
               className="inline-flex size-8 items-center justify-center rounded-md hover:bg-slate-200 hover:text-slate-700 transition-colors group-data-[collapsible=icon]:hidden"
               onClick={() => {
                 signOut()
-                window.location.href = "/creator/auth/sign-in"
+                router.push("/creator/auth/sign-in")
               }}
               title="Log out"
             >

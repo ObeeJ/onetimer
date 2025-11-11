@@ -3,14 +3,14 @@
 import { useParams } from "next/navigation"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import SurveyBuilder from "@/components/creator/survey-builder"
-import { useCreatorAuth } from "@/hooks/use-creator-auth"
+import { useAuth } from "@/hooks/use-auth"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Lock } from "lucide-react"
 
 export default function EditSurveyPage() {
   const params = useParams()
   const surveyId = params ? params.id as string : ""
-  const { isAuthenticated } = useCreatorAuth()
+  const { isAuthenticated } = useAuth()
 
   // Mock survey data - would come from API
   const existingSurvey = {

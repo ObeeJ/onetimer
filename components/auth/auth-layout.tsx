@@ -1,5 +1,6 @@
 import React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -36,7 +37,7 @@ export function AuthLayout({
         
         <div className="text-center mb-8">
           <Link href="/filler">
-            <img src="/Logo.png" alt="OneTime Survey" className="h-16 w-auto mx-auto mb-6" />
+            <Image src="/Logo.png" alt="OneTime Survey" width={128} height={64} priority className="h-16 w-auto mx-auto mb-6" />
           </Link>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">{title}</h1>
           {subtitle && (

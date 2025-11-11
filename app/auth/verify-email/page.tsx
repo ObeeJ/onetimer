@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
@@ -8,7 +9,7 @@ export default function VerifyEmailPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center space-y-4">
-          <img src="/Logo.png" alt="Onetime Survey" className="h-12 w-auto mx-auto" />
+          <Image src="/Logo.png" alt="Onetime Survey" width={48} height={48} className="h-12 w-auto mx-auto" />
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
             <Mail className="h-8 w-8 text-[#013F5C]" />
           </div>

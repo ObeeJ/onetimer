@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,18 +13,33 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { User, Building2, CreditCard, Bell, Shield, CheckCircle } from "lucide-react"
-import { useCreatorAuth } from "@/hooks/use-creator-auth"
+import { useAuth } from "@/hooks/use-auth"
+import { SettingsSkeleton } from "@/components/ui/skeleton-loader"
 
 export default function CreatorSettingsPage() {
-  console.log("CreatorSettingsPage rendering")
-  const { creator } = useCreatorAuth()
+  const { user, isLoading: authLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
-  console.log("Settings page creator:", creator)
+  const [settingsLoading, setSettingsLoading] = useState(true)
+
+  useEffect(() => {
+    // Simulate settings data fetching
+    const fetchSettings = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 800))
+        setSettingsLoading(false)
+      } catch (error) {
+        setSettingsLoading(false)
+      }
+    }
+    if (user) {
+      fetchSettings()
+    }
+  }, [user])
   const [profileData, setProfileData] = useState({
-    name: creator?.name || "",
-    email: creator?.email || "",
-    organizationName: creator?.organizationName || "",
-    organizationType: creator?.organizationType || "",
+    name: user?.name || "",
+    email: user?.email || "",
+    organizationName: "",
+    organizationType: "",
     website: "",
     phone: "",
     description: ""
@@ -57,6 +72,10 @@ export default function CreatorSettingsPage() {
   const addPaymentMethod = () => {
     // TODO: Integrate with Paystack
     console.log("Adding payment method via Paystack")
+  }
+
+  if (authLoading || settingsLoading) {
+    return <SettingsSkeleton />
   }
 
   return (

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff } from "lucide-react"
-import { useSuperAdminAuth } from "@/hooks/use-super-admin-auth"
+import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 
 export default function SuperAdminLoginPage() {
@@ -16,24 +16,35 @@ export default function SuperAdminLoginPage() {
   const [showMFA, setShowMFA] = useState(false)
   const [mfaCode, setMfaCode] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const { signIn } = useSuperAdminAuth()
+  const [error, setError] = useState("")
+  const { signIn } = useAuth()
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setShowMFA(true)
+    setError("")
+
+    // TODO: Implement real MFA verification with backend
+    // For now, proceed directly to actual login
+    setShowMFA(false)
     setIsLoading(false)
   }
 
   const handleMFA = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    
-    await signIn(email, password)
-    router.push("/super-admin")
+    setError("")
+
+    try {
+      await signIn(email, password)
+      router.push("/super-admin")
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again."
+      setError(errorMessage || "Login failed. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -41,7 +52,7 @@ export default function SuperAdminLoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img src="/Logo.png" alt="OneTime Survey" className="h-16 w-auto" />
+            <Image src="/Logo.png" alt="OneTime Survey" width={128} height={64} priority className="h-16 w-auto" />
           </div>
           <CardTitle className="text-2xl font-bold">Super Admin Login</CardTitle>
           <p className="text-slate-600">OneTime System Management</p>
@@ -49,6 +60,11 @@ export default function SuperAdminLoginPage() {
         <CardContent>
           {!showMFA ? (
             <form onSubmit={handleLogin} className="space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">
+                  {error}
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -17,15 +18,16 @@ interface OTPVerificationFormProps {
   success?: boolean
 }
 
-export default function OTPVerificationForm({ 
-  email, 
-  phone, 
-  onVerify, 
-  onResend, 
-  isLoading = false, 
-  error, 
-  success = false 
+export default function OTPVerificationForm({
+  email,
+  phone,
+  onVerify,
+  onResend,
+  isLoading = false,
+  error,
+  success = false
 }: OTPVerificationFormProps) {
+  const router = useRouter()
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const [resendCooldown, setResendCooldown] = useState(0)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
@@ -141,9 +143,9 @@ export default function OTPVerificationForm({
             <p className="text-slate-600">
               Your account has been successfully verified!
             </p>
-            <Button 
+            <Button
               className="w-full bg-[#013F5C] hover:bg-[#0b577a]"
-              onClick={() => window.location.href = "/filler"}
+              onClick={() => router.push("/filler")}
             >
               Continue to Dashboard
             </Button>

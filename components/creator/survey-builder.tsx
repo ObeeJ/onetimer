@@ -12,25 +12,13 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Plus, Trash2, GripVertical, Eye, Save, Send, Upload, AlertCircle, CheckCircle, MessageSquare, Star } from "lucide-react"
 import { useCreateSurvey, useUpdateSurvey } from "@/hooks/use-creator"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
+import { Survey, Question } from "@/types/survey"
+import { logger } from "@/lib/logger"
 
 type QuestionType = "multiple_choice" | "open_ended" | "rating" | "media_upload"
 
-interface Question {
-  id: string
-  type: QuestionType
-  title: string
-  description?: string
-  required: boolean
-  options?: string[]
-  allowMedia?: boolean
-}
-
-interface SurveyData {
-  title: string
-  description: string
-  targetAudience: string
-  rewardAmount: number
+interface SurveyData extends Omit<Survey, 'id' | 'created_at' | 'updated_at' | 'status'> {
   questions: Question[]
 }
 
@@ -46,8 +34,9 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
   const [survey, setSurvey] = useState<SurveyData>(initialData || {
     title: "",
     description: "",
-    targetAudience: "",
-    rewardAmount: 5,
+    category: "",
+    estimated_duration: 5,
+    reward: 500,
     questions: []
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -64,11 +53,10 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
   const addQuestion = (type: QuestionType) => {
     const newQuestion: Question = {
       id: Date.now().toString(),
-      type,
-      title: "",
+      type: type === "multiple_choice" ? "multi" : type === "open_ended" ? "text" : type,
+      text: "",
       required: false,
-      ...(type === "multiple_choice" && { options: ["", ""] }),
-      ...(type === "media_upload" && { allowMedia: true })
+      ...(type === "multiple_choice" && { options: ["", ""] })
     }
     setSurvey(prev => ({ ...prev, questions: [...prev.questions, newQuestion] }))
   }
@@ -132,10 +120,10 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
     if (survey.questions.length === 0) newErrors.questions = "At least one question is required"
     
     survey.questions.forEach((question, index) => {
-      if (!question.title.trim()) {
-        newErrors[`question_${question.id}`] = `Question ${index + 1} title is required`
+      if (!question.text.trim()) {
+        newErrors[`question_${question.id}`] = `Question ${index + 1} text is required`
       }
-      if (question.type === "multiple_choice" && (!question.options || question.options.filter(o => o.trim()).length < 2)) {
+      if (question.type === "multi" && (!question.options || question.options.filter(o => o.trim()).length < 2)) {
         newErrors[`question_${question.id}_options`] = `Question ${index + 1} needs at least 2 options`
       }
     })
@@ -146,6 +134,11 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
 
   const saveDraft = async () => {
     setIsSaving(true)
+    logger.logUserAction('survey_draft_save_started', { 
+      surveyTitle: survey.title,
+      isEditing 
+    })
+    
     try {
       const surveyData = {
         ...survey,
@@ -154,22 +147,37 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
       
       if (isEditing && initialData?.id) {
         await updateSurvey.mutateAsync({ id: initialData.id, data: surveyData })
-        toast.success('Draft saved successfully')
+        logger.logUserAction('survey_draft_updated', { surveyId: initialData.id })
       } else {
         await createSurvey.mutateAsync(surveyData)
-        toast.success('Draft saved successfully')
+        logger.logUserAction('survey_draft_created', { surveyTitle: survey.title })
       }
     } catch (error) {
-      toast.error('Failed to save draft')
+      logger.error('Survey draft save failed', error as Error, {
+        action: 'save_draft',
+        surveyTitle: survey.title
+      })
     } finally {
       setIsSaving(false)
     }
   }
 
   const submitForApproval = async () => {
-    if (!validateSurvey()) return
+    if (!validateSurvey()) {
+      logger.warn('Survey validation failed', {
+        surveyTitle: survey.title,
+        errors: Object.keys(errors)
+      })
+      return
+    }
     
     setIsSaving(true)
+    logger.logUserAction('survey_submit_for_approval_started', {
+      surveyTitle: survey.title,
+      questionCount: survey.questions.length,
+      isEditing
+    })
+    
     try {
       const surveyData = {
         ...survey,
@@ -178,15 +186,18 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
       
       if (isEditing && initialData?.id) {
         await updateSurvey.mutateAsync({ id: initialData.id, data: surveyData })
-        toast.success('Survey updated successfully')
+        logger.logUserAction('survey_updated_for_approval', { surveyId: initialData.id })
       } else {
         await createSurvey.mutateAsync(surveyData)
-        toast.success('Survey submitted for approval')
+        logger.logUserAction('survey_submitted_for_approval', { surveyTitle: survey.title })
       }
       
       router.push('/creator/surveys')
     } catch (error) {
-      toast.error('Failed to submit survey')
+      logger.error('Survey submission failed', error as Error, {
+        action: 'submit_for_approval',
+        surveyTitle: survey.title
+      })
     } finally {
       setIsSaving(false)
     }
@@ -227,8 +238,15 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="ghost" size="sm" onClick={() => removeQuestion(question.id)} className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600">
-              <Trash2 className="h-3 w-3" />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => removeQuestion(question.id)} 
+              className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+              aria-label={`Remove question ${index + 1}`}
+              type="button"
+            >
+              <Trash2 className="h-3 w-3" aria-hidden="true" />
             </Button>
           </div>
         </div>
@@ -238,8 +256,8 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
           <Label>Question {index + 1} *</Label>
           <Input
             placeholder="Enter your question"
-            value={question.title}
-            onChange={(e) => updateQuestion(question.id, { title: e.target.value })}
+            value={question.text}
+            onChange={(e) => updateQuestion(question.id, { text: e.target.value })}
           />
           {errors[`question_${question.id}`] && (
             <p className="text-sm text-red-600">{errors[`question_${question.id}`]}</p>
@@ -247,12 +265,11 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
         </div>
 
         <div className="space-y-2">
-          <Label>Description (optional)</Label>
-          <Textarea
-            placeholder="Additional context for this question"
-            value={question.description || ""}
-            onChange={(e) => updateQuestion(question.id, { description: e.target.value })}
-            rows={2}
+          <Label>Placeholder (optional)</Label>
+          <Input
+            placeholder="Placeholder text for this question"
+            value={question.placeholder || ""}
+            onChange={(e) => updateQuestion(question.id, { placeholder: e.target.value })}
           />
         </div>
 
@@ -267,8 +284,14 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
                   onChange={(e) => updateOption(question.id, optionIndex, e.target.value)}
                 />
                 {question.options && question.options.length > 2 && (
-                  <Button variant="ghost" size="sm" onClick={() => removeOption(question.id, optionIndex)}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => removeOption(question.id, optionIndex)}
+                    aria-label={`Remove option ${optionIndex + 1}`}
+                    type="button"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" aria-hidden="true" />
                   </Button>
                 )}
               </div>
@@ -329,11 +352,11 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
             {survey.questions.map((question, index) => (
               <div key={question.id} className="space-y-2">
                 <Label className="text-base font-medium">
-                  {index + 1}. {question.title}
+                  {index + 1}. {question.text}
                   {question.required && <span className="text-red-500 ml-1">*</span>}
                 </Label>
-                {question.description && (
-                  <p className="text-sm text-slate-600">{question.description}</p>
+                {question.placeholder && (
+                  <p className="text-sm text-slate-600">{question.placeholder}</p>
                 )}
                 
                 {question.type === "multiple_choice" && (
@@ -408,7 +431,7 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
 
           <div className="space-y-2">
             <Label htmlFor="audience">Target Audience</Label>
-            <Select value={survey.targetAudience} onValueChange={(value) => setSurvey(prev => ({ ...prev, targetAudience: value }))}>
+            <Select value={survey.category} onValueChange={(value) => setSurvey(prev => ({ ...prev, category: value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Select target audience" />
               </SelectTrigger>

@@ -2,7 +2,8 @@
 
 import { Home, Users, Shield, Settings, BarChart3, FileText, AlertTriangle, CreditCard, LogOut, User2 } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import Image from "next/image"
+import { usePathname, useRouter } from "next/navigation"
 import {
   Sidebar,
   SidebarContent,
@@ -16,7 +17,7 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { useSuperAdminAuth } from "@/hooks/use-super-admin-auth"
+import { useAuth } from "@/hooks/use-auth"
 
 const navItems = [
   { title: "Dashboard", url: "/super-admin", icon: Home },
@@ -30,15 +31,16 @@ const navItems = [
 ]
 
 export function SuperAdminSidebar() {
-  const { user, signOut } = useSuperAdminAuth()
+  const { user, signOut } = useAuth()
   const pathname = usePathname()
+  const router = useRouter()
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex items-center justify-between px-3">
         <div className="flex items-center justify-between w-full">
           <Link href="/super-admin" className="hover:opacity-80 transition-opacity group-data-[collapsible=icon]:hidden">
-            <img src="/Logo.png" alt="OneTime Survey" className="h-10 sm:h-14 md:h-12 w-auto" />
+            <Image src="/Logo.png" alt="OneTime Survey" width={128} height={48} priority className="h-10 sm:h-14 md:h-12 w-auto" />
           </Link>
           <SidebarTrigger className="rounded-xl group-data-[collapsible=icon]:mx-auto" />
         </div>
@@ -86,7 +88,7 @@ export function SuperAdminSidebar() {
             aria-label="Sign out"
             onClick={() => {
               signOut()
-              window.location.href = "/super-admin/auth/login"
+              router.push("/super-admin/auth/login")
             }}
             title="Log out"
           >

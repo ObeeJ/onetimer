@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import Image from "next/image"
+import { usePathname, useRouter } from "next/navigation"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { Button } from "@/components/ui/button"
@@ -26,6 +27,7 @@ export default function CreatorLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const isAuthPage = pathname?.includes("/auth/")
   const isOnboardingPage = pathname?.includes("/onboarding")
   const { isOpen: sidebarOpen } = useSidebarStore()
@@ -48,7 +50,7 @@ export default function CreatorLayout({
               {sidebarOpen ? (
                 <div className="flex items-center gap-3 w-full">
                   <Link href="/creator/dashboard">
-                    <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto cursor-pointer" />
+                    <Image src="/Logo.png" alt="OneTime Survey" width={128} height={32} priority className="h-8 w-auto cursor-pointer" />
                   </Link>
                   <div className="ml-auto">
                     <SidebarToggle />
@@ -104,7 +106,7 @@ export default function CreatorLayout({
                     </div>
                   </div>
                   <Button
-                    onClick={() => window.location.href = "/auth/login"}
+                    onClick={() => router.push("/auth/login")}
                     variant="ghost"
                     className="w-full justify-start text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] px-3 py-2"
                   >
@@ -120,7 +122,7 @@ export default function CreatorLayout({
                     </div>
                   </div>
                   <Button
-                    onClick={() => window.location.href = "/auth/login"}
+                    onClick={() => router.push("/auth/login")}
                     variant="ghost"
                     className="w-full justify-center text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] p-2"
                     title="Sign Out"
@@ -144,7 +146,7 @@ export default function CreatorLayout({
           )}>
             <div className="h-16 border-b border-slate-200 flex items-center justify-between px-4">
               <Link href="/creator/dashboard">
-                <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto cursor-pointer" />
+                <Image src="/Logo.png" alt="OneTime Survey" width={128} height={32} className="h-8 w-auto cursor-pointer" />
               </Link>
               <SidebarToggle />
             </div>
@@ -179,7 +181,7 @@ export default function CreatorLayout({
                   </div>
                 </div>
                 <Button
-                  onClick={() => window.location.href = "/auth/login"}
+                  onClick={() => router.push("/auth/login")}
                   variant="ghost"
                   className="w-full justify-start text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] px-3 py-2"
                 >

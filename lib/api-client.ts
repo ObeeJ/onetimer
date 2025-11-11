@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
+import { env } from '@/lib/env'
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T = Record<string, unknown>> {
   ok: boolean
   data?: T
   error?: string
@@ -9,46 +10,64 @@ interface ApiResponse<T = any> {
 
 class ApiClient {
   private baseURL: string
-  private token: string | null = null
 
   constructor() {
-    this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
-    this.token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+    this.baseURL = env.NEXT_PUBLIC_API_URL
+
+    /*
+     * DEPRECATED: Token management via localStorage
+     *
+     * MIGRATION TO httpOnly COOKIES:
+     * The backend now sets httpOnly cookies on successful login.
+     * Token is no longer stored in localStorage for security reasons.
+     *
+     * httpOnly cookies are:
+     * - Automatically sent with every request (via credentials: 'include')
+     * - Not accessible to JavaScript (XSS protection)
+     * - Not stored in localStorage (secure by default)
+     *
+     * No manual token management needed anymore!
+     */
   }
 
-  setToken(token: string) {
-    this.token = token
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', token)
-    }
-  }
+  /*
+   * DEPRECATED: setToken() method
+   * No longer needed - httpOnly cookies handled by browser/backend
+   */
+  // setToken(token: string) { }
 
-  clearToken() {
-    this.token = null
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token')
-    }
-  }
+  /*
+   * DEPRECATED: clearToken() method
+   * No longer needed - logout endpoint clears httpOnly cookies
+   */
+  // clearToken() { }
 
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
-    
-    const headers: any = {
+
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string> || {}),
     }
 
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`
-    }
+    /*
+     * IMPORTANT: credentials: 'include' sends httpOnly cookies automatically
+     * We don't need to manually add Authorization header anymore!
+     *
+     * The browser automatically includes httpOnly cookies because:
+     * 1. credentials: 'include' tells fetch to include cookies
+     * 2. Browser manages the cookie (not accessible to JS)
+     * 3. Backend validates the cookie and authenticates the user
+     */
 
     try {
       const response = await fetch(url, {
         ...options,
         headers,
+        credentials: 'include', // ← Automatically send httpOnly cookies
       })
 
       const data = await response.json()
@@ -67,32 +86,34 @@ class ApiClient {
 
   // Authentication
   async login(email: string, password: string) {
-    return this.request<{ token: string; user: any }>('/auth/login', {
+    return this.request<{ token: string; user: Record<string, unknown> }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     })
   }
 
-  async register(userData: any) {
-    return this.request<{ user: any }>('/user/register', {
+  async register(userData: Record<string, unknown>) {
+    return this.request<{ user: Record<string, unknown> }>('/user/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     })
   }
 
   async logout() {
-    const result = await this.request('/auth/logout', { method: 'POST' })
-    this.clearToken()
-    return result
+    /*
+     * Backend clears httpOnly cookie on successful logout
+     * No manual token cleanup needed anymore!
+     */
+    return this.request('/auth/logout', { method: 'POST' })
   }
 
   // User Management
   async getProfile() {
-    return this.request<any>('/user/profile')
+    return this.request<Record<string, unknown>>('/user/profile')
   }
 
-  async updateProfile(profileData: any) {
-    return this.request<any>('/user/profile', {
+  async updateProfile(profileData: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>('/user/profile', {
       method: 'PUT',
       body: JSON.stringify(profileData),
     })
@@ -101,29 +122,29 @@ class ApiClient {
   // Surveys
   async getSurveys(params?: Record<string, string>) {
     const query = params ? `?${new URLSearchParams(params)}` : ''
-    return this.request<any[]>(`/survey${query}`)
+    return this.request<Record<string, unknown>[]>(`/survey${query}`)
   }
 
   async getSurvey(id: string) {
-    return this.request<any>(`/survey/${id}`)
+    return this.request<Record<string, unknown>>(`/survey/${id}`)
   }
 
-  async createSurvey(surveyData: any) {
-    return this.request<any>('/survey', {
+  async createSurvey(surveyData: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>('/survey', {
       method: 'POST',
       body: JSON.stringify(surveyData),
     })
   }
 
-  async updateSurvey(id: string, surveyData: any) {
-    return this.request<any>(`/survey/${id}`, {
+  async updateSurvey(id: string, surveyData: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>(`/survey/${id}`, {
       method: 'PUT',
       body: JSON.stringify(surveyData),
     })
   }
 
-  async submitSurveyResponse(surveyId: string, responses: any) {
-    return this.request<any>(`/survey/${surveyId}/submit`, {
+  async submitSurveyResponse(surveyId: string, responses: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>(`/survey/${surveyId}/submit`, {
       method: 'POST',
       body: JSON.stringify(responses),
     })
@@ -131,11 +152,11 @@ class ApiClient {
 
   // Earnings
   async getEarnings() {
-    return this.request<any>('/earnings')
+    return this.request<Record<string, unknown>>('/earnings')
   }
 
-  async requestWithdrawal(withdrawalData: any) {
-    return this.request<any>('/withdrawal/request', {
+  async requestWithdrawal(withdrawalData: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>('/withdrawal/request', {
       method: 'POST',
       body: JSON.stringify(withdrawalData),
     })
@@ -144,52 +165,52 @@ class ApiClient {
   // Admin Functions
   async getUsers(params?: Record<string, string>) {
     const query = params ? `?${new URLSearchParams(params)}` : ''
-    return this.request<any[]>(`/admin/users${query}`)
+    return this.request<Record<string, unknown>[]>(`/admin/users${query}`)
   }
 
   async approveUser(userId: string) {
-    return this.request<any>(`/admin/users/${userId}/approve`, {
+    return this.request<Record<string, unknown>>(`/admin/users/${userId}/approve`, {
       method: 'POST',
     })
   }
 
   async rejectUser(userId: string, reason: string) {
-    return this.request<any>(`/admin/users/${userId}/reject`, {
+    return this.request<Record<string, unknown>>(`/admin/users/${userId}/reject`, {
       method: 'POST',
       body: JSON.stringify({ reason }),
     })
   }
 
   async approveSurvey(surveyId: string) {
-    return this.request<any>(`/admin/surveys/${surveyId}/approve`, {
+    return this.request<Record<string, unknown>>(`/admin/surveys/${surveyId}/approve`, {
       method: 'POST',
     })
   }
 
   // Creator Functions
   async getCreatorDashboard() {
-    return this.request<any>('/creator/dashboard')
+    return this.request<Record<string, unknown>>('/creator/dashboard')
   }
 
   async getMySurveys() {
-    return this.request<any[]>('/creator/surveys')
+    return this.request<Record<string, unknown>[]>('/creator/surveys')
   }
 
   async getSurveyAnalytics(surveyId: string) {
-    return this.request<any>(`/creator/surveys/${surveyId}/analytics`)
+    return this.request<Record<string, unknown>>(`/creator/surveys/${surveyId}/analytics`)
   }
 
   async exportSurveyResponses(surveyId: string, format: 'csv' | 'json' = 'csv') {
-    return this.request<any>(`/creator/surveys/${surveyId}/export?format=${format}`)
+    return this.request<Record<string, unknown>>(`/creator/surveys/${surveyId}/export?format=${format}`)
   }
 
   // Credits
   async getCredits() {
-    return this.request<any>('/creator/credits')
+    return this.request<Record<string, unknown>>('/creator/credits')
   }
 
   async purchaseCredits(amount: number) {
-    return this.request<any>('/credits/purchase', {
+    return this.request<Record<string, unknown>>('/credits/purchase', {
       method: 'POST',
       body: JSON.stringify({ amount }),
     })
@@ -197,33 +218,33 @@ class ApiClient {
 
   // Referrals
   async getReferrals() {
-    return this.request<any>('/referral')
+    return this.request<Record<string, unknown>>('/referral')
   }
 
   async generateReferralCode() {
-    return this.request<any>('/referral/code', {
+    return this.request<Record<string, unknown>>('/referral/code', {
       method: 'POST',
     })
   }
 
   // Super Admin Functions
   async getAdmins() {
-    return this.request<any[]>('/super-admin/admins')
+    return this.request<Record<string, unknown>[]>('/super-admin/admins')
   }
 
-  async createAdmin(adminData: any) {
-    return this.request<any>('/super-admin/admins', {
+  async createAdmin(adminData: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>('/super-admin/admins', {
       method: 'POST',
       body: JSON.stringify(adminData),
     })
   }
 
   async getFinancials() {
-    return this.request<any>('/super-admin/financials')
+    return this.request<Record<string, unknown>>('/super-admin/financials')
   }
 
   async getAuditLogs() {
-    return this.request<any[]>('/super-admin/audit-logs')
+    return this.request<Record<string, unknown>[]>('/super-admin/audit-logs')
   }
 
   // File Upload
@@ -259,44 +280,44 @@ class ApiClient {
 
   // Notifications
   async getNotifications() {
-    return this.request<any[]>('/notifications')
+    return this.request<Record<string, unknown>[]>('/notifications')
   }
 
   async markNotificationRead(notificationId: string) {
-    return this.request<any>(`/notifications/${notificationId}/read`, {
+    return this.request<Record<string, unknown>>(`/notifications/${notificationId}/read`, {
       method: 'POST',
     })
   }
 
   // Billing
-  async calculateSurveyCost(billingData: any) {
-    return this.request<any>('/billing/calculate', {
+  async calculateSurveyCost(billingData: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>('/billing/calculate', {
       method: 'POST',
       body: JSON.stringify(billingData),
     })
   }
 
   async validateReward(pages: number, rewardPerUser: number) {
-    return this.request<any>('/billing/validate-reward', {
+    return this.request<Record<string, unknown>>('/billing/validate-reward', {
       method: 'POST',
       body: JSON.stringify({ pages, reward_per_user: rewardPerUser }),
     })
   }
 
   async getPricingTiers() {
-    return this.request<any>('/billing/pricing-tiers')
+    return this.request<Record<string, unknown>>('/billing/pricing-tiers')
   }
 
   // Authentication (OTP)
   async sendOTP(email: string) {
-    return this.request<any>('/auth/send-otp', {
+    return this.request<Record<string, unknown>>('/auth/send-otp', {
       method: 'POST',
       body: JSON.stringify({ email }),
     })
   }
 
   async verifyOTP(email: string, otp: string) {
-    return this.request<any>('/auth/verify-otp', {
+    return this.request<Record<string, unknown>>('/auth/verify-otp', {
       method: 'POST',
       body: JSON.stringify({ email, otp }),
     })
@@ -304,28 +325,28 @@ class ApiClient {
 
   // Survey Management
   async getSurveyQuestions(surveyId: string) {
-    return this.request<any>(`/survey/${surveyId}/questions`)
+    return this.request<Record<string, unknown>>(`/survey/${surveyId}/questions`)
   }
 
   async startSurvey(surveyId: string) {
-    return this.request<any>(`/survey/${surveyId}/start`, {
+    return this.request<Record<string, unknown>>(`/survey/${surveyId}/start`, {
       method: 'POST',
     })
   }
 
-  async saveProgress(surveyId: string, progress: number, answers: any) {
-    return this.request<any>(`/survey/${surveyId}/progress`, {
+  async saveProgress(surveyId: string, progress: number, answers: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>(`/survey/${surveyId}/progress`, {
       method: 'POST',
       body: JSON.stringify({ progress, answers }),
     })
   }
 
   async getSurveyTemplates() {
-    return this.request<any>('/survey/templates')
+    return this.request<Record<string, unknown>>('/survey/templates')
   }
 
-  async saveSurveyDraft(surveyData: any) {
-    return this.request<any>('/survey/draft', {
+  async saveSurveyDraft(surveyData: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>('/survey/draft', {
       method: 'POST',
       body: JSON.stringify(surveyData),
     })
@@ -333,47 +354,47 @@ class ApiClient {
 
   // Withdrawal
   async getBanks() {
-    return this.request<any>('/withdrawal/banks')
+    return this.request<Record<string, unknown>>('/withdrawal/banks')
   }
 
   async verifyAccount(accountNumber: string, bankCode: string) {
-    return this.request<any>('/withdrawal/verify-account', {
+    return this.request<Record<string, unknown>>('/withdrawal/verify-account', {
       method: 'POST',
       body: JSON.stringify({ account_number: accountNumber, bank_code: bankCode }),
     })
   }
 
   async getWithdrawalHistory() {
-    return this.request<any>('/withdrawal/history')
+    return this.request<Record<string, unknown>>('/withdrawal/history')
   }
 
   // Credits
   async getCreditPackages() {
-    return this.request<any>('/credits/packages')
+    return this.request<Record<string, unknown>>('/credits/packages')
   }
 
   // Eligibility
   async checkEligibility() {
-    return this.request<any>('/eligibility/check')
+    return this.request<Record<string, unknown>>('/eligibility/check')
   }
 
   // Onboarding
-  async completeFillerOnboarding(data: any) {
-    return this.request<any>('/onboarding/filler', {
+  async completeFillerOnboarding(data: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>('/onboarding/filler', {
       method: 'POST',
       body: JSON.stringify(data),
     })
   }
 
-  async updateDemographics(data: any) {
-    return this.request<any>('/onboarding/demographics', {
+  async updateDemographics(data: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>('/onboarding/demographics', {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   }
 
   async getEligibleSurveys() {
-    return this.request<any>('/onboarding/surveys')
+    return this.request<Record<string, unknown>>('/onboarding/surveys')
   }
 }
 

@@ -6,6 +6,10 @@ type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>
 }
 
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean
+}
+
 export function usePwaInstall() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
   const [isStandalone, setStandalone] = useState(false)
@@ -16,10 +20,11 @@ export function usePwaInstall() {
       setDeferred(e as BeforeInstallPromptEvent)
     }
     window.addEventListener("beforeinstallprompt", handler)
+    const nav = navigator as NavigatorWithStandalone
     setStandalone(
       window.matchMedia?.("(display-mode: standalone)").matches ||
         // iOS Safari
-        (navigator as any).standalone === true,
+        nav.standalone === true,
     )
     return () => window.removeEventListener("beforeinstallprompt", handler)
   }, [])

@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import FillerLayout from "@/layouts/filler-layout"
+import { ErrorBoundary } from "@/components/error/error-boundary"
 
 export const metadata: Metadata = {
   title: "Survey Filler | Dashboard",
@@ -12,5 +13,9 @@ export default function Layout({
 }: {
   children: React.ReactNode
 }) {
-  return <FillerLayout>{children}</FillerLayout>
+  return (
+    <ErrorBoundary routeName="filler">
+      <FillerLayout>{children}</FillerLayout>
+    </ErrorBoundary>
+  )
 }

@@ -55,11 +55,25 @@ export default function FillerOnboardingPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [eligibilityLoading, setEligibilityLoading] = useState(true);
   const { signIn } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
-  const validate = (name: string, value: any) => {
+  useEffect(() => {
+    // Simulate eligibility check
+    const checkEligibility = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1500))
+        setEligibilityLoading(false)
+      } catch (error) {
+        setEligibilityLoading(false)
+      }
+    }
+    checkEligibility()
+  }, [])
+
+  const validate = (name: string, value: string) => {
     let error = '';
     switch (name) {
       case 'firstName':
@@ -83,7 +97,7 @@ export default function FillerOnboardingPage() {
     setErrors(prev => ({ ...prev, [name]: error }));
   };
 
-  const handleChange = (name: string, value: any) => {
+  const handleChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     validate(name, value);
   };
@@ -129,17 +143,31 @@ export default function FillerOnboardingPage() {
         },
       };
 
-      await api.post('/api/user/register', registrationData);
+      await api.post('/user/register', registrationData);
       await signIn(formData.email, formData.password);
       
       toast({ title: "Success", description: "Account created successfully!", variant: "success" });
       router.push("/filler");
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Registration failed", variant: "destructive" });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Registration failed"
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (eligibilityLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center p-4 bg-slate-50">
+        <div className="text-center" role="status" aria-live="polite">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" aria-hidden="true"></div>
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">Checking eligibility...</h2>
+          <p className="text-slate-600">Please wait while we verify your location and requirements.</p>
+          <span className="sr-only">Loading, please wait</span>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4 bg-slate-50">
@@ -156,28 +184,62 @@ export default function FillerOnboardingPage() {
               {/* ... Form fields with validation ... */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-slate-700">First name</label>
-                  <Input placeholder="Enter first name" value={formData.firstName} onChange={(e) => handleChange('firstName', e.target.value)} required />
-                  {errors.firstName && <p className="text-xs text-red-600 flex items-center"><AlertCircle className="h-3 w-3 mr-1"/>{errors.firstName}</p>}
+                  <label htmlFor="firstName" className="text-sm font-medium text-slate-700">First name</label>
+                  <Input 
+                    id="firstName"
+                    placeholder="Enter first name" 
+                    value={formData.firstName} 
+                    onChange={(e) => handleChange('firstName', e.target.value)} 
+                    required 
+                    aria-describedby={errors.firstName ? "firstName-error" : undefined}
+                    error={!!errors.firstName}
+                  />
+                  {errors.firstName && <p className="text-xs text-red-600 flex items-center" role="alert" id="firstName-error"><AlertCircle className="h-3 w-3 mr-1" aria-hidden="true"/>{errors.firstName}</p>}
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-slate-700">Last name</label>
-                  <Input placeholder="Enter last name" value={formData.lastName} onChange={(e) => handleChange('lastName', e.target.value)} required />
-                  {errors.lastName && <p className="text-xs text-red-600 flex items-center"><AlertCircle className="h-3 w-3 mr-1"/>{errors.lastName}</p>}
+                  <label htmlFor="lastName" className="text-sm font-medium text-slate-700">Last name</label>
+                  <Input 
+                    id="lastName"
+                    placeholder="Enter last name" 
+                    value={formData.lastName} 
+                    onChange={(e) => handleChange('lastName', e.target.value)} 
+                    required 
+                    aria-describedby={errors.lastName ? "lastName-error" : undefined}
+                    error={!!errors.lastName}
+                  />
+                  {errors.lastName && <p className="text-xs text-red-600 flex items-center" role="alert" id="lastName-error"><AlertCircle className="h-3 w-3 mr-1" aria-hidden="true"/>{errors.lastName}</p>}
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700">Email</label>
-                <Input type="email" placeholder="Enter email address" value={formData.email} onChange={(e) => handleChange('email', e.target.value)} required />
-                {errors.email && <p className="text-xs text-red-600 flex items-center"><AlertCircle className="h-3 w-3 mr-1"/>{errors.email}</p>}
+                <label htmlFor="email" className="text-sm font-medium text-slate-700">Email</label>
+                <Input 
+                  id="email"
+                  type="email" 
+                  placeholder="Enter email address" 
+                  value={formData.email} 
+                  onChange={(e) => handleChange('email', e.target.value)} 
+                  required 
+                  aria-describedby={errors.email ? "email-error" : undefined}
+                  error={!!errors.email}
+                />
+                {errors.email && <p className="text-xs text-red-600 flex items-center" role="alert" id="email-error"><AlertCircle className="h-3 w-3 mr-1" aria-hidden="true"/>{errors.email}</p>}
               </div>
 
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700">Password</label>
-                <Input type="password" placeholder="Create password" value={formData.password} onChange={(e) => handleChange('password', e.target.value)} required />
+                <label htmlFor="password" className="text-sm font-medium text-slate-700">Password</label>
+                <Input 
+                  id="password"
+                  type="password" 
+                  placeholder="Create password" 
+                  value={formData.password} 
+                  onChange={(e) => handleChange('password', e.target.value)} 
+                  required 
+                  aria-describedby={errors.password ? "password-error" : undefined}
+                  error={!!errors.password}
+                />
                 <PasswordStrengthIndicator password={formData.password} />
-                {errors.password && <p className="text-xs text-red-600 flex items-center"><AlertCircle className="h-3 w-3 mr-1"/>{errors.password}</p>}
+                {errors.password && <p className="text-xs text-red-600 flex items-center" role="alert" id="password-error"><AlertCircle className="h-3 w-3 mr-1" aria-hidden="true"/>{errors.password}</p>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

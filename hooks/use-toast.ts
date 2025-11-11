@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 interface Toast {
   id: string
@@ -14,17 +14,29 @@ const toasts: Toast[] = []
 const listeners: Array<(toasts: Toast[]) => void> = []
 
 function dispatch(toast: Omit<Toast, 'id'>) {
-  const id = Math.random().toString(36).substr(2, 9)
+  const id = Math.random().toString(36).substring(2, 9)
   const newToast = { ...toast, id }
   
   toasts.push(newToast)
-  listeners.forEach(listener => listener([...toasts]))
+  listeners.forEach(listener => {
+    try {
+      listener([...toasts])
+    } catch (error) {
+      console.warn('Toast listener error:', error)
+    }
+  })
   
   setTimeout(() => {
     const index = toasts.findIndex(t => t.id === id)
     if (index > -1) {
       toasts.splice(index, 1)
-      listeners.forEach(listener => listener([...toasts]))
+      listeners.forEach(listener => {
+        try {
+          listener([...toasts])
+        } catch (error) {
+          console.warn('Toast listener error:', error)
+        }
+      })
     }
   }, toast.duration || 5000)
 }
@@ -36,13 +48,19 @@ export function useToast() {
     dispatch(props)
   }, [])
   
-  const subscribe = useCallback((listener: (toasts: Toast[]) => void) => {
-    listeners.push(listener)
-    return () => {
-      const index = listeners.indexOf(listener)
-      if (index > -1) listeners.splice(index, 1)
-    }
+  useEffect(() => {
+    const unsubscribe = (() => {
+      listeners.push(setToastList)
+      return () => {
+        const index = listeners.indexOf(setToastList)
+        if (index > -1) listeners.splice(index, 1)
+      }
+    })()
+    
+    return unsubscribe
   }, [])
   
-  return { toast, toasts: toastList, subscribe }
+  return { toast, toasts: toastList }
 }
+
+export const toast = (props: Omit<Toast, 'id'>) => dispatch(props)

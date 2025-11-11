@@ -1,8 +1,12 @@
 "use client"
 
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { AdminDashboardSkeleton } from "@/components/ui/skeleton-loader"
+import { useAuth } from "@/providers/auth-provider"
 import { 
   Users, 
   ListChecks, 
@@ -15,6 +19,22 @@ import {
 } from "lucide-react"
 
 export default function AdminDashboard() {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || user?.role !== "admin")) {
+      router.push("/admin/auth/login")
+    }
+  }, [isAuthenticated, isLoading, user?.role, router])
+
+  if (isLoading) {
+    return <AdminDashboardSkeleton />
+  }
+
+  if (!isAuthenticated || user?.role !== "admin") {
+    return null
+  }
   const stats = [
     { title: "Total Users", value: "2,847", change: "+12%", icon: Users, color: "blue" },
     { title: "Active Surveys", value: "156", change: "+8%", icon: ListChecks, color: "green" },

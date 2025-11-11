@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Users, Wallet, CheckCircle, Menu, X } from "lucide-react"
+import { ArrowRight, Users, Wallet, CheckCircle, Menu, X, Lock } from "lucide-react"
 import { AnimatedLogo } from "@/components/ui/animated-logo"
 import { AnimatedBackground } from "@/components/ui/animated-background"
 import { Footer } from "@/components/ui/footer"
@@ -37,11 +37,19 @@ export default function HomePage() {
                   Sign in
                 </Button>
               </Link>
-              <Link href="/auth/role-selection">
+              {/* <Link href="/auth/role-selection">
                 <Button className="bg-[#013F5C] hover:bg-[#012d42] text-white hover:shadow-lg">
                   Get started
                 </Button>
-              </Link>
+              </Link> */}
+              <Button 
+                disabled 
+                className="bg-gray-400 cursor-not-allowed text-white opacity-60"
+                title="Currently under maintenance"
+              >
+                <Lock className="mr-2 h-4 w-4" />
+                Get started
+              </Button>
             </div>
 
             {/* Mobile menu button */}
@@ -77,11 +85,19 @@ export default function HomePage() {
                   Sign in
                 </Button>
               </Link>
-              <Link href="/auth/role-selection" onClick={() => setMobileMenuOpen(false)}>
+              {/* <Link href="/auth/role-selection" onClick={() => setMobileMenuOpen(false)}>
                 <Button className="w-full bg-[#013F5C] hover:bg-[#012d42] text-white hover:shadow-lg mt-2">
                   Get started
                 </Button>
-              </Link>
+              </Link> */}
+              <Button 
+                disabled 
+                className="w-full bg-gray-400 cursor-not-allowed text-white opacity-60 mt-2"
+                title="Currently under maintenance"
+              >
+                <Lock className="mr-2 h-4 w-4" />
+                Get started
+              </Button>
             </div>
           </div>
         </div>
@@ -158,12 +174,21 @@ export default function HomePage() {
           <p className="text-xl text-slate-600 mb-8">
             Join Nigeria's most trusted survey platform today
           </p>
-          <Link href="/auth/role-selection">
+          {/* <Link href="/auth/role-selection">
             <Button size="lg" className="bg-[#013F5C] hover:bg-[#012d42] text-white px-8 py-4 text-lg font-semibold group hover:shadow-xl pulse-cta">
               Get started for free
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-          </Link>
+          </Link> */}
+          <Button 
+            size="lg" 
+            disabled 
+            className="bg-gray-400 cursor-not-allowed text-white px-8 py-4 text-lg font-semibold opacity-60"
+            title="Currently under maintenance"
+          >
+            <Lock className="mr-2 h-5 w-5" />
+            Get started for free
+          </Button>
         </div>
       </section>
 

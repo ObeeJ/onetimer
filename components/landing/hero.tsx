@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState } from "react"
-import { Twitter, Instagram, Linkedin, Mail } from "lucide-react"
+import { Twitter, Instagram, Linkedin, Mail, Lock } from "lucide-react"
 
 export default function Hero() {
   const reduceMotion = useReducedMotion()
@@ -73,7 +73,7 @@ export default function Hero() {
             transition={{ duration: reduceMotion ? 0.1 : 0.8, delay: reduceMotion ? 0 : 0.6 }}
             className="mt-10 flex items-center justify-center gap-x-6"
           >
-            <Button
+            {/* <Button
               asChild
               className="min-h-[48px] px-4 py-2 rounded-lg bg-[#013f5c] text-white font-medium hover:bg-[#012f49]"
             >
@@ -85,6 +85,23 @@ export default function Hero() {
               className="min-h-[48px] px-4 py-2 rounded-lg bg-white text-[#013f5c] font-medium hover:bg-gray-100 border border-gray-300"
             >
               <Link href="#features">Learn More</Link>
+            </Button> */}
+            <Button
+              disabled
+              className="min-h-[48px] px-4 py-2 rounded-lg bg-gray-400 cursor-not-allowed text-white font-medium opacity-60"
+              title="Currently under maintenance"
+            >
+              <Lock className="mr-2 h-4 w-4" />
+              Get Started
+            </Button>
+            <Button
+              disabled
+              variant="outline"
+              className="min-h-[48px] px-4 py-2 rounded-lg bg-gray-100 cursor-not-allowed text-gray-500 font-medium opacity-60 border border-gray-300"
+              title="Currently under maintenance"
+            >
+              <Lock className="mr-2 h-4 w-4" />
+              Learn More
             </Button>
           </motion.div>
 

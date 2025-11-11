@@ -2,7 +2,8 @@
 
 import { Home, ListChecks, Wallet, Users, LogOut, User2, Settings } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import Image from "next/image"
+import { usePathname, useRouter } from "next/navigation"
 import {
   Sidebar,
   SidebarContent,
@@ -31,6 +32,7 @@ const navItems = [
 export function AppSidebar() {
   const { user, isAuthenticated, isVerified, signOut, isLoading } = useAuth()
   const pathname = usePathname()
+  const router = useRouter()
 
   // Show loading state during hydration
   if (isLoading) {
@@ -39,7 +41,7 @@ export function AppSidebar() {
         <SidebarHeader className="flex items-center justify-between px-3">
           <div className="flex items-center justify-between w-full">
             <Link href="/filler" className="hover:opacity-80 transition-opacity group-data-[collapsible=icon]:hidden">
-              <img src="/Logo.png" alt="OneTime Survey" className="h-10 sm:h-14 md:h-12 w-auto" />
+              <Image src="/Logo.png" alt="OneTime Survey" width={128} height={48} priority className="h-10 sm:h-14 md:h-12 w-auto" />
             </Link>
             <SidebarTrigger className="rounded-xl group-data-[collapsible=icon]:mx-auto" />
           </div>
@@ -57,7 +59,7 @@ export function AppSidebar() {
       <SidebarHeader className="flex items-center justify-between px-3">
         <div className="flex items-center justify-between w-full">
           <Link href="/filler" className="hover:opacity-80 transition-opacity group-data-[collapsible=icon]:hidden">
-            <img src="/Logo.png" alt="OneTime Survey" className="h-10 sm:h-14 md:h-12 w-auto" />
+            <Image src="/Logo.png" alt="OneTime Survey" width={128} height={48} priority className="h-10 sm:h-14 md:h-12 w-auto" />
           </Link>
           <SidebarTrigger className="rounded-xl group-data-[collapsible=icon]:mx-auto" />
         </div>
@@ -125,9 +127,7 @@ export function AppSidebar() {
               aria-label="Sign out"
               onClick={() => {
                 signOut()
-                if (typeof window !== 'undefined') {
-                  window.location.href = "/filler/auth/sign-in"
-                }
+                router.push("/filler/auth/sign-in")
               }}
               title="Log out"
             >

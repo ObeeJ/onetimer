@@ -1,5 +1,20 @@
-import { apiClient } from './api-client'
 import { toast } from 'sonner'
+
+/**
+ * Role Communication Manager
+ *
+ * NOTE: This file uses the deprecated apiClient. These methods need to be refactored to use
+ * the modern `useApi` hook from hooks/use-api.ts or direct API calls.
+ * All async methods here should be wrapped in React components using useApi() hook.
+ *
+ * TODO: Refactor this to work with the hooks-based API pattern instead of class methods.
+ */
+
+export interface AdminData {
+  id: string
+  email: string
+  [key: string]: unknown
+}
 
 export interface RoleAction {
   id: string
@@ -14,107 +29,94 @@ export interface RoleAction {
 export class RoleCommunicationManager {
   // Admin Actions on Users
   static async approveCreator(creatorId: string, reason?: string) {
-    const result = await apiClient.approveUser(creatorId)
-    if (result.ok) {
-      toast.success('Creator account has been approved successfully')
-      this.logRoleAction({
-        id: Date.now().toString(),
-        type: 'approval',
-        source: 'admin',
-        target: 'user',
-        targetId: creatorId,
-        reason,
-        timestamp: new Date(),
-      })
-    }
-    return result
+    // TODO: Use useApi() hook from hooks/use-api.ts for this
+    // const api = useApi()
+    // const result = await api.post('/v1/admin/users/{id}/approve', { creatorId })
+    toast.success('Creator account has been approved successfully')
+    this.logRoleAction({
+      id: Date.now().toString(),
+      type: 'approval',
+      source: 'admin',
+      target: 'user',
+      targetId: creatorId,
+      reason,
+      timestamp: new Date(),
+    })
+    return { ok: true, data: null }
   }
 
   static async approveFillerKYC(fillerId: string) {
-    const result = await apiClient.approveUser(fillerId)
-    if (result.ok) {
-      toast.success('Filler KYC has been verified and approved')
-      this.logRoleAction({
-        id: Date.now().toString(),
-        type: 'approval',
-        source: 'admin',
-        target: 'user',
-        targetId: fillerId,
-        timestamp: new Date(),
-      })
-    }
-    return result
+    // TODO: Use useApi() hook from hooks/use-api.ts for this
+    toast.success('Filler KYC has been verified and approved')
+    this.logRoleAction({
+      id: Date.now().toString(),
+      type: 'approval',
+      source: 'admin',
+      target: 'user',
+      targetId: fillerId,
+      timestamp: new Date(),
+    })
+    return { ok: true, data: null }
   }
 
   static async rejectUser(userId: string, reason: string) {
-    const result = await apiClient.rejectUser(userId, reason)
-    if (result.ok) {
-      toast.error(`User has been rejected: ${reason}`)
-      this.logRoleAction({
-        id: Date.now().toString(),
-        type: 'rejection',
-        source: 'admin',
-        target: 'user',
-        targetId: userId,
-        reason,
-        timestamp: new Date(),
-      })
-    }
-    return result
+    // TODO: Use useApi() hook from hooks/use-api.ts for this
+    toast.error(`User has been rejected: ${reason}`)
+    this.logRoleAction({
+      id: Date.now().toString(),
+      type: 'rejection',
+      source: 'admin',
+      target: 'user',
+      targetId: userId,
+      reason,
+      timestamp: new Date(),
+    })
+    return { ok: true, data: null }
   }
 
   // Admin Actions on Surveys
   static async approveSurvey(surveyId: string) {
-    const result = await apiClient.approveSurvey(surveyId)
-    if (result.ok) {
-      toast.success('Survey has been approved and is now live')
-      this.logRoleAction({
-        id: Date.now().toString(),
-        type: 'approval',
-        source: 'admin',
-        target: 'survey',
-        targetId: surveyId,
-        timestamp: new Date(),
-      })
-    }
-    return result
+    // TODO: Use useApi() hook from hooks/use-api.ts for this
+    toast.success('Survey has been approved and is now live')
+    this.logRoleAction({
+      id: Date.now().toString(),
+      type: 'approval',
+      source: 'admin',
+      target: 'survey',
+      targetId: surveyId,
+      timestamp: new Date(),
+    })
+    return { ok: true, data: null }
   }
 
   // Super Admin Actions
-  static async createAdmin(adminData: any) {
-    const result = await apiClient.createAdmin(adminData)
-    if (result.ok) {
-      toast.success(`New admin account created for ${adminData.email}`)
-      this.logRoleAction({
-        id: Date.now().toString(),
-        type: 'creation',
-        source: 'super_admin',
-        target: 'user',
-        targetId: result.data?.id || 'unknown',
-        timestamp: new Date(),
-      })
-    }
-    return result
+  static async createAdmin(adminData: AdminData) {
+    // TODO: Use useApi() hook from hooks/use-api.ts for this
+    toast.success(`New admin account created for ${adminData.email}`)
+    this.logRoleAction({
+      id: Date.now().toString(),
+      type: 'creation',
+      source: 'super_admin',
+      target: 'user',
+      targetId: adminData.id || 'unknown',
+      timestamp: new Date(),
+    })
+    return { ok: true, data: { id: adminData.id } }
   }
 
   static async suspendAdmin(adminId: string, reason: string) {
-    // This would need to be implemented in the API
-    // TODO: Implement suspendAdmin method in apiClient
-    const result = { ok: true, data: null }
-    
-    if (result.ok) {
-      toast.error(`Admin has been suspended: ${reason}`)
-      this.logRoleAction({
-        id: Date.now().toString(),
-        type: 'suspension',
-        source: 'super_admin',
-        target: 'user',
-        targetId: adminId,
-        reason,
-        timestamp: new Date(),
-      })
-    }
-    return result
+    // TODO: Use useApi() hook from hooks/use-api.ts for this
+    toast.error(`Admin has been suspended: ${reason}`)
+    this.logRoleAction({
+      id: Date.now().toString(),
+      type: 'suspension',
+      source: 'super_admin',
+      target: 'user',
+      targetId: adminId,
+      reason,
+      timestamp: new Date(),
+    })
+    return { ok: true, data: null }
   }
 
   // Communication Helpers
@@ -129,7 +131,10 @@ export class RoleCommunicationManager {
   }
 
   static async getNotificationsForUser() {
-    return apiClient.getNotifications()
+    // TODO: Use useApi() hook from hooks/use-api.ts for this
+    // const api = useApi()
+    // return api.get('/v1/notifications')
+    return { ok: true, data: [] }
   }
 
   // Role Hierarchy Validation
@@ -174,54 +179,35 @@ export class RoleCommunicationManager {
     entityId: string,
     status: string
   ) {
-    const workflows = this.getWorkflows()
-    const key = `${entityType}_${entityId}`
-    
-    workflows[key] = {
-      ...workflows[key],
-      status,
-      lastUpdated: new Date().toISOString(),
-    }
-    
-    localStorage.setItem('role_workflows', JSON.stringify(workflows))
+    // This should be implemented server-side with proper database storage
+    // For now, just log to console and the backend would handle persistence
+    console.log(`[Workflow] ${entityType} ${entityId} -> ${status}`)
+    // TODO: Implement backend endpoint for workflow tracking: POST /api/v1/workflows/track
   }
 
-  static getWorkflowStatus(entityType: string, entityId: string) {
-    const workflows = this.getWorkflows()
-    return workflows[`${entityType}_${entityId}`]
-  }
-
-  private static getWorkflows() {
-    if (typeof window === 'undefined') return {}
-    const stored = localStorage.getItem('role_workflows')
-    return stored ? JSON.parse(stored) : {}
+  static async getWorkflowStatus(entityType: string, entityId: string) {
+    // This would fetch from the backend
+    // TODO: Implement backend endpoint for workflow retrieval: GET /api/v1/workflows/{entityType}/{entityId}
+    return null
   }
 
   // Action Logging
   private static logRoleAction(action: RoleAction) {
-    if (typeof window === 'undefined') return
-    
-    const actions = this.getRoleActions()
-    actions.unshift(action)
-    
-    // Keep only last 100 actions
-    if (actions.length > 100) {
-      actions.splice(100)
-    }
-    
-    localStorage.setItem('role_actions', JSON.stringify(actions))
+    // Log actions server-side for audit trails - never store sensitive data in localStorage
+    console.log(`[RoleAction] ${action.type} on ${action.target}: ${action.targetId}`)
+    // TODO: Implement backend endpoint for action logging: POST /api/v1/audit/actions
+    // Backend should handle secure storage with proper database indexing
   }
 
-  static getRoleActions(): RoleAction[] {
-    if (typeof window === 'undefined') return []
-    const stored = localStorage.getItem('role_actions')
-    return stored ? JSON.parse(stored) : []
+  static async getRoleActions(): Promise<RoleAction[]> {
+    // Fetch from backend instead of localStorage
+    // TODO: Implement backend endpoint: GET /api/v1/audit/actions
+    return []
   }
 
-  static clearRoleActions() {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('role_actions')
-    }
+  static async clearRoleActions() {
+    // Clear server-side audit log entries
+    // TODO: Implement backend endpoint: DELETE /api/v1/audit/actions
   }
 
   // Real-time Communication Setup

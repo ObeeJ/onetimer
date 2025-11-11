@@ -27,9 +27,12 @@ export function AnimatedLogo({ className = "", size = "md" }: AnimatedLogoProps)
       }}
       className={`cursor-pointer ${className}`}
     >
-      <img 
+      <Image 
         src="/Logo.png" 
         alt="Onetime Survey" 
+        width={size === "sm" ? 24 : size === "md" ? 32 : 48}
+        height={size === "sm" ? 24 : size === "md" ? 32 : 48}
+        priority
         className={`${className || sizeClasses[size]} transition-all duration-300`}
       />
     </motion.div>

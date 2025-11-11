@@ -1,3 +1,12 @@
+/*
+ * DEPRECATED: This hook has been consolidated into the single useAuth() hook in providers/auth-provider.tsx
+ * DO NOT USE - Kept for reference only
+ *
+ * SECURITY ISSUE: Creates mock admin user without proper verification
+ * Use providers/auth-provider.tsx -> useAuth() instead
+ */
+
+/*
 "use client"
 
 import { useAuth } from "@/providers/auth-provider"
@@ -26,7 +35,7 @@ export function useAdminAuth() {
       id: "admin_1",
       name: "Admin User",
       email,
-      role: "admin"
+      role: "admin" // SECURITY ISSUE: Grants admin role without verification
     }
     setAdminUser(mockUser)
     localStorage.setItem("admin_user", JSON.stringify(mockUser))
@@ -48,3 +57,4 @@ export function useAdminAuth() {
     signOut
   }
 }
+*/

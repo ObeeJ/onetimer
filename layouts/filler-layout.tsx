@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Image from "next/image"
 import { RoleGuard } from "@/components/auth/role-guard"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,7 @@ const navItems = [
 export default function FillerLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth()
   const pathname = usePathname()
+  const router = useRouter()
   const { isOpen: sidebarOpen } = useSidebarStore()
 
   const isAuthFlow = pathname?.startsWith("/filler/auth") || pathname?.startsWith("/filler/onboarding")
@@ -103,7 +104,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
                 <Button
                   onClick={() => {
                     signOut()
-                    window.location.href = "/filler/auth/sign-in"
+                    router.push("/filler/auth/sign-in")
                   }}
                   variant="ghost"
                   className="w-full justify-start text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] px-3 py-2"
@@ -122,7 +123,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
                 <Button
                   onClick={() => {
                     signOut()
-                    window.location.href = "/filler/auth/sign-in"
+                    router.push("/filler/auth/sign-in")
                   }}
                   variant="ghost"
                   className="w-full justify-center text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] p-2"
@@ -188,7 +189,7 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
               <Button
                 onClick={() => {
                   signOut()
-                  window.location.href = "/filler/auth/sign-in"
+                  router.push("/filler/auth/sign-in")
                 }}
                 variant="ghost"
                 className="w-full justify-start text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] px-3 py-2"

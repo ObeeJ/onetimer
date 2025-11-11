@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, AlertCircle, Building2 } from "lucide-react"
-import { useCreatorAuth } from "@/hooks/use-creator-auth"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function CreatorSignInForm() {
   const [email, setEmail] = useState("")
@@ -17,7 +17,7 @@ export default function CreatorSignInForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const { signIn } = useCreatorAuth()
+  const { signIn } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,24 +26,12 @@ export default function CreatorSignInForm() {
     setError("")
 
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Mock successful sign in
-      signIn({
-        id: "creator-1",
-        name: "John Creator",
-        email: email,
-        organizationType: "business",
-        organizationName: "Tech Corp",
-        status: "approved",
-        credits: 150,
-        isVerified: true
-      })
-      
+      // Use real authentication via auth provider
+      await signIn(email, password)
       router.push("/creator/dashboard")
-    } catch (err) {
-      setError("Invalid email or password. Please try again.")
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Oops...! Invalid email or password. Please try again."
+      setError(errorMessage || "Oops...! Invalid email or password. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -57,7 +45,7 @@ export default function CreatorSignInForm() {
         </div>
         <CardTitle>Welcome back, Creator</CardTitle>
         <CardDescription>
-          Sign in to your creator account to manage surveys and analytics
+          Sign in to your creator account to manage surveys
         </CardDescription>
       </CardHeader>
       <CardContent>

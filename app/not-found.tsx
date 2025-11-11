@@ -4,17 +4,17 @@ import { FileQuestion, Home, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
-import { useCreatorAuth } from "@/hooks/use-creator-auth"
 import { usePathname } from "next/navigation"
 
 export default function NotFound() {
-  const { isAuthenticated: isFillerAuth } = useAuth()
-  const { isAuthenticated: isCreatorAuth } = useCreatorAuth()
+  const { isAuthenticated, user } = useAuth()
   const pathname = usePathname()
-  
+
   const getHomeUrl = () => {
-    if (pathname && pathname.startsWith('/creator') || isCreatorAuth) return '/creator/dashboard'
-    if (isFillerAuth) return '/filler'
+    if (pathname && pathname.startsWith('/creator') || user?.role === 'creator') return '/creator/dashboard'
+    if (user?.role === 'admin') return '/admin'
+    if (user?.role === 'super_admin') return '/super-admin'
+    if (isAuthenticated) return '/filler'
     return '/'
   }
 

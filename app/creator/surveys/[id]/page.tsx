@@ -23,11 +23,19 @@ import {
 } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import Link from "next/link"
-import { useCreatorAuth } from "@/hooks/use-creator-auth"
+import { useAuth } from "@/hooks/use-auth"
+
+interface SurveyResponse {
+  id: string
+  respondent: string
+  completedAt: string
+  quality: string
+  answers: Record<string, unknown>
+}
 
 export default function SurveyDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const { isAuthenticated, isApproved } = useCreatorAuth()
+  const { isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
   // Mock survey data
@@ -154,7 +162,7 @@ export default function SurveyDetailsPage({ params }: { params: Promise<{ id: st
     URL.revokeObjectURL(url)
   }
 
-  const convertToCSV = (data: any[]) => {
+  const convertToCSV = (data: SurveyResponse[]) => {
     if (!data.length) return ''
     const headers = ['Respondent', 'Completed At', 'Quality', ...survey.questions.map(q => q.question)]
     const rows = data.map(response => [
@@ -166,7 +174,7 @@ export default function SurveyDetailsPage({ params }: { params: Promise<{ id: st
     return [headers, ...rows].map(row => row.map(field => `"${field}"`).join(',')).join('\n')
   }
 
-  const convertToXML = (data: any[]) => {
+  const convertToXML = (data: SurveyResponse[]) => {
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<survey>\n'
     xml += `  <title>${survey.title}</title>\n`
     xml += '  <responses>\n'

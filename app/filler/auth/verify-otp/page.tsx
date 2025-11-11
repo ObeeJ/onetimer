@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
@@ -56,7 +57,7 @@ function VerifyOTPContent() {
   return (
     <div className="w-full max-w-sm">
       <div className="text-center mb-8">
-        <img src="/Logo.png" alt="OneTime Survey" className="h-16 w-auto mx-auto mb-4" />
+        <Image src="/Logo.png" alt="OneTime Survey" width={64} height={64} className="h-16 w-auto mx-auto mb-4" />
       </div>
       <OTPVerificationForm 
         email={email || undefined}

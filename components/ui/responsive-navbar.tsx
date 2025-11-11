@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Menu, X, Home, Users, FileText, Shield, Settings, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -55,7 +56,7 @@ export function ResponsiveNavbar({ role, navItems, user, onSignOut }: Responsive
       <nav className="hidden lg:flex items-center justify-between p-4 bg-white border-b border-slate-200">
         <div className="flex items-center gap-8">
           <Link href={`/${role}`} className="flex items-center gap-2">
-            <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto" />
+            <Image src="/Logo.png" alt="OneTime Survey" width={64} height={32} priority className="h-8 w-auto" />
             <span className="font-bold text-lg text-slate-900">OneTime</span>
           </Link>
           <div className="flex items-center gap-1">
@@ -98,7 +99,7 @@ export function ResponsiveNavbar({ role, navItems, user, onSignOut }: Responsive
       {/* Mobile Navbar */}
       <nav className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200">
         <Link href={`/${role}`} className="flex items-center gap-2">
-          <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto" />
+          <Image src="/Logo.png" alt="OneTime Survey" width={64} height={32} priority className="h-8 w-auto" />
           <span className="font-bold text-lg text-slate-900">OneTime</span>
         </Link>
         
@@ -112,7 +113,7 @@ export function ResponsiveNavbar({ role, navItems, user, onSignOut }: Responsive
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
-                  <img src="/Logo.png" alt="OneTime Survey" className="h-8 w-auto" />
+                  <Image src="/Logo.png" alt="OneTime Survey" width={64} height={32} priority className="h-8 w-auto" />
                   <span className="font-bold text-lg text-slate-900">OneTime</span>
                 </div>
                 <Button

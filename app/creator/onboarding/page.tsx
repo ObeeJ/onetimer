@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/providers/auth-provider"
+import Image from "next/image"
 
 const industryRoles = {
   technology: [
@@ -200,7 +201,7 @@ export default function CreatorOnboardingPage() {
     <main className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
-          <img src="/Logo.png" alt="Onetime Survey" className="h-16 w-auto mx-auto mb-4" />
+          <Image src="/Logo.png" alt="Onetime Survey" width={128} height={64} priority className="h-16 w-auto mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Complete your profile</h1>
           <p className="text-slate-600">Tell us about yourself to create better surveys</p>
         </div>

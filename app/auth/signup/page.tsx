@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import { AnimatedBackground } from "@/components/ui/animated-background"
 
@@ -25,7 +26,7 @@ export default function SignUpPage() {
       </div>
       <Card className="w-full max-w-md shadow-xl border-0 bg-white/90 backdrop-blur-sm relative z-10">
         <CardHeader className="text-center space-y-4 pb-6">
-          <img src="/Logo.png" alt="Onetime Survey" className="h-12 w-auto mx-auto" />
+          <Image src="/Logo.png" alt="Onetime Survey" width={128} height={48} priority className="h-12 w-auto mx-auto" />
           <CardTitle className="text-2xl font-bold text-slate-900">Join Onetime Survey</CardTitle>
           <p className="text-slate-600">Choose how you want to get started</p>
         </CardHeader>

@@ -16,42 +16,20 @@ import {
   Download
 } from "lucide-react"
 
+interface User {
+  id: string
+  name: string
+  email: string
+  status: string
+  [key: string]: unknown
+}
+
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
 
-
-  const users = [
-    {
-      id: "1",
-      name: "John Doe",
-      email: "john@example.com",
-      role: "Filler",
-      status: "Active",
-      joinDate: "2024-01-15",
-      kycStatus: "Verified",
-      earnings: "₦45,200"
-    },
-    {
-      id: "2", 
-      name: "TechCorp Ltd",
-      email: "admin@techcorp.com",
-      role: "Creator",
-      status: "Active",
-      joinDate: "2024-01-10",
-      kycStatus: "Pending",
-      surveys: 12
-    },
-    {
-      id: "3",
-      name: "Jane Smith", 
-      email: "jane@example.com",
-      role: "Filler",
-      status: "Suspended",
-      joinDate: "2024-01-20",
-      kycStatus: "Rejected",
-      earnings: "₦12,800"
-    }
-  ]
+  // TODO: Integrate with API to fetch real users from backend
+  // Replace with useQuery hook to fetch /admin/users endpoint
+  const users: User[] = []
 
   const getStatusBadge = (status: string) => {
     switch (status) {

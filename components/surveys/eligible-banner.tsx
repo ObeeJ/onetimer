@@ -8,7 +8,7 @@ import { fetchJSON } from "@/hooks/use-api"
 export default function EligibleBanner() {
   const [eligible, setEligible] = useState<boolean | null>(null)
   useEffect(() => {
-    fetchJSON<{ eligible: boolean }>("/api/eligibility", { method: "POST" }).then((r) => setEligible(r.eligible))
+    fetchJSON<{ eligible: boolean }>("/eligibility", { method: "POST" }).then((r) => setEligible(r.eligible))
   }, [])
   if (eligible === null) return null
   if (!eligible) return null

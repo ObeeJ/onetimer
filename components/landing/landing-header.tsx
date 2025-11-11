@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -63,7 +64,7 @@ export default function LandingHeader() {
                   className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
                 >
                   {user.avatar ? (
-                    <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full" />
+                    <Image src={user.avatar} alt={user.name} width={40} height={40} className="w-10 h-10 rounded-full" />
                   ) : (
                     <span className="text-white font-medium text-sm">
                       {getInitials(user.name)}

@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <img src="/Logo.png" alt="OneTime Survey" className="h-12 w-auto mx-auto mb-4" />
+          <Image src="/Logo.png" alt="OneTime Survey" width={128} height={48} priority className="h-12 w-auto mx-auto mb-4" />
           <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

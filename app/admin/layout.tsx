@@ -1,15 +1,16 @@
 "use client"
 
-
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { RoleGuard } from "@/components/auth/role-guard"
+import { ErrorBoundary } from "@/components/error/error-boundary"
 import { Button } from "@/components/ui/button"
 import { Home, Users, ListChecks, CreditCard, BarChart3, Settings, LogOut, User2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SidebarToggle } from "@/components/ui/sidebar-toggle"
 import { useSidebarStore } from "@/lib/sidebar-store"
+import { useAuth } from "@/hooks/use-auth"
 
 const navItems = [
   { title: "Dashboard", url: "/admin", icon: Home },
@@ -26,6 +27,8 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user } = useAuth()
   const isAuthPage = pathname?.includes("/auth/")
   const { isOpen: sidebarOpen } = useSidebarStore()
 
@@ -34,7 +37,8 @@ export default function AdminLayout({
   }
 
   return (
-    <RoleGuard requiredRole="admin" requireAuth={false}>
+    <ErrorBoundary routeName="admin">
+      <RoleGuard requiredRole="admin" requireAuth={false}>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
         {/* Mobile toggle button */}
         <div className="lg:hidden fixed top-4 left-4 z-50">
@@ -63,7 +67,7 @@ export default function AdminLayout({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-2 space-y-1">
+          <nav className="flex-1 p-2 space-y-1" role="navigation" aria-label="Admin navigation">
             {navItems.map((item) => {
               const isActive = pathname === item.url
               return (
@@ -71,20 +75,22 @@ export default function AdminLayout({
                   key={item.title}
                   href={item.url}
                   className={cn(
-                    "flex items-center rounded-xl text-sm font-medium transition-all duration-300 group relative backdrop-blur-sm",
+                    "flex items-center rounded-xl text-sm font-medium transition-all duration-300 group relative backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#013e5c]/50",
                     sidebarOpen ? "gap-3 px-3 py-3" : "justify-center p-3",
                     isActive
                       ? "bg-gradient-to-r from-[#013e5c] to-[#012f46] text-white shadow-lg scale-105"
                       : "text-slate-600 hover:bg-slate-100/80 hover:text-[#013e5c] hover:scale-105 hover:shadow-md"
                   )}
                   title={!sidebarOpen ? item.title : undefined}
+                  aria-current={isActive ? "page" : undefined}
+                  aria-label={!sidebarOpen ? item.title : undefined}
                 >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
                   {sidebarOpen && (
                     <span className="truncate">{item.title}</span>
                   )}
                   {!sidebarOpen && (
-                    <div className="absolute left-full ml-3 px-3 py-2 bg-slate-900/90 backdrop-blur-sm text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-slate-700/50">
+                    <div className="absolute left-full ml-3 px-3 py-2 bg-slate-900/90 backdrop-blur-sm text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-slate-700/50" role="tooltip">
                       {item.title}
                     </div>
                   )}
@@ -102,12 +108,12 @@ export default function AdminLayout({
                     <User2 className="h-5 w-5 text-slate-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">Admin User</p>
-                    <p className="text-xs text-slate-500 truncate">admin@onetime.com</p>
+                    <p className="text-sm font-medium text-slate-900 truncate">{user?.name || "Admin"}</p>
+                    <p className="text-xs text-slate-500 truncate">{user?.email || ""}</p>
                   </div>
                 </div>
                 <Button
-                  onClick={() => window.location.href = "/admin/auth/login"}
+                  onClick={() => router.push("/admin/auth/login")}
                   variant="ghost"
                   className="w-full justify-start text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] px-3 py-2"
                 >
@@ -123,7 +129,7 @@ export default function AdminLayout({
                   </div>
                 </div>
                 <Button
-                  onClick={() => window.location.href = "/admin/auth/login"}
+                  onClick={() => router.push("/admin/auth/login")}
                   variant="ghost"
                   className="w-full justify-center text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] p-2"
                   title="Sign Out"
@@ -185,12 +191,12 @@ export default function AdminLayout({
                   <User2 className="h-5 w-5 text-slate-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">Admin User</p>
-                  <p className="text-xs text-slate-500 truncate">admin@onetime.com</p>
+                  <p className="text-sm font-medium text-slate-900 truncate">{user?.name || "Admin"}</p>
+                  <p className="text-xs text-slate-500 truncate">{user?.email || ""}</p>
                 </div>
               </div>
               <Button
-                onClick={() => window.location.href = "/admin/auth/login"}
+                onClick={() => router.push("/admin/auth/login")}
                 variant="ghost"
                 className="w-full justify-start text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] px-3 py-2"
               >
@@ -209,6 +215,7 @@ export default function AdminLayout({
           {children}
         </main>
       </div>
-    </RoleGuard>
+      </RoleGuard>
+    </ErrorBoundary>
   )
 }

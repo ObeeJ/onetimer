@@ -53,7 +53,7 @@ function SecuritySettings() {
   const [errors, setErrors] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
   const mutation = useMutation({
-    mutationFn: (passwordData: { old_password: string; new_password: string; }) => api.post('/api/user/change-password', passwordData),
+    mutationFn: (passwordData: { old_password: string; new_password: string; }) => api.post('/user/change-password', passwordData),
     onSuccess: () => {
       toast({ title: "Success", description: "Password updated successfully!" });
       setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });

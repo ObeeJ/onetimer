@@ -27,7 +27,7 @@ export default function SignInForm() {
 
     try {
       const user = await signIn(email, password)
-      
+
       // Redirect based on user role
       const roleRoutes = {
         filler: '/filler',
@@ -35,10 +35,11 @@ export default function SignInForm() {
         admin: '/admin',
         super_admin: '/super-admin'
       }
-      
+
       router.push(roleRoutes[user.role as keyof typeof roleRoutes] || '/filler')
-    } catch (err: any) {
-      setError(err.message || "Invalid email or password. Please try again.")
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Invalid email or password. Please try again."
+      setError(errorMessage || "Invalid email or password. Please try again.")
     } finally {
       setIsLoading(false)
     }

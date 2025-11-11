@@ -1,3 +1,12 @@
+/*
+ * DEPRECATED: This hook has been consolidated into the single useAuth() hook in providers/auth-provider.tsx
+ * DO NOT USE - Kept for reference only
+ *
+ * SECURITY ISSUE: Creates mock super admin user with all permissions
+ * Use providers/auth-provider.tsx -> useAuth() instead
+ */
+
+/*
 "use client"
 
 import { useAuth } from "@/providers/auth-provider"
@@ -28,7 +37,7 @@ export function useSuperAdminAuth() {
       name: "Super Admin",
       email,
       role: "super_admin",
-      permissions: ["all"]
+      permissions: ["all"] // SECURITY ISSUE: Grants all permissions to mock user
     }
     setSuperAdminUser(mockUser)
     localStorage.setItem("super_admin_user", JSON.stringify(mockUser))
@@ -50,3 +59,4 @@ export function useSuperAdminAuth() {
     signOut
   }
 }
+*/
