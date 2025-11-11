@@ -15,9 +15,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { User, Building2, CreditCard, Bell, Shield, CheckCircle } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { SettingsSkeleton } from "@/components/ui/skeleton-loader"
+import type { Creator } from "@/types/user"
 
 export default function CreatorSettingsPage() {
   const { user, isLoading: authLoading } = useAuth()
+  const creator = user as Creator | undefined
   const [isLoading, setIsLoading] = useState(false)
   const [settingsLoading, setSettingsLoading] = useState(true)
 
@@ -45,7 +47,7 @@ export default function CreatorSettingsPage() {
     description: ""
   })
 
-  const [paymentMethods, setPaymentMethods] = useState([
+  const [paymentMethods] = useState([
     { id: "1", type: "card", last4: "4242", brand: "visa", isDefault: true }
   ])
 

@@ -17,29 +17,28 @@ export default function EditSurveyPage() {
     id: surveyId,
     title: "Consumer Behavior Study",
     description: "Understanding shopping patterns in urban areas",
-    targetAudience: "general",
-    rewardAmount: 500,
+    category: "market_research",
+    estimated_duration: 10,
+    reward: 500,
     questions: [
       {
         id: "1",
-        type: "multiple_choice" as const,
-        title: "What is your age group?",
-        description: "Please select your current age range",
+        type: "multi" as const,
+        text: "What is your age group?",
         required: true,
         options: ["18-24", "25-34", "35-44", "45-54", "55+"]
       },
       {
         id: "2",
         type: "rating" as const,
-        title: "How satisfied are you with online shopping?",
-        description: "Rate your overall satisfaction",
-        required: true
+        text: "How satisfied are you with online shopping?",
+        required: true,
+        scale: 5
       },
       {
         id: "3",
-        type: "open_ended" as const,
-        title: "What improvements would you suggest?",
-        description: "Share your thoughts and suggestions",
+        type: "text" as const,
+        text: "What improvements would you suggest?",
         required: false
       }
     ]

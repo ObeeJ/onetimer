@@ -252,15 +252,13 @@ class ApiClient {
     const formData = new FormData()
     formData.append('file', file)
 
-    const headers: Record<string, string> = {}
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`
-    }
-
     try {
       const response = await fetch(`${this.baseURL}/upload/${type}`, {
         method: 'POST',
-        headers,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'include', // httpOnly cookie sent automatically
         body: formData,
       })
 

@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/providers/auth-provider"
 import { api } from "@/hooks/use-api"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
-import { AlertCircle, CheckCircle } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 
 const PasswordStrengthIndicator = ({ password }: { password: string }) => {
   const getStrength = () => {
@@ -102,12 +101,14 @@ export default function FillerOnboardingPage() {
     validate(name, value);
   };
 
+  /* DEPRECATED: Checkbox component removed - no longer needed
   const handleInterestChange = (interest: string, checked: boolean) => {
-    const newInterests = checked 
+    const newInterests = checked
       ? [...formData.interests, interest]
       : formData.interests.filter(i => i !== interest);
     setFormData(prev => ({ ...prev, interests: newInterests }));
   };
+  */
 
   const isFormValid = useMemo(() => {
     const requiredFields = ['firstName', 'lastName', 'email', 'password', 'age', 'gender', 'state', 'education', 'employment', 'income'];

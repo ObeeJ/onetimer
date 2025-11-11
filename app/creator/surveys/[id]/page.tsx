@@ -7,23 +7,15 @@ import { Badge } from "@/components/ui/badge"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { 
-  BarChart3, 
-  Users, 
-  Eye, 
-  Calendar, 
-  Download, 
-  Pause, 
-  Play, 
-  Edit, 
-  Trash2,
-  AlertCircle,
-  CheckCircle
+import {
+  Users,
+  Calendar,
+  Download,
+  Pause,
+  Play,
+  Edit
 } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import Link from "next/link"
-import { useAuth } from "@/hooks/use-auth"
 
 interface SurveyResponse {
   id: string
@@ -35,7 +27,6 @@ interface SurveyResponse {
 
 export default function SurveyDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const { isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
   // Mock survey data
@@ -109,7 +100,7 @@ export default function SurveyDetailsPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (_newStatus: string) => {
     setIsLoading(true)
     // TODO: API call to update survey status
     await new Promise(resolve => setTimeout(resolve, 1000))

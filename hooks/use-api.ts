@@ -12,6 +12,89 @@ class ApiError extends Error {
   }
 }
 
+// Simple API client that can be imported directly (no React hooks)
+const simpleApiClient = {
+  get: async <T = unknown>(url: string): Promise<T> => {
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`
+    const res = await fetch(fullUrl, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}))
+      throw new ApiError(res.status, (errorData as Record<string, unknown>).message as string || `Request failed: ${res.status}`, errorData)
+    }
+
+    return res.json() as Promise<T>
+  },
+
+  post: async <T = unknown>(url: string, data?: unknown): Promise<T> => {
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`
+    const res = await fetch(fullUrl, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}))
+      throw new ApiError(res.status, (errorData as Record<string, unknown>).message as string || `Request failed: ${res.status}`, errorData)
+    }
+
+    return res.json() as Promise<T>
+  },
+
+  put: async <T = unknown>(url: string, data?: unknown): Promise<T> => {
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`
+    const res = await fetch(fullUrl, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}))
+      throw new ApiError(res.status, (errorData as Record<string, unknown>).message as string || `Request failed: ${res.status}`, errorData)
+    }
+
+    return res.json() as Promise<T>
+  },
+
+  delete: async <T = unknown>(url: string): Promise<T> => {
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`
+    const res = await fetch(fullUrl, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}))
+      throw new ApiError(res.status, (errorData as Record<string, unknown>).message as string || `Request failed: ${res.status}`, errorData)
+    }
+
+    return res.json() as Promise<T>
+  },
+}
+
+export const api = simpleApiClient
+
 export function useApi() {
   const router = useRouter()
 
@@ -22,10 +105,10 @@ export function useApi() {
     const url = typeof input === 'string' && !input.startsWith('http')
       ? `${API_BASE}${input}`
       : input
-    
+
     const start = Date.now()
     const method = init?.method || 'GET'
-    
+
     const res = await fetch(url, {
       credentials: 'include',
       headers: {
@@ -37,10 +120,10 @@ export function useApi() {
     })
 
     const duration = Date.now() - start
-    
+
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}))
-      
+
       logger.logApiCall(method, url.toString(), res.status, duration)
       logger.error('API Request Failed', undefined, {
         method,
@@ -54,7 +137,7 @@ export function useApi() {
         return Promise.reject(new ApiError(401, 'Unauthorized'))
       }
 
-      throw new ApiError(res.status, errorData.message || `Request failed: ${res.status}`, errorData)
+      throw new ApiError(res.status, (errorData as Record<string, unknown>).message as string || `Request failed: ${res.status}`, errorData)
     }
 
     logger.logApiCall(method, url.toString(), res.status, duration)

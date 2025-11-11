@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@/types/user"
-import { api } from "@/hooks/use-api"
+import { apiClient } from "@/lib/api-client"
 import { logger } from "@/lib/logger"
 
 interface AuthContextType {
@@ -24,8 +24,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const response = await api.get<{ user: User }>('/v1/users/profile')
-      setUser(response.user)
+      const response = await apiClient.getProfile()
+      if (response.ok && response.data) {
+        setUser(response.data as unknown as User)
+      } else {
+        setUser(null)
+      }
     } catch {
       setUser(null)
     }
@@ -55,35 +59,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = async (email: string, password: string): Promise<User> => {
-    logger.logUserAction('sign_in_attempt', { email })
-    
+    logger.logUserAction('sign_in_attempt', { email, timestamp: new Date().toISOString() })
+
     try {
-      const response = await api.post<{ user: User }>('/v1/auth/login', { email, password })
-      setUser(response.user)
-      
+      const response = await apiClient.login(email, password)
+      if (!response.ok || !response.data) {
+        throw new Error(response.error || 'Login failed')
+      }
+
+      const userData = (response.data as Record<string, unknown>).user as User
+      setUser(userData)
+
       logger.logUserAction('sign_in_success', {
-        userId: response.user.id,
-        role: response.user.role,
-        email: response.user.email
+        userId: userData.id,
+        role: userData.role,
+        email: userData.email,
+        timestamp: new Date().toISOString()
       })
-      
-      return response.user
+
+      return userData
     } catch (error) {
-      logger.error('Sign in failed', error as Error, { email })
+      logger.error('Sign in failed', error as Error, { email, timestamp: new Date().toISOString() })
       throw error
     }
   }
 
   const signOut = async () => {
     const userId = user?.id
-    
-    logger.logUserAction('sign_out_attempt', { userId })
-    
+
+    logger.logUserAction('sign_out_attempt', { userId, timestamp: new Date().toISOString() })
+
     try {
-      await api.post('/v1/auth/logout')
-      logger.logUserAction('sign_out_success', { userId })
+      await apiClient.logout()
+      logger.logUserAction('sign_out_success', { userId, timestamp: new Date().toISOString() })
     } catch (error) {
-      logger.error('Sign out failed', error as Error, { userId })
+      logger.error('Sign out failed', error as Error, { userId, timestamp: new Date().toISOString() })
     } finally {
       setUser(null)
     }

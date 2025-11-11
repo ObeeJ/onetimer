@@ -13,7 +13,7 @@ import { useCreatorDashboard, useCreatorSurveys } from "@/hooks/use-creator"
 export default function CreatorDashboardPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const { data: dashboard, isLoading: dashboardLoading } = useCreatorDashboard()
-  const { data: surveysData, isLoading: surveysLoading } = useCreatorSurveys()
+  const { data: surveysData } = useCreatorSurveys()
   const router = useRouter()
 
   useEffect(() => {

@@ -16,7 +16,7 @@ import { Breadcrumb } from "@/components/ui/breadcrumb"
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isVerified, isLoading } = useAuth()
-  const { data: surveys, isLoading: surveysLoading } = useSurveys()
+  const { data: surveys } = useSurveys()
   const { data: earnings } = useEarnings()
   const router = useRouter()
   const reduceMotion = useReducedMotion()
@@ -172,8 +172,8 @@ export default function DashboardPage() {
             </Link>
           </div>
           
-                     {surveys && surveys.pages.reduce((acc, page) => acc + page.surveys.length, 0) > 0 ? (            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                             {surveys.pages.flatMap(page => page.surveys).slice(0, 6).map((survey) => (                <Card key={survey.id} className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                     {surveys ? (            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                             {(Array.isArray(surveys) ? surveys : [surveys]).filter(s => s).slice(0, 6).map((survey) => (                <Card key={survey.id} className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <Badge variant="secondary" className="rounded-full bg-blue-100 text-blue-700 text-xs">

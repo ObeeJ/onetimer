@@ -27,7 +27,7 @@ function VerifyOTPContent() {
       })
       
       if (response.ok) {
-        const data = await response.json()
+        await response.json() // Consume response, user data from backend
         await signIn(email || '', '') // Will get user data from backend
         router.push("/filler/onboarding")
       } else {

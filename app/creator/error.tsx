@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { AlertCircle, ArrowLeft, Home } from "lucide-react"
+import { AlertCircle, Home } from "lucide-react"
 
 export default function CreatorError({
   error,
