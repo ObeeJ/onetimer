@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, AlertCircle, Check } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
 
 export default function SignUpForm() {
   const [formData, setFormData] = useState({
@@ -23,7 +22,6 @@ export default function SignUpForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const { signIn } = useAuth()
   const router = useRouter()
 
   const handleChange = (field: string, value: string) => {

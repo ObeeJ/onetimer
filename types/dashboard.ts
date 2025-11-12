@@ -1,5 +1,3 @@
-import { Survey } from './survey'
-
 export interface CreatorDashboard {
   total_surveys: number
   active_surveys: number

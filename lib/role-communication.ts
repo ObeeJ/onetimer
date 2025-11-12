@@ -121,9 +121,9 @@ export class RoleCommunicationManager {
 
   // Communication Helpers
   static async sendNotificationToRole(
-    role: 'admin' | 'creator' | 'filler' | 'super_admin',
-    message: string,
-    type: 'info' | 'warning' | 'success' | 'error' = 'info'
+    _role: 'admin' | 'creator' | 'filler' | 'super_admin',
+    _message: string,
+    _type: 'info' | 'warning' | 'success' | 'error' = 'info'
   ) {
     // This would send notifications to all users of a specific role
     // TODO: Implement broadcast notification method in apiClient
@@ -185,7 +185,7 @@ export class RoleCommunicationManager {
     // TODO: Implement backend endpoint for workflow tracking: POST /api/v1/workflows/track
   }
 
-  static async getWorkflowStatus(entityType: string, entityId: string) {
+  static async getWorkflowStatus(_entityType: string, _entityId: string) {
     // This would fetch from the backend
     // TODO: Implement backend endpoint for workflow retrieval: GET /api/v1/workflows/{entityType}/{entityId}
     return null

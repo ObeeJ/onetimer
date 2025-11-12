@@ -41,13 +41,23 @@ function dispatch(toast: Omit<Toast, 'id'>) {
   }, toast.duration || 5000)
 }
 
+export function subscribe(listener: (toasts: Toast[]) => void) {
+  listeners.push(listener)
+  listener([...toasts])
+
+  return () => {
+    const index = listeners.indexOf(listener)
+    if (index > -1) listeners.splice(index, 1)
+  }
+}
+
 export function useToast() {
   const [toastList, setToastList] = useState<Toast[]>([])
-  
+
   const toast = useCallback((props: Omit<Toast, 'id'>) => {
     dispatch(props)
   }, [])
-  
+
   useEffect(() => {
     const unsubscribe = (() => {
       listeners.push(setToastList)
@@ -56,11 +66,11 @@ export function useToast() {
         if (index > -1) listeners.splice(index, 1)
       }
     })()
-    
+
     return unsubscribe
   }, [])
-  
-  return { toast, toasts: toastList }
+
+  return { toast, toasts: toastList, subscribe }
 }
 
 export const toast = (props: Omit<Toast, 'id'>) => dispatch(props)

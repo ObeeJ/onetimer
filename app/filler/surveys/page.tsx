@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { motion, useReducedMotion, easeOut } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -13,7 +13,6 @@ import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { useSurveys } from "@/hooks/use-surveys"
 import { useEarnings } from "@/hooks/use-earnings"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { ErrorMessage } from "@/components/ui/error-message"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -32,9 +31,9 @@ function AvailableSurveys() {
   } = useSurveys()
   const [searchTerm, setSearchTerm] = useState("")
 
-  const allSurveys = data?.pages.flatMap(page => page.surveys) || []
+  const allSurveys = (data as any)?.pages?.flatMap((page: any) => page.surveys) || []
 
-  const filteredSurveys = allSurveys.filter(survey =>
+  const filteredSurveys = allSurveys.filter((survey: any) =>
     survey.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     survey.category.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -71,7 +70,7 @@ function AvailableSurveys() {
         <EmptyState icon={Search} title="No surveys found" description="Try adjusting your search terms or check back later for new surveys." />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredSurveys.map((survey) => (
+          {filteredSurveys.map((survey: any) => (
             <Card key={survey.id} className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
@@ -138,7 +137,7 @@ function SurveyHistory() {
         <Card className="rounded-xl">
           <CardContent className="p-0">
             <div className="divide-y divide-slate-200">
-              {completedSurveys.map((survey) => (
+              {completedSurveys.map((survey: any) => (
                 <div key={survey.id} className="flex items-center justify-between p-4">
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-slate-900 truncate">{survey.description}</p>

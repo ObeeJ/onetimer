@@ -17,7 +17,6 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
 
 const navItems = [

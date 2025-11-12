@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Users, Wallet, CheckCircle, Menu, X, Lock } from "lucide-react"
+import { Users, Wallet, CheckCircle, Menu, X, Lock } from "lucide-react"
 import { AnimatedLogo } from "@/components/ui/animated-logo"
 import { AnimatedBackground } from "@/components/ui/animated-background"
 import { Footer } from "@/components/ui/footer"

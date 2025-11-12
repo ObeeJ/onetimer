@@ -129,6 +129,7 @@ class Logger {
       endpoint,
       status,
       duration: `${duration}ms`,
+      timestamp: new Date().toISOString()
     })
   }
 
@@ -136,6 +137,7 @@ class Logger {
     this.info('User Action', {
       action,
       ...details,
+      timestamp: new Date().toISOString()
     })
   }
 }

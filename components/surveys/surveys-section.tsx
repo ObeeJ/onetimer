@@ -3,8 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { EmptyState } from "@/components/ui/empty-state"
-import { Clock, DollarSign, Users, ListChecks } from "lucide-react"
+import { Clock, Users, ListChecks } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 

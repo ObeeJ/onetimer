@@ -104,7 +104,7 @@ export default function PricingPage() {
       <section className="pb-20 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
-            {plans.map((plan, index) => (
+            {plans.map((plan) => (
               <Card 
                 key={plan.name} 
                 className={`relative card-hover ${plan.popular ? 'ring-2 ring-[#C1654B] scale-105' : ''}`}

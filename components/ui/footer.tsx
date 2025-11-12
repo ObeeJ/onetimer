@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { AnimatedLogo } from "./animated-logo"
 import { Linkedin, Twitter, Instagram, Facebook } from "lucide-react"
 

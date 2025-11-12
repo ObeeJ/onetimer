@@ -129,7 +129,8 @@ export function useApi() {
         method,
         url: url.toString(),
         status: res.status,
-        errorData
+        errorData,
+        timestamp: new Date().toISOString()
       })
 
       if (res.status === 401) {

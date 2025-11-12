@@ -37,6 +37,7 @@ export default function OTPVerificationForm({
       const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000)
       return () => clearTimeout(timer)
     }
+    return
   }, [resendCooldown])
 
   const handleChange = (index: number, value: string) => {

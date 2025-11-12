@@ -1,22 +1,11 @@
 "use client"
 
-import { useEffect, useMemo, useState, useCallback } from "react"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Coins, Star, CheckCircle, ArrowLeft, ArrowRight, Save, Loader2 } from 'lucide-react'
-import { useRouter } from "next/navigation"
-import { useSubmitSurvey, useSurvey, useSaveProgress } from "@/hooks/use-surveys"
-import { useToast } from "@/hooks/use-toast"
+import { useEffect, useMemo, useState } from "react"
+import { Card, CardHeader } from "@/components/ui/card"
+import { Coins, CheckCircle, Loader2 } from 'lucide-react'
+import { useSurvey, useSaveProgress } from "@/hooks/use-surveys"
 import SurveyProgress from "@/components/surveys/survey-progress"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { ErrorMessage } from "@/components/ui/error-message"
 import { useDebounce } from '@/hooks/use-debounce'
-
-// ... (SurveyCompletedScreen and type definitions remain the same)
 
 const SaveStatusIndicator = ({ status }: { status: string }) => {
   let content = null;
@@ -34,36 +23,49 @@ const SaveStatusIndicator = ({ status }: { status: string }) => {
 };
 
 export default function TakeSurveyPage({ params }: { params: { id: string } }) {
-  const { data: survey, isLoading: surveyLoading, error, refetch } = useSurvey(params.id)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [idx, setIdx] = useState(0)
-  const [isCompleted, setIsCompleted] = useState(false)
-  const router = useRouter()
-  const { mutate: submitSurvey, isPending: isSubmitting } = useSubmitSurvey()
+  const { data: survey } = useSurvey(params.id)
+  const [answers] = useState<Record<string, string>>({})
+  const [idx] = useState(0)
   const { mutate: saveProgress } = useSaveProgress()
-  const { toast } = useToast()
-  const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, saved
+  const [saveStatus, setSaveStatus] = useState('idle')
+
   const progress = useMemo(() => {
     if (!survey?.questions?.length) return 0;
     return ((idx + 1) / survey.questions.length) * 100;
   }, [idx, survey]);
 
-  const debouncedAnswers = useDebounce(answers, 2000); // Debounce answers with a 2-second delay
+  const debouncedAnswers = useDebounce(answers, 2000);
 
   useEffect(() => {
     if (Object.keys(debouncedAnswers).length > 0) {
       setSaveStatus('saving');
-      const responses = Object.entries(debouncedAnswers).map(([questionId, answer]) => ({ question_id: questionId, answer }));
-      saveProgress({ surveyId: params.id, responses }, {
+      const responses = Object.entries(debouncedAnswers).map(([questionId, answer]) => ({
+        question_id: questionId,
+        answer
+      }));
+      saveProgress({
+        surveyId: params.id,
+        responses
+      }, {
         onSuccess: () => setTimeout(() => setSaveStatus('saved'), 500),
-        onError: () => setSaveStatus('idle'), // Or show an error state
+        onError: () => setSaveStatus('idle'),
       });
     }
   }, [debouncedAnswers, saveProgress, params.id]);
 
-  // ... (rest of the component logic: isValid, submit, renderQuestion)
+  // TODO: Implement survey questions rendering and submission logic
+  if (!survey) {
+    return (
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <Card className="rounded-2xl shadow-lg border-0">
+          <CardHeader>
+            <p className="text-slate-600">Loading survey...</p>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
-  // ... (return statement with JSX)
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
       <Card className="rounded-2xl shadow-lg border-0">
@@ -80,10 +82,12 @@ export default function TakeSurveyPage({ params }: { params: { id: string } }) {
             <SaveStatusIndicator status={saveStatus} />
           </div>
         </CardHeader>
-        {/* ... CardContent and CardFooter ... */}
       </Card>
+
+      {/* TODO: Implement survey questions display */}
+      <div className="mt-6 text-center text-slate-600">
+        <p>Survey implementation coming soon...</p>
+      </div>
     </div>
   )
 }
-
-

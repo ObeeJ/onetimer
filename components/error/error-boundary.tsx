@@ -81,6 +81,7 @@ export class ErrorBoundary extends Component<Props, State> {
       errorId: this.state.errorId,
       componentStack: errorInfo.componentStack,
       routeName: this.props.routeName,
+      timestamp: new Date().toISOString()
     })
   }
 

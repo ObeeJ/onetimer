@@ -13,13 +13,12 @@ interface AuthLayoutProps {
   role?: string
 }
 
-export function AuthLayout({ 
-  children, 
-  title, 
-  subtitle, 
-  showBackButton = false, 
-  backHref = "/filler",
-  role = "filler"
+export function AuthLayout({
+  children,
+  title,
+  subtitle,
+  showBackButton = false,
+  backHref = "/filler"
 }: AuthLayoutProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-white to-slate-100">

@@ -9,7 +9,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -18,7 +17,6 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 
 const navItems = [

@@ -10,13 +10,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Plus, Trash2, GripVertical, Eye, Save, Send, Upload, AlertCircle, CheckCircle, MessageSquare, Star } from "lucide-react"
+import { Plus, Trash2, GripVertical, Eye, Save, Send, AlertCircle, CheckCircle, MessageSquare, Star } from "lucide-react"
 import { useCreateSurvey, useUpdateSurvey } from "@/hooks/use-creator"
-import { useToast } from "@/hooks/use-toast"
 import { Survey, Question } from "@/types/survey"
 import { logger } from "@/lib/logger"
 
-type QuestionType = "multiple_choice" | "open_ended" | "rating" | "media_upload"
+type QuestionType = "multiple_choice" | "open_ended" | "rating"
 
 interface SurveyData extends Omit<Survey, 'id' | 'created_at' | 'updated_at' | 'status'> {
   questions: Question[]
@@ -46,14 +45,13 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
   const questionTypes = [
     { value: "multiple_choice", label: "Multiple Choice" },
     { value: "open_ended", label: "Open Ended" },
-    { value: "rating", label: "Rating Scale" },
-    { value: "media_upload", label: "Media Upload" }
+    { value: "rating", label: "Rating Scale" }
   ]
 
   const addQuestion = (type: QuestionType) => {
     const newQuestion: Question = {
       id: Date.now().toString(),
-      type: type === "multiple_choice" ? "multi" : type === "open_ended" ? "text" : type,
+      type: type === "multiple_choice" ? "multi" : type === "open_ended" ? "text" : "rating",
       text: "",
       required: false,
       ...(type === "multiple_choice" && { options: ["", ""] })
@@ -140,11 +138,11 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
     })
     
     try {
-      const surveyData = {
+      const surveyData: Partial<Survey> = {
         ...survey,
         status: 'draft'
       }
-      
+
       if (isEditing && initialData?.id) {
         await updateSurvey.mutateAsync({ id: initialData.id, data: surveyData })
         logger.logUserAction('survey_draft_updated', { surveyId: initialData.id })
@@ -155,7 +153,8 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
     } catch (error) {
       logger.error('Survey draft save failed', error as Error, {
         action: 'save_draft',
-        surveyTitle: survey.title
+        surveyTitle: survey.title,
+        timestamp: new Date().toISOString()
       })
     } finally {
       setIsSaving(false)
@@ -166,7 +165,8 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
     if (!validateSurvey()) {
       logger.warn('Survey validation failed', {
         surveyTitle: survey.title,
-        errors: Object.keys(errors)
+        errors: Object.keys(errors),
+        timestamp: new Date().toISOString()
       })
       return
     }
@@ -179,11 +179,11 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
     })
     
     try {
-      const surveyData = {
+      const surveyData: Partial<Survey> = {
         ...survey,
         status: 'pending'
       }
-      
+
       if (isEditing && initialData?.id) {
         await updateSurvey.mutateAsync({ id: initialData.id, data: surveyData })
         logger.logUserAction('survey_updated_for_approval', { surveyId: initialData.id })
@@ -196,7 +196,8 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
     } catch (error) {
       logger.error('Survey submission failed', error as Error, {
         action: 'submit_for_approval',
-        surveyTitle: survey.title
+        surveyTitle: survey.title,
+        timestamp: new Date().toISOString()
       })
     } finally {
       setIsSaving(false)
@@ -222,7 +223,9 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <GripVertical className="h-4 w-4 text-slate-400 cursor-move" />
-            <Badge variant="outline" className="bg-slate-50/80">{questionTypes.find(t => t.value === question.type)?.label}</Badge>
+            <Badge variant="outline" className="bg-slate-50/80">
+              {question.type === "multi" ? "Multiple Choice" : question.type === "text" ? "Open Ended" : "Rating Scale"}
+            </Badge>
           </div>
           <div className="flex items-center gap-2">
             <Select onValueChange={(value) => addQuestion(value as QuestionType)}>
@@ -273,7 +276,7 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
           />
         </div>
 
-        {question.type === "multiple_choice" && (
+        {question.type === "multi" && (
           <div className="space-y-2">
             <Label>Options *</Label>
             {question.options?.map((option, optionIndex) => (
@@ -320,15 +323,6 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
             </Select>
           </div>
         )}
-
-        {question.type === "media_upload" && (
-          <Alert>
-            <Upload className="h-4 w-4" />
-            <AlertDescription>
-              Respondents will be able to upload images, videos, or documents (max 5MB per file).
-            </AlertDescription>
-          </Alert>
-        )}
       </CardContent>
     </Card>
   )
@@ -358,8 +352,8 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
                 {question.placeholder && (
                   <p className="text-sm text-slate-600">{question.placeholder}</p>
                 )}
-                
-                {question.type === "multiple_choice" && (
+
+                {question.type === "multi" && (
                   <div className="space-y-2">
                     {question.options?.map((option, i) => (
                       <div key={i} className="flex items-center gap-2">
@@ -369,8 +363,8 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
                     ))}
                   </div>
                 )}
-                
-                {question.type === "open_ended" && (
+
+                {question.type === "text" && (
                   <Textarea placeholder="Your answer here..." disabled />
                 )}
                 
@@ -381,13 +375,6 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
                         {rating}
                       </button>
                     ))}
-                  </div>
-                )}
-                
-                {question.type === "media_upload" && (
-                  <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center">
-                    <Upload className="h-8 w-8 mx-auto text-slate-400 mb-2" />
-                    <p className="text-sm text-slate-600">Upload files (max 5MB)</p>
                   </div>
                 )}
               </div>
@@ -482,15 +469,6 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
             >
               <Star className="h-3 w-3 mr-1" />
               <span className="truncate">Rating Scale</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => addQuestion("media_upload")}
-              className="border-slate-200 hover:bg-white hover:border-[#C1654B] hover:text-[#C1654B] transition-all duration-200 text-xs sm:text-sm"
-            >
-              <Upload className="h-3 w-3 mr-1" />
-              <span className="truncate">Media Upload</span>
             </Button>
           </div>
         </div>

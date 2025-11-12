@@ -2,7 +2,6 @@
 
 import { motion, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import { useState } from "react"
 import { Twitter, Instagram, Linkedin, Mail, Lock } from "lucide-react"
 

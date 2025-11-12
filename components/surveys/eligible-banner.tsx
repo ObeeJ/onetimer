@@ -3,12 +3,12 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { BadgeCheck } from 'lucide-react'
 import { useEffect, useState } from "react"
-import { fetchJSON } from "@/hooks/use-api"
+import { api } from "@/hooks/use-api"
 
 export default function EligibleBanner() {
   const [eligible, setEligible] = useState<boolean | null>(null)
   useEffect(() => {
-    fetchJSON<{ eligible: boolean }>("/eligibility", { method: "POST" }).then((r) => setEligible(r.eligible))
+    api.post<{ eligible: boolean }>("/eligibility").then((r) => setEligible(r.eligible))
   }, [])
   if (eligible === null) return null
   if (!eligible) return null

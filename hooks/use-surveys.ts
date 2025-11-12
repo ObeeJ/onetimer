@@ -13,16 +13,22 @@ const fetchSurveys = async ({ pageParam = 1 }: { pageParam?: number }): Promise<
 }
 
 export function useSurveys() {
-  return useInfiniteQuery(
-    createQueryOptions({
-      queryKey: ['surveys'],
-      queryFn: fetchSurveys,
-      initialPageParam: 1,
-      getNextPageParam: (lastPage, pages) => {
-        return lastPage.hasNextPage ? pages.length + 1 : undefined
-      },
-    })
-  )
+  return useInfiniteQuery({
+    queryKey: ['surveys'],
+    queryFn: fetchSurveys,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages) => {
+      return lastPage.hasNextPage ? pages.length + 1 : undefined
+    },
+    retry: (failureCount, error) => {
+      const appError = error as any
+      if ([401, 403, 404].includes(appError.status)) {
+        return false
+      }
+      return failureCount < 3
+    },
+    throwOnError: true,
+  })
 }
 
 export function useSurvey(id: string) {
@@ -60,14 +66,20 @@ export function useSaveProgress() {
 }
 
 export function useEligibleSurveys() {
-  return useInfiniteQuery(
-    createQueryOptions({
-      queryKey: ['surveys', 'eligible'],
-      queryFn: fetchSurveys,
-      initialPageParam: 1,
-      getNextPageParam: (lastPage, pages) => {
-        return lastPage.hasNextPage ? pages.length + 1 : undefined
-      },
-    })
-  )
+  return useInfiniteQuery({
+    queryKey: ['surveys', 'eligible'],
+    queryFn: fetchSurveys,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages) => {
+      return lastPage.hasNextPage ? pages.length + 1 : undefined
+    },
+    retry: (failureCount, error) => {
+      const appError = error as any
+      if ([401, 403, 404].includes(appError.status)) {
+        return false
+      }
+      return failureCount < 3
+    },
+    throwOnError: true,
+  })
 }
