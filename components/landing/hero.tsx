@@ -129,7 +129,7 @@ export default function Hero() {
                 }
                 transition={{
                   duration: 4,
-                  repeat: Number.POSITIVE_INFINITY,
+                  repeat: Infinity,
                   ease: "easeInOut",
                 }}
               >
@@ -236,7 +236,7 @@ export default function Hero() {
                 }
                 transition={{
                   duration: 4,
-                  repeat: Number.POSITIVE_INFINITY,
+                  repeat: Infinity,
                   ease: 'easeInOut',
                 }}
               />
