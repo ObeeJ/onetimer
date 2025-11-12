@@ -19,7 +19,7 @@ export const createQueryOptions = <T,>(
   throwOnError: true,
 })
 
-export const createMutationOptions = <TData, TError, TVariables>(
+export const createMutationOptions = <TData, TVariables>(
   options: UseMutationOptions<TData, AppError, TVariables>
 ): UseMutationOptions<TData, AppError, TVariables> => {
   const baseOptions: UseMutationOptions<TData, AppError, TVariables> = {
