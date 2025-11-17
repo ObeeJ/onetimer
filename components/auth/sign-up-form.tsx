@@ -29,7 +29,12 @@ export default function SignUpForm() {
   }
 
   const validatePassword = (password: string) => {
-    return password.length >= 8
+    if (password.length < 8) return false
+    if (!/[A-Z]/.test(password)) return false
+    if (!/[a-z]/.test(password)) return false
+    if (!/[0-9]/.test(password)) return false
+    if (!/[^A-Za-z0-9]/.test(password)) return false
+    return true
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

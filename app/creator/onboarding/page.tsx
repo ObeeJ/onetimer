@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/providers/auth-provider"
+import { api } from "@/hooks/use-api"
+import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 
 const industryRoles = {
@@ -167,6 +169,7 @@ export default function CreatorOnboardingPage() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const { signIn } = useAuth()
+  const { toast } = useToast()
   const router = useRouter()
 
   const availableRoles = selectedIndustry ? industryRoles[selectedIndustry as keyof typeof industryRoles] || [] : []
@@ -176,13 +179,37 @@ export default function CreatorOnboardingPage() {
     setIsLoading(true)
 
     try {
-      // Sign in the user
+      const registrationData = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+        role: "creator",
+        profile: {
+          user_type: formData.userType,
+          organization: formData.organization,
+          job_title: formData.jobTitle,
+          description: formData.description,
+          goals: formData.goals,
+          industry: selectedIndustry,
+          role_in_industry: selectedRole,
+          sources: formData.sources,
+          custom_source: formData.customSource,
+        }
+      }
+
+      await api.post('/onboarding/creator', registrationData)
       await signIn(formData.email, formData.password)
-      
-      // Redirect to creator dashboard
+
+      toast({ title: "Success", description: "Account created successfully!", variant: "success" })
       router.push("/creator")
     } catch (error) {
-      console.error("Registration failed:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Registration failed",
+        variant: "destructive"
+      })
     } finally {
       setIsLoading(false)
     }

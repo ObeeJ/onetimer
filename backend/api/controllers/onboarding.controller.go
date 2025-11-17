@@ -112,6 +112,110 @@ func (h *OnboardingController) CompleteFillerOnboarding(c *fiber.Ctx) error {
 	})
 }
 
+// CompleteCreatorOnboarding handles complete creator registration with profile
+func (h *OnboardingController) CompleteCreatorOnboarding(c *fiber.Ctx) error {
+	var req struct {
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+		Phone     string `json:"phone"`
+		Role      string `json:"role"`
+		Profile   struct {
+			UserType      string   `json:"user_type"`
+			Organization  string   `json:"organization"`
+			JobTitle      string   `json:"job_title"`
+			Description   string   `json:"description"`
+			Goals         string   `json:"goals"`
+			Industry      string   `json:"industry"`
+			RoleIndustry  string   `json:"role_in_industry"`
+			Sources       []string `json:"sources"`
+			CustomSource  string   `json:"custom_source"`
+		} `json:"profile"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request data"})
+	}
+
+	// Validate required fields
+	if req.FirstName == "" || req.LastName == "" || req.Email == "" || req.Password == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "Missing required fields"})
+	}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to process password"})
+	}
+
+	userID := uuid.New()
+	referralCode := fmt.Sprintf("REF%s", userID.String()[:8])
+	fullName := fmt.Sprintf("%s %s", req.FirstName, req.LastName)
+
+	// Create user in database
+	query := `
+		INSERT INTO users (id, email, name, role, password_hash, is_verified, is_active, kyc_status, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+	`
+	_, err = h.db.Exec(context.Background(), query, userID, req.Email, fullName, "creator", string(hashedPassword), false, true, "pending")
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Email already exists or database error"})
+	}
+
+	// Create creator profile - store extended data in interests JSONB field
+	profileData := fiber.Map{
+		"user_type":      req.Profile.UserType,
+		"organization":   req.Profile.Organization,
+		"job_title":      req.Profile.JobTitle,
+		"description":    req.Profile.Description,
+		"goals":          req.Profile.Goals,
+		"industry":       req.Profile.Industry,
+		"role_industry":  req.Profile.RoleIndustry,
+		"sources":        req.Profile.Sources,
+		"custom_source":  req.Profile.CustomSource,
+	}
+	profileJSON, _ := json.Marshal(profileData)
+
+	profileQuery := `
+		INSERT INTO user_profiles (user_id, education, interests, created_at, updated_at)
+		VALUES ($1, $2, $3, NOW(), NOW())
+	`
+
+	_, err = h.db.Exec(context.Background(), profileQuery, userID, "creator", string(profileJSON))
+	if err != nil {
+		// Rollback user creation if profile fails
+		h.db.Exec(context.Background(), "DELETE FROM users WHERE id = $1", userID)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to create creator profile"})
+	}
+
+	// Create referral record
+	referralQuery := `
+		INSERT INTO referrals (id, user_id, code, status, created_at)
+		VALUES ($1, $2, $3, 'active', NOW())
+	`
+	h.db.Exec(context.Background(), referralQuery, uuid.New(), userID, referralCode)
+
+	user := fiber.Map{
+		"id":            userID,
+		"email":         req.Email,
+		"name":          fullName,
+		"role":          "creator",
+		"is_verified":   false,
+		"is_active":     true,
+		"kyc_status":    "pending",
+		"referral_code": referralCode,
+		"created_at":    time.Now(),
+	}
+
+	return c.Status(201).JSON(fiber.Map{
+		"ok":        true,
+		"user":      user,
+		"message":   "Creator account created successfully",
+		"next_step": "Please verify your email to start creating surveys",
+	})
+}
+
 // UpdateDemographics updates user demographic information
 func (h *OnboardingController) UpdateDemographics(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)

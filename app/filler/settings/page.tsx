@@ -27,7 +27,10 @@ const validateField = (name: string, value: string, password = '') => {
       return value.length === 0 ? 'Current password is required.' : '';
     case 'newPassword':
       if (value.length < 8) return 'Must be at least 8 characters.';
-      if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])/.test(value)) return 'Must include uppercase, lowercase, and a number.';
+      if (!/[A-Z]/.test(value)) return 'Must include uppercase letter.';
+      if (!/[a-z]/.test(value)) return 'Must include lowercase letter.';
+      if (!/[0-9]/.test(value)) return 'Must include a number.';
+      if (!/[^A-Za-z0-9]/.test(value)) return 'Must include a special character.';
       return '';
     case 'confirmPassword':
       return value !== password ? 'Passwords do not match.' : '';
@@ -151,7 +154,7 @@ export default function FillerSettingsPage() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      await api.post('/onboarding/demographics', demographicsData)
+      await api.put('/onboarding/demographics', demographicsData)
       toast({ title: "Success", description: "Demographics updated successfully!" })
     } catch (error) {
       toast({

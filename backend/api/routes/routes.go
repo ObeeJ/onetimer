@@ -185,6 +185,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *pgx
 	// Onboarding routes
 	onboarding := api.Group("/onboarding")
 	onboarding.Post("/filler", onboardingController.CompleteFillerOnboarding)
+	onboarding.Post("/creator", onboardingController.CompleteCreatorOnboarding)
 	onboarding.Put("/demographics", onboardingController.UpdateDemographics)
 	onboarding.Get("/surveys", onboardingController.GetEligibleSurveys)
 

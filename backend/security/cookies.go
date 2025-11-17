@@ -3,6 +3,7 @@ package security
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,15 +11,18 @@ import (
 
 // Secure cookie configuration
 func SetSecureCookie(c *fiber.Ctx, name, value string, maxAge time.Duration) {
+	// Only set Secure flag in production (HTTPS)
+	isProduction := os.Getenv("ENVIRONMENT") == "production"
+
 	c.Cookie(&fiber.Cookie{
 		Name:     name,
 		Value:    value,
 		MaxAge:   int(maxAge.Seconds()),
 		Path:     "/",
 		Domain:   "",
-		Secure:   true,
+		Secure:   isProduction,
 		HTTPOnly: true,
-		SameSite: "Strict",
+		SameSite: "Lax",
 	})
 }
 
@@ -41,14 +45,16 @@ func GetSecureCookie(c *fiber.Ctx, name string) string {
 
 // Clear secure cookie
 func ClearSecureCookie(c *fiber.Ctx, name string) {
+	isProduction := os.Getenv("ENVIRONMENT") == "production"
+
 	c.Cookie(&fiber.Cookie{
 		Name:     name,
 		Value:    "",
 		MaxAge:   -1,
 		Path:     "/",
 		HTTPOnly: true,
-		Secure:   true,
-		SameSite: "Strict",
+		Secure:   isProduction,
+		SameSite: "Lax",
 	})
 }
 
