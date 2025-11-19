@@ -2,28 +2,32 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"onetimer-backend/cache"
+	"onetimer-backend/database"
 	"onetimer-backend/models"
+	"onetimer-backend/repository"
 	"onetimer-backend/security"
 	"onetimer-backend/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 )
 
 type UserController struct {
-	cache *cache.Cache
-	db    *pgxpool.Pool
+	cache    *cache.Cache
+	db       *database.SupabaseDB
+	userRepo *repository.UserRepository
 }
 
 func NewUserController(cache *cache.Cache) *UserController {
 	return &UserController{cache: cache}
 }
 
-func NewUserControllerWithDB(cache *cache.Cache, db *pgxpool.Pool) *UserController {
-	return &UserController{cache: cache, db: db}
+func NewUserControllerWithDB(cache *cache.Cache, db *database.SupabaseDB) *UserController {
+	return &UserController{cache: cache, db: db, userRepo: repository.NewUserRepository(db)}
 }
 
 func (h *UserController) Register(c *fiber.Ctx) error {
@@ -77,16 +81,16 @@ func (h *UserController) Register(c *fiber.Ctx) error {
 
 	// Save to database if available
 	if h.db != nil {
-		err := h.db.QueryRow(context.Background(),
-			"INSERT INTO users (id, email, name, phone, password_hash, role, is_verified, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
-			userID, req.Email, req.Name, req.Phone, passwordHash, req.Role, false, true).Scan(&userID)
+		_, err := h.db.Exec(context.Background(),
+			"INSERT INTO users (id, email, name, phone, password_hash, role, is_verified, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+			userID, req.Email, req.Name, req.Phone, passwordHash, req.Role, false, true)
 
 		if err != nil {
-			// Check if it's a duplicate email error
-			if err.Error() == "no rows in result set" {
+			// Check for unique constraint violation (duplicate email)
+			if err.Error() == "unique violation" || err.Error() == "UNIQUE constraint failed: users.email" {
 				return c.Status(409).JSON(fiber.Map{"error": "Email already registered"})
 			}
-			return c.Status(500).JSON(fiber.Map{"error": "Failed to create user"})
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to create user", "details": err.Error()})
 		}
 	}
 
@@ -99,13 +103,12 @@ func (h *UserController) Register(c *fiber.Ctx) error {
 func (h *UserController) GetProfile(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 
-	user := models.User{
-		ID:         uuid.MustParse(userID),
-		Email:      "user@example.com",
-		Name:       "John Doe",
-		Role:       "filler",
-		IsVerified: true,
-		IsActive:   true,
+	user, err := h.userRepo.GetByID(context.Background(), uuid.MustParse(userID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return c.Status(404).JSON(fiber.Map{"error": "User not found"})
+		}
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to get user"})
 	}
 
 	return c.JSON(fiber.Map{"user": user})
@@ -144,5 +147,61 @@ func (h *UserController) UploadKYC(c *fiber.Ctx) error {
 		"ok":       true,
 		"message":  "KYC document uploaded successfully",
 		"filename": file.Filename,
+	})
+}
+
+func (h *UserController) ChangePassword(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+
+	var req struct {
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	user, err := h.userRepo.GetByID(context.Background(), uuid.MustParse(userID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return c.Status(404).JSON(fiber.Map{"error": "User not found"})
+		}
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to get user"})
+	}
+
+	if !utils.CheckPassword(req.OldPassword, user.PasswordHash) {
+		return c.Status(401).JSON(fiber.Map{"error": "Invalid old password"})
+	}
+
+	newPasswordHash, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to hash new password"})
+	}
+
+	err = h.userRepo.UpdateUserPassword(context.Background(), user.ID, newPasswordHash)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to update password"})
+	}
+
+	return c.JSON(fiber.Map{
+		"ok":      true,
+		"message": "Password changed successfully",
+	})
+}
+
+func (h *UserController) GetKYCStatus(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+
+	user, err := h.userRepo.GetByID(context.Background(), uuid.MustParse(userID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return c.Status(404).JSON(fiber.Map{"error": "User not found"})
+		}
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to get user"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": user.KycStatus,
 	})
 }

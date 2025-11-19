@@ -57,7 +57,7 @@ func (h *FillerController) GetDashboard(c *fiber.Ctx) error {
 
 	// Get recent surveys (limit 5)
 	rows, err := h.db.Query(context.Background(),
-		"SELECT id, title, description, reward, estimated_time FROM surveys WHERE status = $1 ORDER BY created_at DESC LIMIT 5",
+		"SELECT id, title, description FROM surveys WHERE status = $1 ORDER BY created_at DESC LIMIT 5",
 		"active")
 
 	if err != nil {
@@ -68,18 +68,15 @@ func (h *FillerController) GetDashboard(c *fiber.Ctx) error {
 	var recentSurveys []fiber.Map
 	for rows.Next() {
 		var surveyID, title, description string
-		var reward, estimatedTime int
 
-		if err := rows.Scan(&surveyID, &title, &description, &reward, &estimatedTime); err != nil {
+		if err := rows.Scan(&surveyID, &title, &description); err != nil {
 			continue
 		}
 
 		recentSurveys = append(recentSurveys, fiber.Map{
-			"id":             surveyID,
-			"title":          title,
-			"description":    description,
-			"reward":         reward,
-			"estimated_time": estimatedTime,
+			"id":          surveyID,
+			"title":       title,
+			"description": description,
 		})
 	}
 
@@ -106,7 +103,7 @@ func (h *FillerController) GetDashboard(c *fiber.Ctx) error {
 func (h *FillerController) GetAvailableSurveys(c *fiber.Ctx) error {
 	// Get all active surveys
 	rows, err := h.db.Query(context.Background(),
-		"SELECT id, title, description, category, reward, estimated_time, status FROM surveys WHERE status = $1 ORDER BY created_at DESC",
+		"SELECT id, title, description FROM surveys WHERE status = $1 ORDER BY created_at DESC",
 		"active")
 
 	if err != nil {
@@ -116,21 +113,16 @@ func (h *FillerController) GetAvailableSurveys(c *fiber.Ctx) error {
 
 	var surveys []fiber.Map
 	for rows.Next() {
-		var id, title, description, category, status string
-		var reward, estimatedTime int
+		var id, title, description string
 
-		if err := rows.Scan(&id, &title, &description, &category, &reward, &estimatedTime, &status); err != nil {
+		if err := rows.Scan(&id, &title, &description); err != nil {
 			continue
 		}
 
 		surveys = append(surveys, fiber.Map{
-			"id":             id,
-			"title":          title,
-			"description":    description,
-			"category":       category,
-			"reward":         reward,
-			"estimated_time": estimatedTime,
-			"status":         status,
+			"id":          id,
+			"title":       title,
+			"description": description,
 		})
 	}
 
@@ -148,7 +140,7 @@ func (h *FillerController) GetCompletedSurveys(c *fiber.Ctx) error {
 	}
 
 	rows, err := h.db.Query(context.Background(),
-		"SELECT s.id, s.title, s.reward, r.created_at FROM surveys s JOIN responses r ON s.id = r.survey_id WHERE r.user_id = $1 ORDER BY r.created_at DESC",
+		"SELECT s.id, s.title, r.completed_at FROM surveys s JOIN responses r ON s.id = r.survey_id WHERE r.filler_id = $1 ORDER BY r.completed_at DESC",
 		userID)
 
 	if err != nil {
@@ -159,17 +151,15 @@ func (h *FillerController) GetCompletedSurveys(c *fiber.Ctx) error {
 	var completedSurveys []fiber.Map
 	for rows.Next() {
 		var id, title string
-		var reward int
-		var completedAt time.Time
+		var completedAt *time.Time
 
-		if err := rows.Scan(&id, &title, &reward, &completedAt); err != nil {
+		if err := rows.Scan(&id, &title, &completedAt); err != nil {
 			continue
 		}
 
 		completedSurveys = append(completedSurveys, fiber.Map{
 			"survey_id":    id,
 			"title":        title,
-			"reward":       reward,
 			"completed_at": completedAt,
 		})
 	}
