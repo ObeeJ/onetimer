@@ -5,7 +5,6 @@ import (
 	"onetimer-backend/models"
 	"onetimer-backend/services"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -56,7 +55,7 @@ func TestRoleCommunication(t *testing.T) {
 
 	t.Run("SuperAdminCreateAdmin", func(t *testing.T) {
 		superAdminID := createTestUser(t, db, "super_admin")
-		
+
 		newAdmin := models.User{
 			ID:           uuid.New(),
 			Email:        "newadmin@test.com",
@@ -147,7 +146,7 @@ func setupTestDB(t *testing.T) *pgxpool.Pool {
 	if err != nil {
 		t.Skip("Test database not available")
 	}
-	
+
 	// Setup test schema
 	setupTestSchema(t, db)
 	return db
@@ -211,7 +210,7 @@ func setupTestSchema(t *testing.T, db *pgxpool.Pool) {
 			created_at TIMESTAMP DEFAULT NOW()
 		);
 	`
-	
+
 	_, err := db.Exec(context.Background(), schema)
 	require.NoError(t, err)
 }

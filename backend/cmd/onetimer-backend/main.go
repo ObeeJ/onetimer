@@ -35,20 +35,20 @@ func main() {
 	// Connect to Supabase PostgreSQL database
 	supabaseDB, err := database.NewSupabaseConnection(cfg)
 	if err != nil {
-		log.Fatalf("❌ Failed to connect to database: %v", err)
+		log.Printf("Database ping failed: %v", err)
+		log.Println("Running without database - using mock data")
+		supabaseDB = nil
+	} else {
+		log.Println("Database connected successfully")
+		if err := supabaseDB.InitSchema(); err != nil {
+			log.Printf("Schema initialization failed: %v", err)
+		}
 	}
-
-	log.Println("✅ Database connected successfully")
-	if err := supabaseDB.InitSchema(); err != nil {
-		log.Printf("⚠️ Schema initialization failed: %v", err)
-	}
-
-	dbPool := supabaseDB.Pool
 
 	// Initialize services
 	emailService := services.NewEmailService(cfg)
 	paystackService := services.NewPaystackService(cfg.PaystackSecret)
-	storageService, err := services.NewStorageService(cfg)
+	storageService, err := services.NewStorageService(cfg.AWSRegion, cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey, cfg.S3Bucket)
 	if err != nil {
 		log.Printf("⚠️ Storage service initialization failed: %v (uploads will use local storage)", err)
 		storageService = nil
@@ -71,7 +71,7 @@ func main() {
 	log.Println("✅ WebSocket hub initialized")
 
 	// Setup routes
-	routes.SetupRoutes(app, cacheInstance, cfg, dbPool, emailService, paystackService, storageService, rateLimiter, wsHub)
+	routes.SetupRoutes(app, cacheInstance, cfg, supabaseDB, emailService, paystackService, storageService, rateLimiter, wsHub)
 
 	// Start server
 	port := os.Getenv("PORT")

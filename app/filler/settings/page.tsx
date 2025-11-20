@@ -252,7 +252,7 @@ export default function FillerSettingsPage() {
                       type="email"
                       value={profileData.email}
                       onChange={handleProfileChange}
-                      placeholder="john@example.com"
+                      placeholder="your.email@example.com"
                     />
                     {profileErrors.email && (
                       <p className="text-sm text-red-600">{profileErrors.email}</p>

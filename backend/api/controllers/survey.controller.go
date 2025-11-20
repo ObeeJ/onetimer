@@ -1,37 +1,29 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"onetimer-backend/cache"
+	"onetimer-backend/database"
 	"onetimer-backend/models"
 	"onetimer-backend/repository"
-	"onetimer-backend/services"
 	"onetimer-backend/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type SurveyController struct {
-	cache          *cache.Cache
-	db             *pgxpool.Pool
-	repo           *repository.SurveyRepository
-	billingService *services.BillingService
+	cache *cache.Cache
+	db    *database.SupabaseDB
+	repo  *repository.SurveyRepository
 }
 
-func NewSurveyController(db *pgxpool.Pool, cache *cache.Cache) *SurveyController {
-	var repo *repository.SurveyRepository
-	if db != nil {
-		repo = repository.NewSurveyRepository(db)
-	}
+func NewSurveyController(db *database.SupabaseDB, cache *cache.Cache) *SurveyController {
 	return &SurveyController{
-		cache:          cache,
-		db:             db,
-		repo:           repo,
-		billingService: services.NewBillingService(),
+		cache: cache,
+		db:    db,
+		repo:  repository.NewSurveyRepository(db),
 	}
 }
 
@@ -64,57 +56,39 @@ func (h *SurveyController) CreateSurvey(c *fiber.Ctx) error {
 	// Create survey ID and object
 	surveyID := uuid.New()
 	survey := models.Survey{
-		ID:            surveyID,
-		CreatorID:     creatorID,
-		Title:         req.Title,
-		Description:   req.Description,
-		Category:      req.Category,
-		Reward:        req.RewardAmount,
-		MaxResponses:  req.TargetCount,
-		EstimatedTime: req.Duration,
-		Status:        "pending",
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		ID:                surveyID,
+		CreatorID:         creatorID,
+		Title:             req.Title,
+		Description:       req.Description,
+		Category:          &req.Category,
+		RewardAmount:      req.RewardAmount,
+		TargetResponses:   req.TargetCount,
+		EstimatedDuration: req.Duration,
+		Status:            "pending",
+		CreatedAt:         time.Now(),
+		UpdatedAt:         time.Now(),
 	}
 
-	ctx := context.Background()
-
-	// Persist survey to database
-	if h.repo != nil {
-		if err := h.repo.Create(ctx, &survey); err != nil {
-			utils.LogError("Failed to create survey in database: %v", err)
-			return c.Status(500).JSON(fiber.Map{"error": "Failed to save survey to database"})
-		}
-		utils.LogInfo("Survey created successfully: %s by user %s", surveyID, userID)
-	} else {
-		utils.LogWarn("Database not available - survey not persisted")
+	var questions []models.Question
+	for _, q := range req.Questions {
+		options, _ := json.Marshal(q.Options)
+		questions = append(questions, models.Question{
+			ID:          uuid.New(),
+			SurveyID:    surveyID,
+			Type:        q.Type,
+			Title:       q.Title,
+			Description: &q.Description,
+			Required:    q.Required,
+			Options:     options,
+			OrderIndex:  q.Order,
+		})
 	}
 
-	// Create and persist questions
-	if len(req.Questions) > 0 && h.repo != nil {
-		for idx, q := range req.Questions {
-			question := models.Question{
-				ID:          uuid.New(),
-				SurveyID:    surveyID,
-				Type:        q.Type,
-				Title:       q.Title,
-				Description: q.Description,
-				Required:    q.Required,
-				Options:     q.Options,
-				Scale:       q.Scale,
-				Rows:        q.Rows,
-				Cols:        q.Cols,
-				Order:       idx + 1,
-			}
-
-			if err := h.repo.CreateQuestion(ctx, &question); err != nil {
-				utils.LogError("Failed to create question for survey %s: %v", surveyID, err)
-				// Continue creating other questions instead of failing
-				continue
-			}
-		}
-		utils.LogInfo("Questions created for survey: %s (count: %d)", surveyID, len(req.Questions))
+	if err := h.repo.CreateSurvey(&survey, questions, 0); err != nil {
+		utils.LogError("Failed to create survey in database: %v", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to save survey to database"})
 	}
+	utils.LogInfo("Survey created successfully: %s by user %s", surveyID, userID)
 
 	// Return success response with survey details
 	return c.Status(201).JSON(fiber.Map{
@@ -125,9 +99,9 @@ func (h *SurveyController) CreateSurvey(c *fiber.Ctx) error {
 			"title":          survey.Title,
 			"description":    survey.Description,
 			"category":       survey.Category,
-			"reward":         survey.Reward,
-			"target_count":   survey.MaxResponses,
-			"estimated_time": survey.EstimatedTime,
+			"reward":         survey.RewardAmount,
+			"target_count":   survey.TargetResponses,
+			"estimated_time": survey.EstimatedDuration,
 			"status":         survey.Status,
 			"created_at":     survey.CreatedAt,
 			"question_count": len(req.Questions),
@@ -137,27 +111,6 @@ func (h *SurveyController) CreateSurvey(c *fiber.Ctx) error {
 }
 
 func (h *SurveyController) GetSurveys(c *fiber.Ctx) error {
-	// Handle case when database is not available
-	if h.repo == nil {
-		// Return mock data when database is unavailable
-		mockSurveys := []models.Survey{
-			{
-				ID:               uuid.New(),
-				Title:            "Sample Survey",
-				Description:      "This is a sample survey for testing",
-				Category:         "general",
-				Reward:           500,
-				MaxResponses:     100,
-				CurrentResponses: 0,
-				EstimatedTime:    5,
-				Status:           "active",
-				CreatedAt:        time.Now(),
-				UpdatedAt:        time.Now(),
-			},
-		}
-		return c.JSON(fiber.Map{"data": mockSurveys, "success": true})
-	}
-
 	surveys, err := h.repo.GetAll(c.Context(), 100, 0, "")
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch surveys", "details": err.Error()})
@@ -177,35 +130,6 @@ func (h *SurveyController) GetSurvey(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid survey ID"})
 	}
 
-	// Handle case when database is not available
-	if h.repo == nil {
-		mockSurvey := models.Survey{
-			ID:               surveyID,
-			Title:            "Sample Survey",
-			Description:      "This is a sample survey for testing",
-			Category:         "general",
-			Reward:           500,
-			MaxResponses:     100,
-			CurrentResponses: 0,
-			EstimatedTime:    5,
-			Status:           "active",
-			CreatedAt:        time.Now(),
-			UpdatedAt:        time.Now(),
-		}
-		mockQuestions := []models.Question{
-			{
-				ID:       uuid.New(),
-				SurveyID: surveyID,
-				Type:     "multiple_choice",
-				Title:    "Sample Question",
-				Required: true,
-				Options:  []string{"Option 1", "Option 2", "Option 3"},
-				Order:    1,
-			},
-		}
-		return c.JSON(fiber.Map{"data": fiber.Map{"survey": mockSurvey, "questions": mockQuestions}, "questions": mockQuestions, "reward": mockSurvey.Reward})
-	}
-
 	survey, err := h.repo.GetByID(c.Context(), surveyID)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Survey not found"})
@@ -216,7 +140,7 @@ func (h *SurveyController) GetSurvey(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch questions"})
 	}
 
-	return c.JSON(fiber.Map{"data": fiber.Map{"survey": survey, "questions": questions}, "questions": questions, "reward": survey.Reward})
+	return c.JSON(fiber.Map{"data": fiber.Map{"survey": survey, "questions": questions}, "questions": questions, "reward": survey.RewardAmount})
 }
 
 func (h *SurveyController) UpdateSurvey(c *fiber.Ctx) error {
@@ -247,10 +171,10 @@ func (h *SurveyController) UpdateSurvey(c *fiber.Ctx) error {
 
 	survey.Title = req.Title
 	survey.Description = req.Description
-	survey.Category = req.Category
-	survey.Reward = req.RewardAmount
-	survey.MaxResponses = req.TargetCount
-	survey.EstimatedTime = req.Duration
+	survey.Category = &req.Category
+	survey.RewardAmount = req.RewardAmount
+	survey.TargetResponses = req.TargetCount
+	survey.EstimatedDuration = req.Duration
 	survey.UpdatedAt = time.Now()
 
 	if err := h.repo.Update(c.Context(), survey); err != nil {
@@ -322,25 +246,16 @@ func (h *SurveyController) SubmitResponse(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"error": "Survey not found"})
 	}
 
-	// Convert answers to JSON
-	_, _ = json.Marshal(req.Answers)
-	
+	answers, _ := json.Marshal(req.Answers)
+
 	response := models.Response{
 		ID:          uuid.New(),
 		SurveyID:    surveyUUID,
 		FillerID:    uuid.MustParse(userID),
+		Answers:     answers,
 		Status:      "completed",
 		StartedAt:   time.Now(),
 		CompletedAt: &time.Time{},
-	}
-	
-	// Properly handle database unavailability
-	if h.repo == nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error":   "Database unavailable - survey cannot be submitted",
-			"success": false,
-			"message": "Please try again later when the system is available",
-		})
 	}
 
 	if err := h.repo.CreateResponse(c.Context(), &response); err != nil {
@@ -355,7 +270,7 @@ func (h *SurveyController) SubmitResponse(c *fiber.Ctx) error {
 		ID:        uuid.New(),
 		UserID:    uuid.MustParse(userID),
 		SurveyID:  &surveyUUID,
-		Amount:    survey.Reward,
+		Amount:    survey.RewardAmount,
 		Type:      "survey_completion",
 		Status:    "completed",
 		CreatedAt: time.Now(),
@@ -370,8 +285,40 @@ func (h *SurveyController) SubmitResponse(c *fiber.Ctx) error {
 		"success":         true,
 		"message":         "Survey submitted successfully! Your reward has been added to your account.",
 		"survey_id":       surveyID,
-		"reward":          survey.Reward,
+		"reward":          survey.RewardAmount,
 		"responses_count": len(req.Answers),
+	})
+}
+
+func (h *SurveyController) GetSurveyResponses(c *fiber.Ctx) error {
+	surveyID := c.Params("id")
+	limit := c.QueryInt("limit", 10)
+	offset := c.QueryInt("offset", 0)
+
+	responses, total, err := h.repo.GetSurveyResponses(c.Context(), uuid.MustParse(surveyID), limit, offset)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch survey responses"})
+	}
+
+	return c.JSON(fiber.Map{
+		"responses": responses,
+		"total":     total,
+		"limit":     limit,
+		"offset":    offset,
+	})
+}
+
+func (h *SurveyController) GetResponseDetails(c *fiber.Ctx) error {
+	surveyID := c.Params("survey_id")
+	responseID := c.Params("response_id")
+
+	response, err := h.repo.GetResponseDetails(c.Context(), uuid.MustParse(surveyID), uuid.MustParse(responseID))
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch response details"})
+	}
+
+	return c.JSON(fiber.Map{
+		"response": response,
 	})
 }
 
@@ -518,7 +465,7 @@ func (h *SurveyController) ImportSurvey(c *fiber.Ctx) error {
 	surveyData.CreatorID, _ = uuid.Parse(userID)
 	surveyData.Status = "draft"
 
-	if err = h.repo.Create(c.Context(), &surveyData); err != nil {
+	if err = h.repo.CreateSurvey(&surveyData, []models.Question{}, 0); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to import survey", "success": false})
 	}
 
@@ -555,11 +502,11 @@ func (h *SurveyController) DuplicateSurvey(c *fiber.Ctx) error {
 	newSurvey.CreatedAt = time.Now()
 	newSurvey.UpdatedAt = time.Now()
 
-	if err := h.repo.Create(c.Context(), &newSurvey); err != nil {
+	if err := h.repo.CreateSurvey(&newSurvey, []models.Question{}, 0); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to duplicate survey"})
 	}
 
-	return c.Status(201).JSON(fiber.Map{
+	return c.JSON(fiber.Map{
 		"ok":            true,
 		"original_id":   surveyID,
 		"new_survey_id": newSurveyID,
@@ -613,7 +560,7 @@ func (h *SurveyController) SaveSurveyDraft(c *fiber.Ctx) error {
 		UpdatedAt:   time.Now(),
 	}
 
-	if err := h.repo.Create(c.Context(), &survey); err != nil {
+	if err := h.repo.CreateSurvey(&survey, []models.Question{}, 0); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to save draft"})
 	}
 

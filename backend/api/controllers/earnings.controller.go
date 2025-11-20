@@ -71,9 +71,13 @@ func (h *EarningsController) GetEarnings(c *fiber.Ctx) error {
 }
 
 func (h *EarningsController) WithdrawEarnings(c *fiber.Ctx) error {
-	userID, ok := c.Locals("user_id").(string)
-	if !ok {
+	userIDInterface := c.Locals("user_id")
+	if userIDInterface == nil {
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID, ok := userIDInterface.(string)
+	if !ok || userID == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "Invalid user ID"})
 	}
 	_ = userID
 

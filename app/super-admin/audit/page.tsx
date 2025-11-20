@@ -35,9 +35,9 @@ export default function AuditLogsPage() {
     {
       id: "2",
       timestamp: "2024-01-20 14:25:12",
-      admin: "Jane Admin", 
+      admin: "Jane Admin",
       action: "Processed Payout",
-      target: "User: john@example.com - ₦45,200",
+      target: "User: user123@onetimesurvey.com - ₦45,200",
       type: "payout",
       ip: "192.168.1.101",
       details: "Payout processed via Paystack"

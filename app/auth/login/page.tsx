@@ -113,13 +113,6 @@ export default function LoginPage() {
                 Sign up
               </Link>
             </p>
-            <div className="p-4 bg-slate-50 rounded-lg border">
-              <p className="text-xs font-medium text-slate-700 mb-2">Demo credentials:</p>
-              <div className="space-y-1 text-xs text-slate-600">
-                <p><span className="font-medium">Filler:</span> john@example.com / password</p>
-                <p><span className="font-medium">Creator:</span> mike@example.com / password</p>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>

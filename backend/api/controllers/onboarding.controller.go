@@ -122,15 +122,15 @@ func (h *OnboardingController) CompleteCreatorOnboarding(c *fiber.Ctx) error {
 		Phone     string `json:"phone"`
 		Role      string `json:"role"`
 		Profile   struct {
-			UserType      string   `json:"user_type"`
-			Organization  string   `json:"organization"`
-			JobTitle      string   `json:"job_title"`
-			Description   string   `json:"description"`
-			Goals         string   `json:"goals"`
-			Industry      string   `json:"industry"`
-			RoleIndustry  string   `json:"role_in_industry"`
-			Sources       []string `json:"sources"`
-			CustomSource  string   `json:"custom_source"`
+			UserType     string   `json:"user_type"`
+			Organization string   `json:"organization"`
+			JobTitle     string   `json:"job_title"`
+			Description  string   `json:"description"`
+			Goals        string   `json:"goals"`
+			Industry     string   `json:"industry"`
+			RoleIndustry string   `json:"role_in_industry"`
+			Sources      []string `json:"sources"`
+			CustomSource string   `json:"custom_source"`
 		} `json:"profile"`
 	}
 
@@ -165,15 +165,15 @@ func (h *OnboardingController) CompleteCreatorOnboarding(c *fiber.Ctx) error {
 
 	// Create creator profile - store extended data in interests JSONB field
 	profileData := fiber.Map{
-		"user_type":      req.Profile.UserType,
-		"organization":   req.Profile.Organization,
-		"job_title":      req.Profile.JobTitle,
-		"description":    req.Profile.Description,
-		"goals":          req.Profile.Goals,
-		"industry":       req.Profile.Industry,
-		"role_industry":  req.Profile.RoleIndustry,
-		"sources":        req.Profile.Sources,
-		"custom_source":  req.Profile.CustomSource,
+		"user_type":     req.Profile.UserType,
+		"organization":  req.Profile.Organization,
+		"job_title":     req.Profile.JobTitle,
+		"description":   req.Profile.Description,
+		"goals":         req.Profile.Goals,
+		"industry":      req.Profile.Industry,
+		"role_industry": req.Profile.RoleIndustry,
+		"sources":       req.Profile.Sources,
+		"custom_source": req.Profile.CustomSource,
 	}
 	profileJSON, _ := json.Marshal(profileData)
 

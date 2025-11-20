@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"encoding/csv"
 	"fmt"
 	"onetimer-backend/cache"
+	"onetimer-backend/models"
+	"onetimer-backend/repository"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,130 +13,65 @@ import (
 )
 
 type AuditController struct {
-	cache *cache.Cache
+	cache     *cache.Cache
+	auditRepo *repository.AuditRepository
 }
 
-func NewAuditController(cache *cache.Cache) *AuditController {
-	return &AuditController{cache: cache}
-}
-
-type AuditLog struct {
-	ID        string                 `json:"id"`
-	UserID    string                 `json:"user_id"`
-	Action    string                 `json:"action"`
-	Resource  string                 `json:"resource"`
-	Details   map[string]interface{} `json:"details"`
-	IPAddress string                 `json:"ip_address"`
-	UserAgent string                 `json:"user_agent"`
-	Timestamp time.Time              `json:"timestamp"`
+func NewAuditController(cache *cache.Cache, auditRepo *repository.AuditRepository) *AuditController {
+	return &AuditController{cache: cache, auditRepo: auditRepo}
 }
 
 // LogAction creates an audit log entry
-func (h *AuditController) LogAction(userID, action, resource string, details map[string]interface{}, c *fiber.Ctx) error {
-	// TODO: Save to database
-	// TODO: Send to monitoring system if critical action
+func (h *AuditController) LogAction(c *fiber.Ctx) error {
+	var req models.AuditLog
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
 
-	return nil
+	req.ID = uuid.New()
+	req.CreatedAt = time.Now()
+	ip := string(c.IP())
+	req.IPAddress = &ip
+	ua := string(c.Request().Header.UserAgent())
+	req.UserAgent = &ua
+
+	if err := h.auditRepo.CreateAuditLog(&req); err != nil {
+		// TODO: Send to monitoring system if critical action
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to log action"})
+	}
+
+	return c.Status(201).JSON(fiber.Map{"ok": true})
 }
 
 // GetAuditLogs returns audit logs with filtering
 func (h *AuditController) GetAuditLogs(c *fiber.Ctx) error {
 	// Query parameters
-	actionType := c.Query("type", "all")
+	actionType := c.Query("type", "")
 	userID := c.Query("user_id", "")
-	startDate := c.Query("start_date", "")
-	endDate := c.Query("end_date", "")
 	limit := c.QueryInt("limit", 50)
 	offset := c.QueryInt("offset", 0)
 
-	// Mock audit logs - TODO: Replace with database query
-	logs := []fiber.Map{
-		{
-			"id":        "audit_001",
-			"timestamp": time.Now().AddDate(0, 0, -1),
-			"admin":     "John Admin",
-			"action":    "Approved Survey",
-			"target":    "Survey #1234 - Consumer Behavior Study",
-			"type":      "approval",
-			"ip":        "192.168.1.100",
-			"details":   "Survey approved after content review",
-		},
-		{
-			"id":        "audit_002",
-			"timestamp": time.Now().AddDate(0, 0, -1),
-			"admin":     "Jane Admin",
-			"action":    "Processed Payout",
-			"target":    "User: john@example.com - ₦45,200",
-			"type":      "payout",
-			"ip":        "192.168.1.101",
-			"details":   "Payout processed via Paystack",
-		},
-		{
-			"id":        "audit_003",
-			"timestamp": time.Now().AddDate(0, 0, -2),
-			"admin":     "Mike Admin",
-			"action":    "Suspended User",
-			"target":    "User: suspicious@example.com",
-			"type":      "moderation",
-			"ip":        "192.168.1.102",
-			"details":   "User suspended for policy violation",
-		},
-		{
-			"id":        "audit_004",
-			"timestamp": time.Now().AddDate(0, 0, -2),
-			"admin":     "Sarah Admin",
-			"action":    "Updated Settings",
-			"target":    "Platform Configuration",
-			"type":      "config",
-			"ip":        "192.168.1.103",
-			"details":   "Updated minimum payout threshold",
-		},
-		{
-			"id":        "audit_005",
-			"timestamp": time.Now().AddDate(0, 0, -3),
-			"admin":     "System",
-			"action":    "Failed Login Attempt",
-			"target":    "admin@suspicious.com",
-			"type":      "security",
-			"ip":        "203.0.113.1",
-			"details":   "Multiple failed login attempts detected",
-		},
+	filters := make(map[string]interface{})
+	if actionType != "" {
+		filters["action"] = actionType
+	}
+	if userID != "" {
+		filters["user_id"] = userID
 	}
 
-	// Apply filters
-	filteredLogs := logs
-	if actionType != "all" {
-		var filtered []fiber.Map
-		for _, log := range logs {
-			if log["type"] == actionType {
-				filtered = append(filtered, log)
-			}
-		}
-		filteredLogs = filtered
+	logs, total, err := h.auditRepo.GetAuditLogs(limit, offset, filters)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to get audit logs"})
 	}
-
-	// Apply pagination
-	start := offset
-	end := offset + limit
-	if start > len(filteredLogs) {
-		start = len(filteredLogs)
-	}
-	if end > len(filteredLogs) {
-		end = len(filteredLogs)
-	}
-
-	paginatedLogs := filteredLogs[start:end]
 
 	return c.JSON(fiber.Map{
-		"logs":   paginatedLogs,
-		"total":  len(filteredLogs),
+		"logs":   logs,
+		"total":  total,
 		"limit":  limit,
 		"offset": offset,
 		"filters": fiber.Map{
-			"type":       actionType,
-			"user_id":    userID,
-			"start_date": startDate,
-			"end_date":   endDate,
+			"type":    actionType,
+			"user_id": userID,
 		},
 	})
 }
@@ -142,21 +80,9 @@ func (h *AuditController) GetAuditLogs(c *fiber.Ctx) error {
 func (h *AuditController) GetAuditStats(c *fiber.Ctx) error {
 	period := c.Query("period", "30d") // 24h, 7d, 30d, 90d
 
-	// Mock statistics - TODO: Calculate from database
-	stats := fiber.Map{
-		"total_actions":   1247,
-		"security_events": 23,
-		"approvals":       456,
-		"payouts":         189,
-		"config_changes":  34,
-		"period":          period,
-		"breakdown": fiber.Map{
-			"approval":   456,
-			"payout":     189,
-			"moderation": 78,
-			"config":     34,
-			"security":   23,
-		},
+	stats, err := h.auditRepo.GetAuditStats(period)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to get audit stats"})
 	}
 
 	return c.JSON(stats)
@@ -165,20 +91,34 @@ func (h *AuditController) GetAuditStats(c *fiber.Ctx) error {
 // ExportAuditLogs exports audit logs to CSV
 func (h *AuditController) ExportAuditLogs(c *fiber.Ctx) error {
 	format := c.Query("format", "csv")
+	actionType := c.Query("type", "")
+	userID := c.Query("user_id", "")
+
+	filters := make(map[string]interface{})
+	if actionType != "" {
+		filters["action"] = actionType
+	}
+	if userID != "" {
+		filters["user_id"] = userID
+	}
+
+	data, err := h.auditRepo.ExportAuditLogs(filters)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to export audit logs"})
+	}
 
 	filename := fmt.Sprintf("audit_logs_%s.%s", time.Now().Format("20060102"), format)
-
-	// TODO: Generate export file with filtered data
 
 	c.Set("Content-Type", "text/csv")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
 
-	// Mock CSV content
-	csvContent := `ID,Timestamp,Admin,Action,Target,Type,IP Address,Details
-audit_001,2024-01-20 14:30:25,John Admin,Approved Survey,Survey #1234,approval,192.168.1.100,Survey approved after review
-audit_002,2024-01-20 14:25:12,Jane Admin,Processed Payout,User: john@example.com,payout,192.168.1.101,Payout processed via Paystack`
+	writer := csv.NewWriter(c)
+	err = writer.WriteAll(data)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to write csv"})
+	}
 
-	return c.SendString(csvContent)
+	return nil
 }
 
 // GetSecurityEvents returns security-related audit events

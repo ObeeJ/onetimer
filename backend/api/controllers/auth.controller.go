@@ -43,7 +43,7 @@ func (h *AuthController) SendOTP(c *fiber.Ctx) error {
 	if otpService == nil {
 		return c.Status(500).JSON(fiber.Map{"error": "OTP service unavailable"})
 	}
-	
+
 	otp, err := otpService.Generate()
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate OTP"})
@@ -63,7 +63,7 @@ func (h *AuthController) SendOTP(c *fiber.Ctx) error {
 			stored = true
 		}
 	}
-	
+
 	// Always use memory as fallback
 	if !stored {
 		c.Locals("otp_"+req.Email, otpData)

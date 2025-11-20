@@ -354,7 +354,7 @@ func (h *AdminController) ExportUsers(c *fiber.Ctx) error {
 
 	// Mock user data
 	users := []fiber.Map{
-		{"id": "1", "name": "John Doe", "email": "john@example.com", "role": "filler", "status": "active"},
+		{"id": "1", "name": "John Doe", "email": "user@onetimesurvey.com", "role": "filler", "status": "active"},
 		{"id": "2", "name": "Jane Smith", "email": "jane@example.com", "role": "creator", "status": "active"},
 	}
 

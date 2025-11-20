@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"onetimer-backend/config"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -24,7 +25,12 @@ func NewSupabaseConnection(cfg *config.Config) (*SupabaseDB, error) {
 		return nil, fmt.Errorf("failed to create connection pool: %w", err)
 	}
 
-	if err := pool.Ping(context.Background()); err != nil {
+	// Test connection with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
@@ -221,6 +227,16 @@ func (db *SupabaseDB) InitSchema() error {
 	CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
 	CREATE INDEX IF NOT EXISTS idx_waitlist_email ON waitlist(email);
 	CREATE INDEX IF NOT EXISTS idx_waitlist_created_at ON waitlist(created_at DESC);
+
+	-- Notifications table
+	CREATE TABLE IF NOT EXISTS notifications (
+		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+		user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+		title VARCHAR(255) NOT NULL,
+		message TEXT NOT NULL,
+		read_at TIMESTAMP,
+		created_at TIMESTAMP DEFAULT NOW()
+	);
 	`
 
 	_, err := db.Exec(context.Background(), schema)

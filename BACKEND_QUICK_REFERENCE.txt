@@ -295,7 +295,7 @@ Not Implemented:
 TESTING CREDENTIALS
 ===================
 From database seed data:
-  Email: john@example.com
+  Email: user@onetimesurvey.com
   Password: password123
 
 Test OTP: 123456 (always works due to bug)

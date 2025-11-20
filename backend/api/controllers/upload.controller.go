@@ -12,7 +12,7 @@ import (
 )
 
 type UploadHandler struct {
-	cache        *cache.Cache
+	cache          *cache.Cache
 	storageService *services.StorageService
 }
 

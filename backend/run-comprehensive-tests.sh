@@ -16,21 +16,8 @@ echo "📦 Installing test dependencies..."
 go mod tidy
 go get github.com/stretchr/testify/assert
 
-# Create test module if needed
-if [ ! -f "tests/go.mod" ]; then
-    cd tests
-    go mod init onetimer-backend-tests
-    go mod edit -replace onetimer-backend=../
-    cd ..
-fi
-
-# Run comprehensive tests
-echo ""
-echo "🚀 Running comprehensive backend tests..."
-echo ""
-
 # Test with verbose output
-go test -v ./tests/ -run TestCompleteSystemFlow
+go test -v ./... -run TestCompleteSystemFlow
 
 # Check test results
 if [ $? -eq 0 ]; then

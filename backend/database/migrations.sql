@@ -38,7 +38,6 @@ CREATE TABLE IF NOT EXISTS surveys (
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     category VARCHAR(100) NOT NULL,
-    target_audience VARCHAR(100),
     estimated_time INTEGER NOT NULL,
     reward INTEGER NOT NULL,
     status VARCHAR(50) DEFAULT 'draft' CHECK (status IN ('draft', 'pending', 'approved', 'rejected', 'active', 'completed')),

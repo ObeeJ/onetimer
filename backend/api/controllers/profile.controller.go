@@ -21,16 +21,16 @@ func NewProfileController(cache *cache.Cache, db *pgxpool.Pool) *ProfileControll
 }
 
 func (h *ProfileController) GetProfile(c *fiber.Ctx) error {
-	// Extract user ID from JWT token
-	userID := c.Locals("user_id")
-	if userID == nil {
-		userID = "user_123" // Fallback for testing
+	// Extract user ID from JWT token with proper type assertion
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
 	user := fiber.Map{
 		"id":          userID,
-		"name":        "John Doe",
-		"email":       "john@example.com",
+		"name":        "User Profile",
+		"email":       "user@onetimesurvey.com",
 		"phone":       "+234 801 234 5678",
 		"isVerified":  true,
 		"role":        "filler",
@@ -55,10 +55,10 @@ func (h *ProfileController) GetProfile(c *fiber.Ctx) error {
 }
 
 func (h *ProfileController) UpdateProfile(c *fiber.Ctx) error {
-	// Extract user ID from JWT token
-	userID := c.Locals("user_id")
-	if userID == nil {
-		userID = "user_123" // Fallback for testing
+	// Extract user ID from JWT token with proper type assertion
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
 	var req struct {
@@ -72,9 +72,6 @@ func (h *ProfileController) UpdateProfile(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
-
-	// Simulate processing time
-	time.Sleep(500 * time.Millisecond)
 
 	if h.db != nil {
 		_, err := h.db.Exec(c.Context(), "UPDATE users SET name = $1, email = $2, phone = $3 WHERE id = $4",

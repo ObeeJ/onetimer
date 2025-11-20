@@ -25,8 +25,8 @@ func (h *ProfileHandler) GetProfile(c *fiber.Ctx) error {
 
 	user := fiber.Map{
 		"id":          userID,
-		"name":        "John Doe",
-		"email":       "john@example.com",
+		"name":        "User Profile",
+		"email":       "user@onetimesurvey.com",
 		"phone":       "+234 801 234 5678",
 		"isVerified":  true,
 		"role":        "filler",

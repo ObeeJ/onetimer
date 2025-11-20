@@ -26,7 +26,14 @@ func NewWithdrawalController(cache *cache.Cache, db *pgxpool.Pool, paystackKey s
 
 // RequestWithdrawal handles withdrawal requests from fillers
 func (h *WithdrawalController) RequestWithdrawal(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(string)
+	userIDInterface := c.Locals("user_id")
+	if userIDInterface == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID, ok := userIDInterface.(string)
+	if !ok || userID == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
 
 	var req struct {
 		Amount        int    `json:"amount"`
@@ -93,7 +100,14 @@ func (h *WithdrawalController) RequestWithdrawal(c *fiber.Ctx) error {
 
 // GetWithdrawals returns user's withdrawal history
 func (h *WithdrawalController) GetWithdrawals(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(string)
+	userIDInterface := c.Locals("user_id")
+	if userIDInterface == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID, ok := userIDInterface.(string)
+	if !ok || userID == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
 
 	// Mock data - TODO: Replace with database query
 	withdrawals := []fiber.Map{

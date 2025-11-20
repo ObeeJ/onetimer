@@ -9,10 +9,10 @@ import { Users, Search, Filter, MoreHorizontal, Shield, Ban } from "lucide-react
 
 export default function SuperAdminUsersPage() {
   const users = [
-    { id: 1, name: "John Doe", email: "john@example.com", role: "filler", status: "active", surveys: 45, earnings: "₦12,500" },
-    { id: 2, name: "Jane Smith", email: "jane@example.com", role: "creator", status: "active", surveys: 12, earnings: "₦8,200" },
-    { id: 3, name: "Mike Johnson", email: "mike@example.com", role: "filler", status: "suspended", surveys: 23, earnings: "₦5,800" },
-    { id: 4, name: "Sarah Wilson", email: "sarah@example.com", role: "admin", status: "active", surveys: 0, earnings: "₦0" },
+    { id: 1, name: "User One", email: "user1@onetimesurvey.com", role: "filler", status: "active", surveys: 45, earnings: "₦12,500" },
+    { id: 2, name: "User Two", email: "user2@onetimesurvey.com", role: "creator", status: "active", surveys: 12, earnings: "₦8,200" },
+    { id: 3, name: "User Three", email: "user3@onetimesurvey.com", role: "filler", status: "suspended", surveys: 23, earnings: "₦5,800" },
+    { id: 4, name: "User Four", email: "user4@onetimesurvey.com", role: "admin", status: "active", surveys: 0, earnings: "₦0" },
   ]
 
   return (

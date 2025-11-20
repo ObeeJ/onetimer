@@ -1,41 +1,60 @@
 package controllers
 
 import (
+	"fmt"
 	"onetimer-backend/cache"
+	"onetimer-backend/repository"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type NotificationHandler struct {
-	cache *cache.Cache
+	cache            *cache.Cache
+	notificationRepo *repository.NotificationRepository
 }
 
-func NewNotificationHandler(cache *cache.Cache) *NotificationHandler {
-	return &NotificationHandler{cache: cache}
+func NewNotificationHandler(cache *cache.Cache, notificationRepo *repository.NotificationRepository) *NotificationHandler {
+	return &NotificationHandler{cache: cache, notificationRepo: notificationRepo}
 }
 
 func (h *NotificationHandler) GetNotifications(c *fiber.Ctx) error {
-	_ = c.Locals("user_id").(string)
+	userID, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
 
-	// TODO: Get notifications from database
+	notifications, err := h.notificationRepo.GetNotifications(userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to get notifications"})
+	}
 
 	return c.JSON(fiber.Map{
-		"notifications": []string{"Notification 1", "Notification 2"},
+		"notifications": notifications,
 	})
 }
 
 func (h *NotificationHandler) UpdateNotifications(c *fiber.Ctx) error {
-	_ = c.Locals("user_id").(string)
+	_, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
 
 	var req struct {
-		Notifications []string `json:"notifications"`
+		NotificationIDs []uuid.UUID `json:"notification_ids"`
 	}
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
-	// TODO: Update notifications in database
+	for _, id := range req.NotificationIDs {
+		err := h.notificationRepo.MarkNotificationRead(id)
+		if err != nil {
+			// Log error but continue with others
+			fmt.Printf("Failed to mark notification %s as read: %v\n", id, err)
+		}
+	}
 
 	return c.JSON(fiber.Map{
 		"ok":      true,

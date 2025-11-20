@@ -266,7 +266,7 @@ func (h *AdminHandler) ExportUsers(c *fiber.Ctx) error {
 
 	// Mock user data
 	users := []fiber.Map{
-		{"id": "1", "name": "John Doe", "email": "john@example.com", "role": "filler", "status": "active"},
+		{"id": "1", "name": "John Doe", "email": "user@onetimesurvey.com", "role": "filler", "status": "active"},
 		{"id": "2", "name": "Jane Smith", "email": "jane@example.com", "role": "creator", "status": "active"},
 	}
 
@@ -303,7 +303,7 @@ func (h *AdminHandler) GetUserDetails(c *fiber.Ctx) error {
 	user := fiber.Map{
 		"id":                userID,
 		"name":              "John Doe",
-		"email":             "john@example.com",
+		"email":             "user@onetimesurvey.com",
 		"role":              "filler",
 		"status":            "active",
 		"kyc_status":        "verified",

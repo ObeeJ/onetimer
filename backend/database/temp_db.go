@@ -62,7 +62,6 @@ func runMigrations(pool *pgxpool.Pool) error {
 		title TEXT NOT NULL,
 		description TEXT NOT NULL,
 		category TEXT NOT NULL,
-		target_audience TEXT,
 		estimated_time INTEGER NOT NULL,
 		reward INTEGER NOT NULL,
 		status TEXT DEFAULT 'active',
@@ -157,7 +156,7 @@ func seedData(pool *pgxpool.Pool) {
 	userID := "550e8400-e29b-41d4-a716-446655550001"
 	pool.Exec(context.Background(),
 		"INSERT INTO users (id, email, name, phone, password_hash, role, is_verified, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-		userID, "john@example.com", "John Doe", "+234 801 234 5678", passwordHash, "filler", true, true)
+		userID, "user@onetimesurvey.com", "John Doe", "+234 801 234 5678", passwordHash, "filler", true, true)
 
 	// Seed earnings
 	earnings := []map[string]interface{}{

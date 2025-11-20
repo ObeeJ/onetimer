@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"onetimer-backend/api/controllers"
+
+	"onetimer-backend/api/middleware"
 	"onetimer-backend/api/routes"
 	"onetimer-backend/cache"
 	"onetimer-backend/config"
 	"onetimer-backend/database"
-	"onetimer-backend/models"
+
 	"onetimer-backend/services"
 	"testing"
 	"time"
@@ -29,20 +30,29 @@ type TestSuite struct {
 
 func setupTestSuite() *TestSuite {
 	cfg := &config.Config{
-		Port:           "8080",
-		JWTSecret:      "test-jwt-secret",
-		PaystackSecret: "test-paystack-secret",
-		Env:            "test",
+		Port:               "8080",
+		JWTSecret:          "test-jwt-secret",
+		PaystackSecret:     "test-paystack-secret",
+		Env:                "test",
+		AWSRegion:          "us-east-1",
+		AWSAccessKeyID:     "test",
+		AWSSecretAccessKey: "test",
+		S3Bucket:           "test",
 	}
 
 	cacheInstance := cache.NewCache()
-	db := database.InitTempDB()
-	
-	app := routes.New()
+	dbPool := database.InitTempDB()
+	supabaseDB := &database.SupabaseDB{Pool: dbPool}
+
+	app := fiber.New()
 	emailService := services.NewEmailService(cfg)
 	paystackService := services.NewPaystackService(cfg.PaystackSecret)
-	
-	routes.SetupRoutes(app, cacheInstance, cfg, db, emailService, paystackService)
+	storageService, _ := services.NewStorageService(cfg.AWSRegion, cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey, cfg.S3Bucket)
+	rateLimiter, _ := middleware.NewRateLimiter("")
+	wsHub := services.NewHub()
+	go wsHub.Run()
+
+	routes.SetupRoutes(app, cacheInstance, cfg, supabaseDB, emailService, paystackService, storageService, rateLimiter, wsHub)
 
 	return &TestSuite{
 		app:    app,
@@ -72,11 +82,11 @@ func (ts *TestSuite) makeRequest(method, url string, body interface{}) (*http.Re
 
 func TestHealthEndpoint(t *testing.T) {
 	ts := setupTestSuite()
-	
+
 	resp, body, err := ts.makeRequest("GET", "/health", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.StatusCode)
-	
+
 	var result map[string]interface{}
 	json.Unmarshal(body, &result)
 	assert.Equal(t, "ok", result["status"])
@@ -90,7 +100,7 @@ func TestBillingSystem(t *testing.T) {
 		resp, body, err := ts.makeRequest("GET", "/api/billing/pricing-tiers", nil)
 		assert.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
-		
+
 		var result map[string]interface{}
 		json.Unmarshal(body, &result)
 		assert.True(t, result["success"].(bool))
@@ -100,23 +110,23 @@ func TestBillingSystem(t *testing.T) {
 
 	t.Run("Calculate Survey Cost", func(t *testing.T) {
 		billingData := map[string]interface{}{
-			"pages":              10,
-			"reward_per_user":    200,
-			"respondents":        100,
-			"priority_placement": true,
+			"pages":               10,
+			"reward_per_user":     200,
+			"respondents":         100,
+			"priority_placement":  true,
 			"demographic_filters": 2,
-			"extra_days":         3,
-			"data_export":        true,
+			"extra_days":          3,
+			"data_export":         true,
 		}
 
 		resp, body, err := ts.makeRequest("POST", "/api/billing/calculate", billingData)
 		assert.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
-		
+
 		var result map[string]interface{}
 		json.Unmarshal(body, &result)
 		assert.True(t, result["success"].(bool))
-		
+
 		data := result["data"].(map[string]interface{})
 		totalCost := data["total_cost"].(float64)
 		assert.Greater(t, totalCost, float64(0))
@@ -125,14 +135,14 @@ func TestBillingSystem(t *testing.T) {
 
 	t.Run("Validate Reward", func(t *testing.T) {
 		rewardData := map[string]interface{}{
-			"pages":         5,
+			"pages":           5,
 			"reward_per_user": 125,
 		}
 
 		resp, body, err := ts.makeRequest("POST", "/api/billing/validate-reward", rewardData)
 		assert.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
-		
+
 		var result map[string]interface{}
 		json.Unmarshal(body, &result)
 		assert.True(t, result["success"].(bool))
@@ -152,7 +162,7 @@ func TestAuthenticationSystem(t *testing.T) {
 		resp, body, err := ts.makeRequest("POST", "/api/auth/send-otp", otpData)
 		assert.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
-		
+
 		var result map[string]interface{}
 		json.Unmarshal(body, &result)
 		assert.True(t, result["ok"].(bool))
@@ -178,12 +188,12 @@ func TestAuthenticationSystem(t *testing.T) {
 			"otp":   "123456",
 		}
 
-		resp, body, err := ts.makeRequest("POST", "/api/auth/verify-otp", verifyData)
+		_, body, err := ts.makeRequest("POST", "/api/auth/verify-otp", verifyData)
 		assert.NoError(t, err)
-		
+
 		var result map[string]interface{}
 		json.Unmarshal(body, &result)
-		
+
 		if result["ok"] != nil {
 			fmt.Printf("✅ OTP Verify: Success\n")
 		} else {
@@ -196,12 +206,12 @@ func TestSurveyOperations(t *testing.T) {
 	ts := setupTestSuite()
 
 	t.Run("Get Surveys", func(t *testing.T) {
-		resp, body, err := ts.makeRequest("GET", "/api/survey", nil)
+		_, body, err := ts.makeRequest("GET", "/api/survey", nil)
 		assert.NoError(t, err)
-		
+
 		var result map[string]interface{}
 		json.Unmarshal(body, &result)
-		
+
 		// Expect error due to no database connection
 		if result["error"] != nil {
 			fmt.Printf("✅ Survey List: Expected error (no DB)\n")
@@ -212,11 +222,11 @@ func TestSurveyOperations(t *testing.T) {
 
 	t.Run("Create Survey", func(t *testing.T) {
 		surveyData := map[string]interface{}{
-			"title":         "Test Survey",
-			"description":   "Test Description",
-			"category":      "test",
-			"reward_amount": 150,
-			"target_count":  100,
+			"title":              "Test Survey",
+			"description":        "Test Description",
+			"category":           "test",
+			"reward_amount":      150,
+			"target_count":       100,
 			"estimated_duration": 5,
 			"questions": []map[string]interface{}{
 				{
@@ -238,7 +248,7 @@ func TestSurveyOperations(t *testing.T) {
 
 		resp, err := ts.app.Test(req, -1)
 		assert.NoError(t, err)
-		
+
 		if resp.StatusCode == 401 {
 			fmt.Printf("✅ Survey Create: Auth required (expected)\n")
 		} else {
@@ -256,12 +266,12 @@ func TestPaymentSystem(t *testing.T) {
 			"amount":  25000,
 		}
 
-		resp, body, err := ts.makeRequest("POST", "/api/payment/purchase", purchaseData)
+		_, body, err := ts.makeRequest("POST", "/api/payment/purchase", purchaseData)
 		assert.NoError(t, err)
-		
+
 		var result map[string]interface{}
 		json.Unmarshal(body, &result)
-		
+
 		if result["ok"] != nil {
 			fmt.Printf("✅ Credit Purchase: Success\n")
 		} else {
@@ -275,7 +285,7 @@ func TestPaymentSystem(t *testing.T) {
 
 		resp, err := ts.app.Test(req, -1)
 		assert.NoError(t, err)
-		
+
 		if resp.StatusCode == 401 {
 			fmt.Printf("✅ Payment Methods: Auth required (expected)\n")
 		} else {
@@ -343,7 +353,7 @@ func TestCacheOperations(t *testing.T) {
 func TestServiceIntegrations(t *testing.T) {
 	t.Run("Billing Service", func(t *testing.T) {
 		billingService := services.NewBillingService()
-		
+
 		billing := services.SurveyBilling{
 			Pages:         5,
 			RewardPerUser: 150,
@@ -387,7 +397,7 @@ func TestAllControllers(t *testing.T) {
 		t.Run(ctrl.name, func(t *testing.T) {
 			resp, _, err := ts.makeRequest(ctrl.method, ctrl.endpoint, nil)
 			assert.NoError(t, err)
-			
+
 			if resp.StatusCode == 401 {
 				fmt.Printf("✅ %s: Auth required (expected)\n", ctrl.name)
 			} else if resp.StatusCode < 500 {

@@ -1,21 +1,22 @@
 package controllers
 
 import (
+	"context"
 	"onetimer-backend/cache"
+	"onetimer-backend/database"
 	"onetimer-backend/repository"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type EligibilityController struct {
 	cache    *cache.Cache
-	db       *pgxpool.Pool
+	db       *database.SupabaseDB
 	userRepo *repository.UserRepository
 }
 
-func NewEligibilityController(cache *cache.Cache, db *pgxpool.Pool) *EligibilityController {
+func NewEligibilityController(cache *cache.Cache, db *database.SupabaseDB) *EligibilityController {
 	var userRepo *repository.UserRepository
 	if db != nil {
 		userRepo = repository.NewUserRepository(db)
@@ -45,7 +46,7 @@ func (h *EligibilityController) CheckEligibility(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid user ID", "success": false})
 	}
 
-	user, err := h.userRepo.GetByID(c.Context(), userUUID)
+	user, err := h.userRepo.GetByID(context.Background(), userUUID)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "User not found", "success": false})
 	}
@@ -54,7 +55,7 @@ func (h *EligibilityController) CheckEligibility(c *fiber.Ctx) error {
 	reasons := []string{}
 
 	// Check KYC status
-	if user.KYCStatus != "approved" {
+	if user.KycStatus != "approved" {
 		eligible = false
 		reasons = append(reasons, "KYC verification required")
 	}
@@ -74,7 +75,7 @@ func (h *EligibilityController) CheckEligibility(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"eligible":    eligible,
 		"reasons":     reasons,
-		"kyc_status":  user.KYCStatus,
+		"kyc_status":  user.KycStatus,
 		"is_active":   user.IsActive,
 		"is_verified": user.IsVerified,
 		"success":     true,

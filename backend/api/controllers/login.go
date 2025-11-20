@@ -1,25 +1,29 @@
 package controllers
 
 import (
+	"errors"
 	"onetimer-backend/cache"
+	"onetimer-backend/repository"
 	"onetimer-backend/security"
 	"onetimer-backend/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type LoginHandler struct {
 	cache     *cache.Cache
 	jwtSecret string
+	userRepo  *repository.UserRepository
 }
 
-func NewLoginHandler(cache *cache.Cache, jwtSecret string) *LoginHandler {
+func NewLoginHandler(cache *cache.Cache, jwtSecret string, userRepo *repository.UserRepository) *LoginHandler {
 	return &LoginHandler{
 		cache:     cache,
 		jwtSecret: jwtSecret,
+		userRepo:  userRepo,
 	}
 }
 
@@ -33,16 +37,20 @@ func (h *LoginHandler) Login(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
-	// TODO: Get user from database
-	// Mock user data with hashed password
-	storedHash := "$2a$14$example.hash.here" // This would come from DB
+	user, err := h.userRepo.GetUserByEmail(req.Email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return c.Status(401).JSON(fiber.Map{"error": "Invalid credentials"})
+		}
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to get user"})
+	}
 
-	if !utils.CheckPassword(req.Password, storedHash) {
+	if !utils.CheckPassword(req.Password, user.PasswordHash) {
 		return c.Status(401).JSON(fiber.Map{"error": "Invalid credentials"})
 	}
 
 	// Generate JWT token
-	token, err := h.generateToken(uuid.New().String(), "filler")
+	token, err := h.generateToken(user.ID.String(), user.Role)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate token"})
 	}
@@ -55,11 +63,7 @@ func (h *LoginHandler) Login(c *fiber.Ctx) error {
 		"ok":         true,
 		"token":      token,
 		"csrf_token": csrfToken,
-		"user": fiber.Map{
-			"id":    uuid.New().String(),
-			"email": req.Email,
-			"role":  "filler",
-		},
+		"user":       user,
 	})
 }
 

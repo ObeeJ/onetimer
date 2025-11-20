@@ -137,7 +137,7 @@ TESTING THE BACKEND
 ===================
 
 Test Credentials (from database seed):
-  Email: john@example.com
+  Email: user@onetimesurvey.com
   Password: password123
   OTP: 123456 (currently works due to security issue)
 
