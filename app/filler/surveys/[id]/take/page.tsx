@@ -6,6 +6,7 @@ import { Coins, CheckCircle, Loader2 } from 'lucide-react'
 import { useSurvey, useSaveProgress } from "@/hooks/use-surveys"
 import SurveyProgress from "@/components/surveys/survey-progress"
 import { useDebounce } from '@/hooks/use-debounce'
+import { useRouter } from "next/navigation"
 
 const SaveStatusIndicator = ({ status }: { status: string }) => {
   let content = null;
@@ -23,6 +24,7 @@ const SaveStatusIndicator = ({ status }: { status: string }) => {
 };
 
 export default function TakeSurveyPage({ params }: { params: { id: string } }) {
+  const router = useRouter()
   const { data: survey } = useSurvey(params.id)
   const [answers] = useState<Record<string, string>>({})
   const [idx] = useState(0)
@@ -52,6 +54,18 @@ export default function TakeSurveyPage({ params }: { params: { id: string } }) {
       });
     }
   }, [debouncedAnswers, saveProgress, params.id]);
+
+  // Check for invalid survey ID and redirect
+  useEffect(() => {
+    if (!params.id || params.id === 'undefined' || params.id === 'null') {
+      router.replace('/filler/surveys')
+    }
+  }, [params.id, router])
+
+  // Don't render anything if ID is invalid
+  if (!params.id || params.id === 'undefined' || params.id === 'null') {
+    return null
+  }
 
   // TODO: Implement survey questions rendering and submission logic
   if (!survey) {

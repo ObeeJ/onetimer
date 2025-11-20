@@ -10,6 +10,10 @@ if (typeof window !== 'undefined') {
   if (!document.adoptedStyleSheets) {
     document.adoptedStyleSheets = [];
   }
+  // Ensure adoptedStyleSheets has filter method
+  if (document.adoptedStyleSheets && !document.adoptedStyleSheets.filter) {
+    document.adoptedStyleSheets.filter = Array.prototype.filter.bind(document.adoptedStyleSheets);
+  }
 }
 
 const inter = Inter({ subsets: ["latin"] })

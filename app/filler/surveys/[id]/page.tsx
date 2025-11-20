@@ -8,9 +8,24 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Clock, HelpCircle, Award, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function SurveyDetailsPage({ params }: { params: { id: string } }) {
+  const router = useRouter()
   const { data: survey, isLoading, error, refetch } = useSurvey(params.id)
+
+  // Check for invalid survey ID and redirect
+  useEffect(() => {
+    if (!params.id || params.id === 'undefined' || params.id === 'null') {
+      router.replace('/filler/surveys')
+    }
+  }, [params.id, router])
+
+  // Don't render anything if ID is invalid
+  if (!params.id || params.id === 'undefined' || params.id === 'null') {
+    return null
+  }
 
   if (isLoading) {
     return (

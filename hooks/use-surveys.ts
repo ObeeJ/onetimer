@@ -36,7 +36,7 @@ export function useSurvey(id: string) {
     createQueryOptions({
       queryKey: ['survey', id],
       queryFn: () => api.get<Survey>(`/survey/${id}`),
-      enabled: !!id
+      enabled: !!id && id !== 'undefined' && id !== 'null'
     })
   )
 }

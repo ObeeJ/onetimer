@@ -33,10 +33,12 @@ function AvailableSurveys() {
 
   const allSurveys = (data as any)?.pages?.flatMap((page: any) => page.surveys) || []
 
-  const filteredSurveys = allSurveys.filter((survey: any) =>
-    survey.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    survey.category.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredSurveys = allSurveys
+    .filter((survey: any) => survey.id && survey.id !== 'undefined' && survey.id !== 'null')
+    .filter((survey: any) =>
+      survey.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      survey.category.toLowerCase().includes(searchTerm.toLowerCase())
+    )
 
   if (isPending) return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
