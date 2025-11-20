@@ -79,6 +79,15 @@ class ApiClient {
       return { ok: true, data }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Network error'
+      
+      // Handle 401 errors by redirecting to login
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login';
+        }
+        return { ok: false, error: 'Authentication required' }
+      }
+      
       toast.error(errorMessage)
       return { ok: false, error: errorMessage }
     }

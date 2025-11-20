@@ -16,11 +16,11 @@ services:
       
       # Frontend API URLs - CRITICAL FOR PRODUCTION
       - key: NEXT_PUBLIC_API_URL
-        value: https://onetimer-app.onrender.com/api
+        value: https://www.onetimesurvey.xyz/api
       - key: BACKEND_URL
-        value: https://onetimer-app.onrender.com
+        value: https://www.onetimesurvey.xyz
       - key: NEXT_PUBLIC_APP_URL
-        value: https://onetimer-app.onrender.com
+        value: https://www.onetimesurvey.xyz
 
       # Database (Supabase PostgreSQL) - from dashboard
       - key: DATABASE_URL

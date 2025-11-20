@@ -18,9 +18,9 @@ export function getEnv(key: string, defaultValue?: string): string {
 
 export const env = {
   // API URLs
-  NEXT_PUBLIC_API_URL: getEnv('NEXT_PUBLIC_API_URL', 'http://localhost:8081/api'),
-  BACKEND_URL: getEnv('BACKEND_URL', 'http://localhost:8081'),
-  NEXT_PUBLIC_APP_URL: getEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000'),
+  NEXT_PUBLIC_API_URL: getEnv('NEXT_PUBLIC_API_URL', 'https://www.onetimesurvey.xyz/api'),
+  BACKEND_URL: getEnv('BACKEND_URL', 'https://www.onetimesurvey.xyz'),
+  NEXT_PUBLIC_APP_URL: getEnv('NEXT_PUBLIC_APP_URL', 'https://www.onetimesurvey.xyz'),
 
   // Feature flags (optional)
   NODE_ENV: (process.env.NODE_ENV ?? 'development') as 'development' | 'production',

@@ -1,15 +1,20 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
   experimental: {
-    serverComponentsExternalPackages: [],
+    optimizeCss: false,
   },
-  images: {
-    domains: ['localhost'],
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+    };
+    return config;
   },
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api',
-  },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

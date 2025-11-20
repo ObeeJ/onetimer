@@ -5,6 +5,13 @@ import { AuthProvider } from "@/providers/auth-provider"
 import { ReactQueryProvider } from "@/lib/react-query"
 import { Toaster } from "@/components/ui/toast"
 
+// Browser compatibility polyfills
+if (typeof window !== 'undefined') {
+  if (!document.adoptedStyleSheets) {
+    document.adoptedStyleSheets = [];
+  }
+}
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
