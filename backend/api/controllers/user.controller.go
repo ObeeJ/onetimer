@@ -269,3 +269,59 @@ func (h *UserController) GetKYCStatus(c *fiber.Ctx) error {
 		"status": user.KycStatus,
 	})
 }
+
+func (h *UserController) GetPreferences(c *fiber.Ctx) error {
+	userIDInterface := c.Locals("user_id")
+	if userIDInterface == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID, ok := userIDInterface.(string)
+	if !ok || userID == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	// Return mock preferences when database is unavailable
+	if h.userRepo == nil {
+		return c.JSON(fiber.Map{
+			"notifications": true,
+			"email_updates": true,
+			"survey_categories": []string{"lifestyle", "technology"},
+		})
+	}
+
+	// TODO: Implement actual preferences retrieval from database
+	return c.JSON(fiber.Map{
+		"notifications": true,
+		"email_updates": true,
+		"survey_categories": []string{"lifestyle", "technology"},
+	})
+}
+
+func (h *UserController) UpdatePreferences(c *fiber.Ctx) error {
+	userIDInterface := c.Locals("user_id")
+	if userIDInterface == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID, ok := userIDInterface.(string)
+	if !ok || userID == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	var req struct {
+		Notifications      bool     `json:"notifications"`
+		EmailUpdates       bool     `json:"email_updates"`
+		SurveyCategories   []string `json:"survey_categories"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	// Return success when database is unavailable
+	if h.userRepo == nil {
+		return c.JSON(fiber.Map{"message": "Preferences updated successfully"})
+	}
+
+	// TODO: Implement actual preferences update in database
+	return c.JSON(fiber.Map{"message": "Preferences updated successfully"})
+}

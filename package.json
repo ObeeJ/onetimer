@@ -19,6 +19,7 @@
     "test:core": "node scripts/run-core-tests.js",
     "test:quick": "node scripts/test-quick.js",
     "test:api-endpoints": "node scripts/test-api-endpoints.js",
+    "test:production": "node scripts/test-production.js",
     "backend:dev": "cd backend && make dev",
     "backend:build": "cd backend && make build",
     "backend:test": "cd backend && make test",

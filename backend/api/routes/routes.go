@@ -103,6 +103,8 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	user.Post("/kyc", jwtMiddleware, userController.UploadKYC)
 	user.Post("/change-password", jwtMiddleware, userController.ChangePassword)
 	user.Get("/kyc-status", jwtMiddleware, userController.GetKYCStatus)
+	user.Get("/preferences", jwtMiddleware, userController.GetPreferences)
+	user.Post("/preferences", jwtMiddleware, userController.UpdatePreferences)
 
 	// Auth routes
 	auth := api.Group("/auth")
@@ -202,6 +204,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 
 	// Onboarding routes
 	onboarding := api.Group("/onboarding")
+	onboarding.Use(jwtMiddleware) // Add JWT middleware for authentication
 	onboarding.Post("/filler", onboardingController.CompleteFillerOnboarding)
 	onboarding.Post("/creator", onboardingController.CompleteCreatorOnboarding)
 	onboarding.Put("/demographics", onboardingController.UpdateDemographics)

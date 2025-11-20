@@ -13,6 +13,14 @@ services:
         value: production
       - key: PORT
         value: 3000
+      
+      # Frontend API URLs - CRITICAL FOR PRODUCTION
+      - key: NEXT_PUBLIC_API_URL
+        value: https://onetimer-app.onrender.com/api
+      - key: BACKEND_URL
+        value: https://onetimer-app.onrender.com
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://onetimer-app.onrender.com
 
       # Database (Supabase PostgreSQL) - from dashboard
       - key: DATABASE_URL
