@@ -15,7 +15,7 @@ export function useNotifications() {
   
   return useQuery({
     queryKey: ['notifications'],
-    queryFn: () => api.get<{ notifications: Notification[] }>('/notification/'),
+    queryFn: () => api.get<{ notifications: Notification[] }>('/notifications/'),
     refetchInterval: 30000, // Poll every 30 seconds
   })
 }
@@ -26,7 +26,7 @@ export function useMarkNotificationRead() {
   
   return useMutation({
     mutationFn: (notificationIds: string[]) => 
-      api.post('/notification/mark-read', { notification_ids: notificationIds }),
+      api.post('/notifications/mark-read', { notification_ids: notificationIds }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },

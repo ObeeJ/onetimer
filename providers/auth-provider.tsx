@@ -27,7 +27,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await apiClient.getProfile()
       if (response.ok && response.data) {
-        setUser(response.data as unknown as User)
+        // Backend returns { user: {...} }, extract the user object
+        const userData = (response.data as any).user || response.data
+        setUser(userData as User)
       } else {
         setUser(null)
       }
