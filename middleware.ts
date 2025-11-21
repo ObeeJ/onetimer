@@ -6,10 +6,10 @@ const authRoutes = ['/auth/', '/filler/auth/', '/creator/auth/', '/admin/auth/',
 
 // Role-based route protection
 const roleRoutes = {
-  filler: ['/filler/'],
-  creator: ['/creator/'],
-  admin: ['/admin/'],
-  super_admin: ['/super-admin/']
+  filler: ['/filler'],
+  creator: ['/creator'],
+  admin: ['/admin'],
+  super_admin: ['/super-admin']
 }
 
 export function middleware(request: NextRequest) {
@@ -36,7 +36,9 @@ export function middleware(request: NextRequest) {
   if (userRole) {
     // Check if user is accessing correct role-based routes
     const allowedRoutes = roleRoutes[userRole as keyof typeof roleRoutes] || []
-    const hasAccess = allowedRoutes.some(route => pathname.startsWith(route))
+    const hasAccess = allowedRoutes.some(route => 
+      pathname === route || pathname.startsWith(route + '/')
+    )
     
     if (!hasAccess) {
       // Redirect to appropriate dashboard based on role
@@ -53,7 +55,7 @@ export function middleware(request: NextRequest) {
   } else {
     // No role cookie - redirect to login for protected routes
     const isProtectedRoute = Object.values(roleRoutes).some(routes => 
-      routes.some(route => pathname.startsWith(route))
+      routes.some(route => pathname === route || pathname.startsWith(route + '/'))
     )
     
     if (isProtectedRoute) {
