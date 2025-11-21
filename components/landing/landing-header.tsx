@@ -64,7 +64,15 @@ export default function LandingHeader() {
                   className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
                 >
                   {user.avatar ? (
-                    <Image src={user.avatar} alt={user.name} width={40} height={40} className="w-10 h-10 rounded-full" />
+                    <Image 
+                      src={user.avatar} 
+                      alt={user.name} 
+                      width={40} 
+                      height={40} 
+                      className="w-10 h-10 rounded-full"
+                      priority={false}
+                      loading="lazy"
+                    />
                   ) : (
                     <span className="text-white font-medium text-sm">
                       {getInitials(user.name)}

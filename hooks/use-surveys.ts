@@ -8,8 +8,17 @@ import type { Survey, SurveyResponse } from '@/types/survey'
 import type { PaginatedResponse } from '@/types/dashboard'
 
 const fetchSurveys = async ({ pageParam = 1 }: { pageParam?: number }): Promise<PaginatedResponse<Survey>> => {
-  const res = await api.get<PaginatedResponse<Survey>>(`/survey?page=${pageParam}&limit=10`)
-  return res
+  try {
+    const res = await api.get<PaginatedResponse<Survey>>(`/survey?page=${pageParam}&limit=10`)
+    // Ensure surveys array exists
+    if (res && typeof res === 'object' && !Array.isArray(res.surveys)) {
+      return { ...res, surveys: [] }
+    }
+    return res
+  } catch (error) {
+    console.error('Failed to fetch surveys:', error)
+    return { surveys: [], hasNextPage: false, totalCount: 0 }
+  }
 }
 
 export function useSurveys() {

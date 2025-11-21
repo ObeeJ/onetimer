@@ -32,9 +32,13 @@ export function AnimatedLogo({ className = "", size = "md" }: AnimatedLogoProps)
         alt="Onetime Survey"
         width={256}
         height={256}
-        priority
-        quality={100}
+        priority={size === 'lg'}
+        quality={90}
+        loading={size === 'lg' ? 'eager' : 'lazy'}
         className={`${className || sizeClasses[size]} transition-all duration-300`}
+        onError={(e) => {
+          console.warn('Logo failed to load:', e)
+        }}
       />
     </motion.div>
   )

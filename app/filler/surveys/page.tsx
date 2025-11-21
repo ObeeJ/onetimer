@@ -31,13 +31,13 @@ function AvailableSurveys() {
   } = useSurveys()
   const [searchTerm, setSearchTerm] = useState("")
 
-  const allSurveys = (data as any)?.pages?.flatMap((page: any) => page.surveys) || []
+  const allSurveys = (data as any)?.pages?.flatMap((page: any) => page?.surveys || []) || []
 
   const filteredSurveys = allSurveys
-    .filter((survey: any) => survey.id && survey.id !== 'undefined' && survey.id !== 'null')
+    .filter((survey: any) => survey?.id && survey.id !== 'undefined' && survey.id !== 'null')
     .filter((survey: any) =>
-      survey.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      survey.category.toLowerCase().includes(searchTerm.toLowerCase())
+      survey?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      survey?.category?.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
   if (isPending) return (

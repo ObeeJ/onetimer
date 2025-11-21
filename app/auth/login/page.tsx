@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,6 +21,9 @@ export default function LoginPage() {
   const [resetEmailSent, setResetEmailSent] = useState(false)
   const { signIn } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  const role = searchParams.get('role') || 'filler' // Default to filler
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,7 +87,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-xl border-0 bg-white/90 backdrop-blur-sm relative z-10">
         <CardHeader className="text-center space-y-4 pb-6">
           <Image src="/Logo.png" alt="Onetime Survey" width={192} height={48} className="mx-auto" />
-          <CardTitle className="text-2xl font-bold text-slate-900">Welcome back</CardTitle>
+          <CardTitle className="text-2xl font-bold text-slate-900">
+            {role === 'creator' ? 'Creator Sign In' : 'Filler Sign In'}
+          </CardTitle>
           <p className="text-slate-600">Sign in to your account</p>
         </CardHeader>
         <CardContent className="px-6 pb-6">
@@ -138,8 +143,11 @@ export default function LoginPage() {
           <div className="text-center mt-6 space-y-4">
             <p className="text-sm text-slate-600">
               Don&apos;t have an account?{" "}
-              <Link href="/auth/signup" className="text-[#013F5C] hover:underline font-medium">
-                Sign up
+              <Link 
+                href={role === 'creator' ? '/creator/onboarding' : '/auth/signup'} 
+                className="text-[#013F5C] hover:underline font-medium"
+              >
+                Sign up as {role === 'creator' ? 'Creator' : 'Filler'}
               </Link>
             </p>
           </div>

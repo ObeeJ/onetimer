@@ -182,12 +182,12 @@ export default function DashboardPage() {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <Badge variant="secondary" className="rounded-full bg-blue-100 text-blue-700 text-xs">
-                        {survey.category}
+                        {survey?.category || 'General'}
                       </Badge>
-                      <div className="text-lg font-bold text-green-600">₦{survey.reward_amount}</div>
+                      <div className="text-lg font-bold text-green-600">₦{survey?.reward_amount || 0}</div>
                     </div>
                     <CardTitle className="text-lg font-bold text-slate-900">
-                      {survey.title}
+                      {survey?.title || 'Untitled Survey'}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
