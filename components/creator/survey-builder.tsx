@@ -31,11 +31,14 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
   const createSurvey = useCreateSurvey()
   const updateSurvey = useUpdateSurvey()
   const [survey, setSurvey] = useState<SurveyData>(initialData || {
+    creator_id: "",
     title: "",
     description: "",
     category: "",
     estimated_duration: 5,
-    reward: 500,
+    reward_amount: 500,
+    target_responses: 100,
+    current_responses: 0,
     questions: []
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -51,9 +54,11 @@ export default function SurveyBuilder({ initialData, isEditing = false }: Survey
   const addQuestion = (type: QuestionType) => {
     const newQuestion: Question = {
       id: Date.now().toString(),
+      survey_id: initialData?.id || "",
       type: type === "multiple_choice" ? "multi" : type === "open_ended" ? "text" : "rating",
       text: "",
       required: false,
+      order_num: survey.questions.length + 1,
       ...(type === "multiple_choice" && { options: ["", ""] })
     }
     setSurvey(prev => ({ ...prev, questions: [...prev.questions, newQuestion] }))

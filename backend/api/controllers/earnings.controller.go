@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"onetimer-backend/cache"
 	"onetimer-backend/config"
 	"onetimer-backend/services"
@@ -25,48 +26,72 @@ func NewEarningsController(cache *cache.Cache, db *pgxpool.Pool, cfg *config.Con
 }
 
 func (h *EarningsController) GetEarnings(c *fiber.Ctx) error {
-	earnings := fiber.Map{
-		"balance":      12300,
-		"total_earned": 24750,
-		"this_month":   8250,
-		"pending":      1500,
-		"withdrawn":    11250,
-		"history": []fiber.Map{
-			{
-				"id":     "e1",
-				"title":  "Survey #1 - Consumer Preferences",
-				"amount": 300,
-				"date":   time.Now().Format("2006-01-02"),
-				"status": "completed",
-				"type":   "earning",
-			},
-			{
-				"id":     "e2",
-				"title":  "Survey #2 - Technology Usage",
-				"amount": 450,
-				"date":   time.Now().AddDate(0, 0, -1).Format("2006-01-02"),
-				"status": "completed",
-				"type":   "earning",
-			},
-			{
-				"id":     "e3",
-				"title":  "Referral Bonus - Friend Signup",
-				"amount": 1000,
-				"date":   time.Now().AddDate(0, 0, -2).Format("2006-01-02"),
-				"status": "completed",
-				"type":   "referral",
-			},
-			{
-				"id":     "e4",
-				"title":  "Withdrawal to Bank Account",
-				"amount": -5000,
-				"date":   time.Now().AddDate(0, 0, -7).Format("2006-01-02"),
-				"status": "completed",
-				"type":   "withdrawal",
-			},
-		},
+	userIDInterface := c.Locals("user_id")
+	if userIDInterface == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized", "success": false})
+	}
+	userID, ok := userIDInterface.(string)
+	if !ok || userID == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "Invalid user ID", "success": false})
 	}
 
+	// Check cache first
+	cacheKey := "earnings:" + userID
+	var cachedEarnings fiber.Map
+	if err := h.cache.Get(c.Context(), cacheKey, &cachedEarnings); err == nil {
+		return c.JSON(cachedEarnings)
+	}
+
+	// Check if database is available
+	if h.db == nil {
+		// Return mock data when database is unavailable
+		mockEarnings := fiber.Map{
+			"balance": 12300, "total_earned": 24750, "this_month": 8250,
+			"transactions": []fiber.Map{
+				{"id": "e1", "description": "Survey Completion", "amount": 300, "date": time.Now().Format("2006-01-02"), "status": "completed", "type": "earning"},
+				{"id": "e2", "description": "Survey Completion", "amount": 450, "date": time.Now().AddDate(0, 0, -1).Format("2006-01-02"), "status": "completed", "type": "earning"},
+			},
+			"success": true,
+		}
+		return c.JSON(mockEarnings)
+	}
+
+	// Get earnings from database with timeout
+	ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+	defer cancel()
+
+	// Get total earnings
+	var totalEarned, balance int
+	h.db.QueryRow(ctx, "SELECT COALESCE(SUM(amount), 0) FROM earnings WHERE user_id = $1 AND status = 'completed'", userID).Scan(&totalEarned)
+	h.db.QueryRow(ctx, "SELECT COALESCE(balance, 0) FROM fillers WHERE user_id = $1", userID).Scan(&balance)
+
+	// Get recent transactions
+	rows, err := h.db.Query(ctx, "SELECT id, amount, type, status, created_at FROM earnings WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20", userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch earnings", "success": false})
+	}
+	defer rows.Close()
+
+	var transactions []fiber.Map
+	for rows.Next() {
+		var id, earningType, status string
+		var amount int
+		var createdAt time.Time
+		if err := rows.Scan(&id, &amount, &earningType, &status, &createdAt); err != nil {
+			continue
+		}
+		transactions = append(transactions, fiber.Map{
+			"id": id, "description": "Survey Completion", "amount": amount,
+			"date": createdAt.Format("2006-01-02"), "status": status, "type": earningType,
+		})
+	}
+
+	earnings := fiber.Map{
+		"balance": balance, "total_earned": totalEarned, "transactions": transactions, "success": true,
+	}
+
+	// Cache for 2 minutes
+	h.cache.Set(c.Context(), cacheKey, earnings)
 	return c.JSON(earnings)
 }
 

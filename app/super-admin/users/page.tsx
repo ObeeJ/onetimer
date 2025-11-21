@@ -15,6 +15,31 @@ export default function SuperAdminUsersPage() {
     { id: 4, name: "User Four", email: "user4@onetimesurvey.com", role: "admin", status: "active", surveys: 0, earnings: "₦0" },
   ]
 
+  const handleAddUser = () => {
+    console.log("Opening add user dialog...")
+    // TODO: Implement add user functionality
+  }
+
+  const handleFilter = () => {
+    console.log("Opening filter options...")
+    // TODO: Implement filter functionality
+  }
+
+  const handleShield = (userId: number) => {
+    console.log("Managing permissions for user:", userId)
+    // TODO: Implement permission management
+  }
+
+  const handleBan = (userId: number) => {
+    console.log("Banning user:", userId)
+    // TODO: Implement user ban functionality
+  }
+
+  const handleMore = (userId: number) => {
+    console.log("More actions for user:", userId)
+    // TODO: Show more actions menu
+  }
+
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
@@ -22,7 +47,7 @@ export default function SuperAdminUsersPage() {
           <h1 className="text-3xl font-bold text-slate-900">User Management</h1>
           <p className="text-slate-600">Manage all platform users</p>
         </div>
-        <Button variant="default">
+        <Button variant="default" onClick={handleAddUser}>
           <Users className="h-4 w-4 mr-2" />
           Add User
         </Button>
@@ -37,7 +62,7 @@ export default function SuperAdminUsersPage() {
                 <Search className="h-4 w-4 absolute left-3 top-3 text-slate-400" />
                 <Input placeholder="Search users..." className="pl-9 w-64" />
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleFilter}>
                 <Filter className="h-4 w-4 mr-2" />
                 Filter
               </Button>
@@ -79,13 +104,13 @@ export default function SuperAdminUsersPage() {
                 case "actions":
                   return (
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleShield(user.id)}>
                         <Shield className="h-3 w-3" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleBan(user.id)}>
                         <Ban className="h-3 w-3" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleMore(user.id)}>
                         <MoreHorizontal className="h-3 w-3" />
                       </Button>
                     </div>

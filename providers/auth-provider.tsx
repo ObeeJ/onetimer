@@ -9,6 +9,7 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isVerified: boolean
+  isKycVerified: boolean
   signIn: (email: string, password: string) => Promise<User>
   signOut: () => Promise<void>
   isLoading: boolean
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           user: null,
           isAuthenticated: false,
           isVerified: false,
+          isKycVerified: false,
           signIn: async () => ({} as User),
           signOut: async () => {},
           isLoading: true,
@@ -105,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isAuthenticated: !!user,
         isVerified: user?.isVerified || false,
+        isKycVerified: user?.kycStatus === "approved",
         signIn,
         signOut,
         isLoading,

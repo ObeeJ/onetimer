@@ -53,29 +53,40 @@ class ApiClient {
       ...(options.headers as Record<string, string> || {}),
     }
 
-    /*
-     * IMPORTANT: credentials: 'include' sends httpOnly cookies automatically
-     * We don't need to manually add Authorization header anymore!
-     *
-     * The browser automatically includes httpOnly cookies because:
-     * 1. credentials: 'include' tells fetch to include cookies
-     * 2. Browser manages the cookie (not accessible to JS)
-     * 3. Backend validates the cookie and authenticates the user
-     */
-
     try {
       const response = await fetch(url, {
         ...options,
         headers,
-        credentials: 'include', // ← Automatically send httpOnly cookies
+        credentials: 'include',
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || `HTTP ${response.status}`)
+        // Handle new standardized error format
+        if (data.code && data.message) {
+          // New format: { code: "VALIDATION_ERROR", message: "...", details: {...} }
+          let errorMessage = data.message
+          
+          // Handle validation errors specially
+          if (data.code === 'VALIDATION_ERROR' && data.details?.validation_errors?.errors) {
+            const validationErrors = data.details.validation_errors.errors
+            errorMessage = validationErrors.map((err: any) => `${err.field}: ${err.message}`).join(', ')
+          }
+          
+          throw new Error(errorMessage)
+        } else {
+          // Fallback to old format
+          throw new Error(data.error || `HTTP ${response.status}`)
+        }
       }
 
+      // Handle new success format: { success: true, data: {...} }
+      if (data.success && data.data) {
+        return { ok: true, data: data.data }
+      }
+
+      // Fallback to old format
       return { ok: true, data }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Network error'

@@ -12,14 +12,16 @@ import (
 )
 
 type AuthController struct {
-	cache     *cache.Cache
-	jwtSecret string
+	cache      *cache.Cache
+	jwtSecret  string
+	resetTokens map[string]string // Simple in-memory store for reset tokens
 }
 
 func NewAuthController(cache *cache.Cache, jwtSecret string) *AuthController {
 	return &AuthController{
-		cache:     cache,
-		jwtSecret: jwtSecret,
+		cache:       cache,
+		jwtSecret:   jwtSecret,
+		resetTokens: make(map[string]string),
 	}
 }
 
@@ -170,4 +172,52 @@ func (h *AuthController) generateToken(userID, role string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(h.jwtSecret))
+}
+
+func (h *AuthController) ForgotPassword(c *fiber.Ctx) error {
+	var req struct {
+		Email string `json:"email"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	// Generate reset token
+	resetToken := uuid.New().String()
+	
+	// Store reset token in memory
+	h.resetTokens[resetToken] = req.Email
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Password reset email sent",
+		"reset_token": resetToken,
+	})
+}
+
+func (h *AuthController) ResetPassword(c *fiber.Ctx) error {
+	var req struct {
+		Token       string `json:"token"`
+		NewPassword string `json:"new_password"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	// Verify reset token
+	email, exists := h.resetTokens[req.Token]
+	if !exists {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid or expired reset token"})
+	}
+
+	// Delete used token
+	delete(h.resetTokens, req.Token)
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Password reset successful",
+		"email": email,
+	})
 }

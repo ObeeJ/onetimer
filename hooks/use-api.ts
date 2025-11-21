@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import { logger } from "@/lib/logger"
 
-const API_BASE = '/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api'
 
 class ApiError extends Error {
   constructor(public status: number, message: string, public data?: Record<string, unknown>) {

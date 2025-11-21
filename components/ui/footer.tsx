@@ -20,18 +20,18 @@ export function Footer() {
           <div className="text-center md:text-right">
             <h3 className="text-lg font-semibold mb-4 text-slate-900">Connect with us</h3>
             <div className="flex justify-center md:justify-end space-x-4">
-              <a href="#" className="p-2 rounded-full bg-slate-100 hover:bg-[#013F5C] hover:text-white transition-colors">
-                <Linkedin className="h-5 w-5 text-slate-600" />
-              </a>
-              <a href="#" className="p-2 rounded-full bg-slate-100 hover:bg-[#013F5C] hover:text-white transition-colors">
-                <Twitter className="h-5 w-5 text-slate-600" />
-              </a>
-              <a href="#" className="p-2 rounded-full bg-slate-100 hover:bg-[#013F5C] hover:text-white transition-colors">
-                <Instagram className="h-5 w-5 text-slate-600" />
-              </a>
-              <a href="#" className="p-2 rounded-full bg-slate-100 hover:bg-[#013F5C] hover:text-white transition-colors">
-                <Facebook className="h-5 w-5 text-slate-600" />
-              </a>
+              <span className="p-2 rounded-full bg-slate-100 text-slate-400 cursor-not-allowed">
+                <Linkedin className="h-5 w-5" />
+              </span>
+              <span className="p-2 rounded-full bg-slate-100 text-slate-400 cursor-not-allowed">
+                <Twitter className="h-5 w-5" />
+              </span>
+              <span className="p-2 rounded-full bg-slate-100 text-slate-400 cursor-not-allowed">
+                <Instagram className="h-5 w-5" />
+              </span>
+              <span className="p-2 rounded-full bg-slate-100 text-slate-400 cursor-not-allowed">
+                <Facebook className="h-5 w-5" />
+              </span>
             </div>
           </div>
         </div>

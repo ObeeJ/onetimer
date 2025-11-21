@@ -57,6 +57,7 @@ func (h *LoginHandler) Login(c *fiber.Ctx) error {
 
 	// Set secure cookies
 	security.SetAuthCookie(c, token)
+	security.SetSecureCookie(c, "user_role", user.Role, 24*time.Hour)  // Add role cookie
 	csrfToken := security.SetCSRFCookie(c)
 
 	return c.JSON(fiber.Map{

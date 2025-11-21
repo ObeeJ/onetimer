@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { motion, useReducedMotion, easeOut } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,18 +11,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { EmptyState } from "@/components/ui/empty-state"
 import { DollarSign, TrendingUp, Calendar, Download, Lock, CheckCircle } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/providers/auth-provider"
 import { useEarnings } from "@/hooks/use-earnings"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { ErrorMessage } from "@/components/ui/error-message"
 import WithdrawDialog from "@/components/earnings/withdraw-dialog"
 
 export default function EarningsPage() {
-  const { isAuthenticated, isVerified } = useAuth()
+  const router = useRouter()
+  const { user, isAuthenticated, isKycVerified } = useAuth()
   const { data: earnings, isLoading, error, refetch } = useEarnings()
   const reduceMotion = useReducedMotion()
   const [timeRange, setTimeRange] = useState("lifetime")
   const [withdrawOpen, setWithdrawOpen] = useState(false)
+
+  const handleCompleteVerification = () => {
+    router.push('/filler/onboarding/verify')
+  }
+
+  const handleExport = () => {
+    console.log("Exporting earnings data...")
+    // TODO: Implement export functionality
+  }
+
+  const handleCopyReferral = () => {
+    const referralCode = `REF${user?.id?.slice(-6)?.toUpperCase() || 'DEMO'}`
+    navigator.clipboard.writeText(referralCode)
+    console.log("Referral code copied:", referralCode)
+  }
 
   const earningsData = {
     total: earnings?.total || 0,
@@ -86,7 +103,7 @@ export default function EarningsPage() {
     )
   }
 
-  if (!isVerified) {
+  if (!isKycVerified) {
     return (
       <div className="flex-1 min-w-0 overflow-auto">
         <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
@@ -101,7 +118,7 @@ export default function EarningsPage() {
                   <p className="text-sm text-yellow-700 mt-1">
                     Please complete your account verification to unlock earnings tracking and withdrawals.
                   </p>
-                  <Button variant="filler" className="mt-4">
+                  <Button variant="filler" className="mt-4" onClick={handleCompleteVerification}>
                     Complete Verification
                   </Button>
                 </div>
@@ -140,7 +157,7 @@ export default function EarningsPage() {
                     <SelectItem value="lifetime">Lifetime</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline">
+                <Button variant="outline" onClick={handleExport}>
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </Button>
@@ -320,7 +337,7 @@ export default function EarningsPage() {
                           readOnly 
                           className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50"
                         />
-                        <Button variant="filler" size="sm">
+                        <Button variant="filler" size="sm" onClick={handleCopyReferral}>
                           Copy
                         </Button>
                       </div>

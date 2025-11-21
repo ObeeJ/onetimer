@@ -417,9 +417,9 @@ func (s *AnalyticsService) GetEarningsBreakdown(ctx context.Context, userID stri
 	err := s.db.QueryRow(ctx, `
 		SELECT
 			COALESCE(SUM(amount), 0) as total,
-			COALESCE(SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END), 0) as paid,
+			COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as paid,
 			COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as pending,
-			COALESCE(SUM(CASE WHEN status = 'approved' THEN amount ELSE 0 END), 0) as available
+			COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as available
 		FROM earnings
 		WHERE user_id = $1
 	`, userID).Scan(&breakdown.TotalEarnings, &breakdown.PaidEarnings, &breakdown.PendingEarnings, &breakdown.AvailableBalance)

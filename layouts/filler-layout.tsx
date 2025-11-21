@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
 import { SidebarToggle } from "@/components/ui/sidebar-toggle"
 import { useSidebarStore } from "@/lib/sidebar-store"
+import { NotificationDropdown } from "@/components/ui/notification-dropdown"
 
 const navItems = [
   { title: "Dashboard", url: "/filler", icon: Home },
@@ -47,7 +48,8 @@ export default function FillerLayout({ children }: { children: React.ReactNode }
                 <Link href="/filler">
                   <Image src="/Logo.png" alt="OneTime Survey" width={128} height={32} className="cursor-pointer" />
                 </Link>
-                <div className="ml-auto">
+                <div className="ml-auto flex items-center gap-2">
+                  <NotificationDropdown />
                   <SidebarToggle />
                 </div>
               </div>

@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/providers/auth-provider"
 import OTPVerificationForm from "@/components/auth/otp-verification-form"
 
 function VerifyOTPContent() {

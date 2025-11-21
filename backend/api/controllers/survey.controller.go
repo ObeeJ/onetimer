@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"onetimer-backend/cache"
 	"onetimer-backend/database"
@@ -111,14 +112,31 @@ func (h *SurveyController) CreateSurvey(c *fiber.Ctx) error {
 }
 
 func (h *SurveyController) GetSurveys(c *fiber.Ctx) error {
-	surveys, err := h.repo.GetAll(c.Context(), 100, 0, "")
+	// Set timeout for the request
+	ctx, cancel := context.WithTimeout(c.Context(), 10*time.Second)
+	defer cancel()
+
+	// Check cache first
+	cacheKey := "surveys:active:list"
+	var cachedSurveys []models.Survey
+	if err := h.cache.Get(ctx, cacheKey, &cachedSurveys); err == nil {
+		return c.JSON(fiber.Map{"data": cachedSurveys, "success": true, "cached": true})
+	}
+
+	// Get only active surveys with limit
+	surveys, err := h.repo.GetAll(ctx, 50, 0, "active")
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch surveys", "details": err.Error()})
+		// Return empty array on timeout or error instead of failing
+		utils.LogError("Failed to fetch surveys: %v", err)
+		return c.JSON(fiber.Map{"data": []models.Survey{}, "success": true, "error": "Temporary service issue"})
 	}
 
 	if surveys == nil {
 		surveys = []models.Survey{}
 	}
+
+	// Cache the results for 5 minutes
+	h.cache.Set(ctx, cacheKey, surveys)
 
 	return c.JSON(fiber.Map{"data": surveys, "success": true})
 }

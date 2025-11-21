@@ -1,0 +1,158 @@
+package controllers
+
+import (
+	"context"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
+
+	"onetimer-backend/backend/dto"
+	"onetimer-backend/backend/errors"
+	"onetimer-backend/backend/models"
+	"onetimer-backend/backend/validation"
+)
+
+type ValidatedAdminController struct {
+	db *pgxpool.Pool
+}
+
+func NewValidatedAdminController(db *pgxpool.Pool) *ValidatedAdminController {
+	return &ValidatedAdminController{db: db}
+}
+
+func (ac *ValidatedAdminController) CreateAdmin(c *fiber.Ctx) error {
+	// Only super_admin can create admins
+	userRole := c.Locals("user_role").(string)
+	if userRole != "super_admin" {
+		return errors.HandleError(c, errors.ErrForbidden)
+	}
+
+	var req dto.CreateAdminRequest
+	if err := c.BodyParser(&req); err != nil {
+		return errors.HandleError(c, errors.ErrBadRequest)
+	}
+
+	if err := validation.ValidateStruct(req); err != nil {
+		return errors.HandleError(c, errors.NewValidationError(map[string]interface{}{
+			"validation_errors": err,
+		}))
+	}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.HandleError(c, errors.ErrInternalServer)
+	}
+
+	admin := models.User{
+		ID:           uuid.New(),
+		Email:        req.Email,
+		Name:         req.FirstName + " " + req.LastName,
+		Role:         "admin",
+		PasswordHash: string(hashedPassword),
+		IsVerified:   true,
+		IsActive:     true,
+		KycStatus:    "approved",
+		Department:   req.Department,
+		Permissions:  req.Permissions,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	query := `
+		INSERT INTO users (id, email, name, role, password_hash, is_verified, is_active, 
+			kyc_status, department, permissions, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+	`
+
+	_, err = ac.db.Exec(context.Background(), query,
+		admin.ID, admin.Email, admin.Name, admin.Role, admin.PasswordHash,
+		admin.IsVerified, admin.IsActive, admin.KycStatus, admin.Department,
+		admin.Permissions, admin.CreatedAt, admin.UpdatedAt,
+	)
+
+	if err != nil {
+		if err.Error() == "unique violation" {
+			return errors.HandleError(c, errors.NewConflictError("Admin with this email"))
+		}
+		return errors.HandleError(c, errors.ErrInternalServer)
+	}
+
+	response := dto.UserResponse{
+		ID:          admin.ID.String(),
+		Name:        admin.Name,
+		Email:       admin.Email,
+		Role:        admin.Role,
+		IsVerified:  admin.IsVerified,
+		IsActive:    admin.IsActive,
+		KycStatus:   admin.KycStatus,
+		Department:  admin.Department,
+		Permissions: admin.Permissions,
+		CreatedAt:   admin.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   admin.UpdatedAt.Format(time.RFC3339),
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+		"data":    response,
+	})
+}
+
+func (ac *ValidatedAdminController) GetAdmins(c *fiber.Ctx) error {
+	// Only super_admin can view all admins
+	userRole := c.Locals("user_role").(string)
+	if userRole != "super_admin" {
+		return errors.HandleError(c, errors.ErrForbidden)
+	}
+
+	query := `
+		SELECT id, email, name, role, is_verified, is_active, kyc_status,
+			department, permissions, created_at, updated_at
+		FROM users 
+		WHERE role IN ('admin', 'super_admin')
+		ORDER BY created_at DESC
+	`
+
+	rows, err := ac.db.Query(context.Background(), query)
+	if err != nil {
+		return errors.HandleError(c, errors.ErrInternalServer)
+	}
+	defer rows.Close()
+
+	var admins []dto.UserResponse
+	for rows.Next() {
+		var admin models.User
+		err := rows.Scan(
+			&admin.ID, &admin.Email, &admin.Name, &admin.Role,
+			&admin.IsVerified, &admin.IsActive, &admin.KycStatus,
+			&admin.Department, &admin.Permissions, &admin.CreatedAt, &admin.UpdatedAt,
+		)
+		if err != nil {
+			return errors.HandleError(c, errors.ErrInternalServer)
+		}
+
+		response := dto.UserResponse{
+			ID:          admin.ID.String(),
+			Name:        admin.Name,
+			Email:       admin.Email,
+			Role:        admin.Role,
+			IsVerified:  admin.IsVerified,
+			IsActive:    admin.IsActive,
+			KycStatus:   admin.KycStatus,
+			Department:  admin.Department,
+			Permissions: admin.Permissions,
+			CreatedAt:   admin.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:   admin.UpdatedAt.Format(time.RFC3339),
+		}
+
+		admins = append(admins, response)
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    admins,
+	})
+}

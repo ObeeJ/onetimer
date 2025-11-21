@@ -9,17 +9,20 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, Users, Wallet, ListChecks, Clock } from "lucide-react"
 import { useAuth } from "@/providers/auth-provider"
-import { useSurveys } from "@/hooks/use-surveys"
+import { useAvailableSurveys } from "@/hooks/use-filler"
 import { useEarnings } from "@/hooks/use-earnings"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isVerified, isLoading } = useAuth()
-  const { data: surveys } = useSurveys()
+  const { data: surveysData } = useAvailableSurveys()
   const { data: earnings } = useEarnings()
   const router = useRouter()
   const reduceMotion = useReducedMotion()
+
+  // Extract surveys from data
+  const surveys = surveysData?.surveys || []
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -172,14 +175,16 @@ export default function DashboardPage() {
             </Link>
           </div>
           
-                     {surveys ? (            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                             {(Array.isArray(surveys) ? surveys : [surveys]).filter(s => s).slice(0, 6).map((survey) => (                <Card key={survey.id} className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+          {surveys.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {surveys.filter(survey => survey?.id && survey.id !== 'undefined').slice(0, 6).map((survey) => (
+                <Card key={survey.id} className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <Badge variant="secondary" className="rounded-full bg-blue-100 text-blue-700 text-xs">
                         {survey.category}
                       </Badge>
-                      <div className="text-lg font-bold text-green-600">₦{survey.reward}</div>
+                      <div className="text-lg font-bold text-green-600">₦{survey.reward_amount}</div>
                     </div>
                     <CardTitle className="text-lg font-bold text-slate-900">
                       {survey.title}
@@ -196,7 +201,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
-                        <span>{survey.responses_count || 0}</span>
+                        <span>{0}</span>
                       </div>
                     </div>
                     <Button asChild variant="filler" className="w-full">

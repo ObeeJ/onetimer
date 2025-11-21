@@ -4,6 +4,14 @@ import type { NextRequest } from "next/server"
 const publicRoutes = ['/', '/login', '/pricing', '/unauthorized']
 const authRoutes = ['/auth/', '/filler/auth/', '/creator/auth/', '/admin/auth/', '/super-admin/auth/']
 
+// Role-based route protection
+const roleRoutes = {
+  filler: ['/filler/'],
+  creator: ['/creator/'],
+  admin: ['/admin/'],
+  super_admin: ['/super-admin/']
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -18,8 +26,39 @@ export function middleware(request: NextRequest) {
   }
 
   // Allow auth routes
-  if (authRoutes.some(route => pathname.includes(route))) {
+  if (authRoutes.some(route => pathname.startsWith(route))) {
     return NextResponse.next()
+  }
+
+  // Check role-based access
+  const userRole = request.cookies.get('user_role')?.value
+  
+  if (userRole) {
+    // Check if user is accessing correct role-based routes
+    const allowedRoutes = roleRoutes[userRole as keyof typeof roleRoutes] || []
+    const hasAccess = allowedRoutes.some(route => pathname.startsWith(route))
+    
+    if (!hasAccess) {
+      // Redirect to appropriate dashboard based on role
+      const dashboardMap = {
+        filler: '/filler',
+        creator: '/creator',
+        admin: '/admin',
+        super_admin: '/super-admin'
+      }
+      
+      const redirectUrl = dashboardMap[userRole as keyof typeof dashboardMap] || '/unauthorized'
+      return NextResponse.redirect(new URL(redirectUrl, request.url))
+    }
+  } else {
+    // No role cookie - redirect to login for protected routes
+    const isProtectedRoute = Object.values(roleRoutes).some(routes => 
+      routes.some(route => pathname.startsWith(route))
+    )
+    
+    if (isProtectedRoute) {
+      return NextResponse.redirect(new URL('/auth/login', request.url))
+    }
   }
 
   // Add security headers

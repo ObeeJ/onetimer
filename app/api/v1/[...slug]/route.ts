@@ -73,6 +73,8 @@ async function proxyRequest(request: NextRequest, slug: string[], method: string
     const BACKEND_URL = getEnv('BACKEND_URL')
     const url = new URL(request.url)
     const backendUrl = `${BACKEND_URL}/api/${slug.join('/')}`
+    
+    console.log(`[PROXY] ${method} ${url.pathname} -> ${backendUrl}`)
 
     // Forward query parameters
     const searchParams = new URLSearchParams(url.searchParams)

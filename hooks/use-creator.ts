@@ -68,7 +68,7 @@ export function useSurveyAnalytics(surveyId: string) {
   return useQuery(
     createQueryOptions({
       queryKey: ['creator', 'analytics', surveyId],
-      queryFn: () => api.get<SurveyAnalytics>(`/creator/surveys/${surveyId}/analytics`),
+      queryFn: () => api.get<SurveyAnalytics>(`/analytics/creator/surveys/${surveyId}`),
       enabled: !!surveyId
     })
   )

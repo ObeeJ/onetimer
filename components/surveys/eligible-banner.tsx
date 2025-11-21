@@ -8,7 +8,7 @@ import { api } from "@/hooks/use-api"
 export default function EligibleBanner() {
   const [eligible, setEligible] = useState<boolean | null>(null)
   useEffect(() => {
-    api.post<{ eligible: boolean }>("/eligibility").then((r) => setEligible(r.eligible))
+    api.post<{ eligible: boolean }>("/eligibility/check").then((r) => setEligible(r.eligible))
   }, [])
   if (eligible === null) return null
   if (!eligible) return null

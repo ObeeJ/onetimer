@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ResponsiveTable } from "@/components/ui/responsive-table"
+import { useQuery } from "@tanstack/react-query"
+import { api } from "@/hooks/use-api"
 import { 
   Search, 
   Filter, 
@@ -20,16 +22,53 @@ interface User {
   id: string
   name: string
   email: string
+  role: string
   status: string
-  [key: string]: unknown
+  is_active: boolean
+  kyc_status: string
+  created_at: string
+  total_earnings: number
 }
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
 
-  // TODO: Integrate with API to fetch real users from backend
-  // Replace with useQuery hook to fetch /admin/users endpoint
-  const users: User[] = []
+  // Connect to backend API
+  const { data: usersData, isLoading } = useQuery({
+    queryKey: ['admin', 'users'],
+    queryFn: () => api.get<{users: User[], total: number}>('/admin/users')
+  })
+
+  const users = usersData?.users || []
+
+  if (isLoading) {
+    return <div className="p-6">Loading users...</div>
+  }
+
+  const handleExport = () => {
+    console.log("Exporting users...")
+    // TODO: Implement export functionality
+  }
+
+  const handleFilter = () => {
+    console.log("Opening filter...")
+    // TODO: Implement filter functionality
+  }
+
+  const handleViewUser = (userId: string) => {
+    console.log("Viewing user:", userId)
+    // TODO: Navigate to user detail page
+  }
+
+  const handleToggleUserStatus = (userId: string, currentStatus: boolean) => {
+    console.log("Toggling user status:", userId, !currentStatus)
+    // TODO: Implement user status toggle
+  }
+
+  const handleMoreActions = (userId: string) => {
+    console.log("More actions for user:", userId)
+    // TODO: Show more actions menu
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -64,7 +103,7 @@ export default function UsersPage() {
           <h1 className="text-3xl font-bold text-slate-900">User Management</h1>
           <p className="text-slate-600">Manage users, KYC approvals, and account status</p>
         </div>
-        <Button variant="default">
+        <Button variant="default" onClick={handleExport}>
           <Download className="h-4 w-4 mr-2" />
           Export Users
         </Button>
@@ -84,7 +123,7 @@ export default function UsersPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleFilter}>
                 <Filter className="h-4 w-4 mr-2" />
                 Filter
               </Button>
@@ -129,19 +168,19 @@ export default function UsersPage() {
                 case "actions":
                   return (
                     <div className="flex items-center justify-end gap-2">
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleViewUser(user.id)}>
                         <Eye className="h-3 w-3" />
                       </Button>
-                      {user.status === "Active" ? (
-                        <Button size="sm" variant="outline" className="text-yellow-600">
+                      {user.is_active ? (
+                        <Button size="sm" variant="outline" className="text-yellow-600" onClick={() => handleToggleUserStatus(user.id, user.is_active)}>
                           <Ban className="h-3 w-3" />
                         </Button>
                       ) : (
-                        <Button size="sm" variant="outline" className="text-green-600">
+                        <Button size="sm" variant="outline" className="text-green-600" onClick={() => handleToggleUserStatus(user.id, user.is_active)}>
                           <CheckCircle className="h-3 w-3" />
                         </Button>
                       )}
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleMoreActions(user.id)}>
                         <MoreHorizontal className="h-3 w-3" />
                       </Button>
                     </div>

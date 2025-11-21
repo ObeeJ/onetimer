@@ -1,16 +1,21 @@
 "use client"
 
-import CreatorSignInForm from "@/components/creator/creator-sign-in-form"
-import { AuthLayout } from "@/components/auth/auth-layout"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
-export default function CreatorSignInPage() {
+export default function CreatorSignInRedirect() {
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace("/auth/login")
+  }, [router])
+
   return (
-    <AuthLayout
-      title="Welcome back, Creator"
-      subtitle="Sign in to your creator account to manage surveys and collect insights"
-      role="creator"
-    >
-      <CreatorSignInForm />
-    </AuthLayout>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 mx-auto"></div>
+        <p className="mt-2 text-slate-600">Redirecting to login...</p>
+      </div>
+    </div>
   )
 }

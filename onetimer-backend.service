@@ -1,0 +1,39 @@
+# OneTime Survey Backend Service
+# Place this file in /etc/systemd/system/onetimer-backend.service
+# Then: sudo systemctl enable onetimer-backend && sudo systemctl start onetimer-backend
+
+[Unit]
+Description=OneTime Survey Backend API
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/onetimer
+ExecStart=/var/www/onetimer/onetimer-backend
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=onetimer-backend
+
+# Environment
+Environment=NODE_ENV=production
+Environment=PORT=8081
+EnvironmentFile=/var/www/onetimer/.env
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/onetimer/logs
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

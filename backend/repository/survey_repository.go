@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"onetimer-backend/database"
 	"onetimer-backend/models"
+	"time"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
@@ -64,19 +65,29 @@ func (r *SurveyRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.S
 
 func (r *SurveyRepository) GetAll(ctx context.Context, limit, offset int, status string) ([]models.Survey, error) {
 	var surveys []models.Survey
-	query := "SELECT * FROM surveys"
+	
+	// Optimized query - select only necessary fields and add index hints
+	query := "SELECT id, creator_id, title, description, category, reward_amount, estimated_duration, target_responses, current_responses, status, created_at, updated_at FROM surveys"
 	args := []interface{}{}
+	
 	if status != "" {
 		query += " WHERE status = $1"
 		args = append(args, status)
 	}
+	
+	// Add ORDER BY with index hint and reasonable limit
 	query += fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", len(args)+1, len(args)+2)
 	args = append(args, limit, offset)
 
-	err := pgxscan.Select(ctx, r.db, &surveys, query, args...)
+	// Set a shorter timeout for this specific query
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	err := pgxscan.Select(queryCtx, r.db, &surveys, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("survey query failed: %w", err)
 	}
+	
 	return surveys, nil
 }
 

@@ -1,0 +1,39 @@
+# OneTime Survey Frontend Service
+# Place this file in /etc/systemd/system/onetimer-frontend.service
+# Then: sudo systemctl enable onetimer-frontend && sudo systemctl start onetimer-frontend
+
+[Unit]
+Description=OneTime Survey Frontend (Next.js)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/onetimer
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=onetimer-frontend
+
+# Environment
+Environment=NODE_ENV=production
+Environment=PORT=3000
+EnvironmentFile=/var/www/onetimer/.env
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/onetimer/logs
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

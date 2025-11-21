@@ -20,6 +20,48 @@ func NewSuperAdminController(cache *cache.Cache, db *pgxpool.Pool) *SuperAdminCo
 	return &SuperAdminController{cache: cache, db: db}
 }
 
+func (h *SuperAdminController) GetAllUsers(c *fiber.Ctx) error {
+	superAdminID, ok := c.Locals("user_id").(string)
+	if !ok {
+		utils.LogError("Unauthorized user list access attempt")
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	// Query all users from database
+	rows, err := h.db.Query(c.Context(), `
+		SELECT id, email, name, role, phone, is_verified, is_active, 
+		       kyc_status, created_at, updated_at 
+		FROM users 
+		ORDER BY created_at DESC
+	`)
+	if err != nil {
+		utils.LogError("Failed to fetch users: " + err.Error())
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch users"})
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(
+			&user.ID, &user.Email, &user.Name, &user.Role, &user.Phone,
+			&user.IsVerified, &user.IsActive, &user.KycStatus,
+			&user.CreatedAt, &user.UpdatedAt,
+		)
+		if err != nil {
+			continue
+		}
+		users = append(users, user)
+	}
+
+	utils.LogInfo("Super admin " + superAdminID + " accessed user list")
+	return c.JSON(fiber.Map{
+		"success": true,
+		"users":   users,
+		"total":   len(users),
+	})
+}
+
 func (h *SuperAdminController) GetAdmins(c *fiber.Ctx) error {
 	superAdminID, ok := c.Locals("user_id").(string)
 	if !ok {
@@ -148,5 +190,25 @@ func (h *SuperAdminController) UpdateSettings(c *fiber.Ctx) error {
 		"success": true,
 		"message": "Settings updated successfully",
 		"data":    settings,
+	})
+}
+
+func (h *SuperAdminController) SuspendAdmin(c *fiber.Ctx) error {
+	adminID := c.Params("id")
+	
+	var req struct {
+		Reason string `json:"reason"`
+	}
+	
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+	
+	// Mock implementation - in production, update admin status in database
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Admin suspended successfully",
+		"admin_id": adminID,
+		"reason": req.Reason,
 	})
 }

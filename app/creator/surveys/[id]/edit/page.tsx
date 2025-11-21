@@ -15,31 +15,43 @@ export default function EditSurveyPage() {
   // Mock survey data - would come from API
   const existingSurvey = {
     id: surveyId,
+    creator_id: "mock-creator-id",
     title: "Consumer Behavior Study",
     description: "Understanding shopping patterns in urban areas",
     category: "market_research",
     estimated_duration: 10,
-    reward: 500,
+    reward_amount: 500,
+    target_responses: 100,
+    current_responses: 0,
+    status: "draft" as const,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     questions: [
       {
         id: "1",
+        survey_id: surveyId,
         type: "multi" as const,
         text: "What is your age group?",
         required: true,
+        order_num: 1,
         options: ["18-24", "25-34", "35-44", "45-54", "55+"]
       },
       {
         id: "2",
+        survey_id: surveyId,
         type: "rating" as const,
         text: "How satisfied are you with online shopping?",
         required: true,
+        order_num: 2,
         scale: 5
       },
       {
         id: "3",
+        survey_id: surveyId,
         type: "text" as const,
         text: "What improvements would you suggest?",
-        required: false
+        required: false,
+        order_num: 3
       }
     ]
   }

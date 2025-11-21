@@ -180,13 +180,13 @@ export default function CreatorOnboardingPage() {
 
     try {
       const registrationData = {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
         email: formData.email,
         password: formData.password,
-        phone: formData.phone,
+        name: `${formData.firstName} ${formData.lastName}`,
         role: "creator",
-        profile: {
+        phone: formData.phone,
+        // Store additional profile data for later use
+        profile_data: {
           user_type: formData.userType,
           organization: formData.organization,
           job_title: formData.jobTitle,
@@ -199,7 +199,7 @@ export default function CreatorOnboardingPage() {
         }
       }
 
-      await api.post('/onboarding/creator', registrationData)
+      await api.post('/user/register', registrationData)
       await signIn(formData.email, formData.password)
 
       toast({ title: "Success", description: "Account created successfully!", variant: "success" })

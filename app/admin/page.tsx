@@ -22,6 +22,27 @@ export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
 
+  const handleViewTask = (taskType: string) => {
+    console.log("Viewing task:", taskType)
+    // Navigate to appropriate page based on task type
+    switch (taskType) {
+      case "KYC Approval":
+        router.push("/admin/users?filter=kyc_pending")
+        break
+      case "Survey Review":
+        router.push("/admin/surveys?filter=pending")
+        break
+      case "Withdrawal Requests":
+        router.push("/admin/payments?filter=pending")
+        break
+      case "User Reports":
+        router.push("/admin/reports?filter=user_reports")
+        break
+      default:
+        console.log("Unknown task type:", taskType)
+    }
+  }
+
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== "admin")) {
       router.push("/admin/auth/login")
@@ -116,7 +137,12 @@ export default function AdminDashboard() {
                   >
                     {task.priority}
                   </Badge>
-                  <Button size="sm" variant="outline" className="text-xs lg:text-sm h-7 lg:h-8 px-2 lg:px-3">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-xs lg:text-sm h-7 lg:h-8 px-2 lg:px-3"
+                    onClick={() => handleViewTask(task.type)}
+                  >
                     <Eye className="h-3 w-3 mr-1" />
                     View
                   </Button>

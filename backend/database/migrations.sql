@@ -142,6 +142,8 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_surveys_creator ON surveys(creator_id);
 CREATE INDEX IF NOT EXISTS idx_surveys_status ON surveys(status);
+CREATE INDEX IF NOT EXISTS idx_surveys_status_created ON surveys(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_surveys_created_at ON surveys(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_responses_survey ON responses(survey_id);
 CREATE INDEX IF NOT EXISTS idx_responses_filler ON responses(filler_id);
 CREATE INDEX IF NOT EXISTS idx_earnings_user ON earnings(user_id);

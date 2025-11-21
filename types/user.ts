@@ -3,13 +3,22 @@ export interface User {
   name: string
   email: string
   phone?: string
-  nin?: string
-  bvn?: string
-  avatarUrl?: string
+  dateOfBirth?: string
+  gender?: string
+  location?: string
   role: "filler" | "creator" | "admin" | "super_admin"
   isVerified: boolean
+  isActive: boolean
+  kycStatus: "pending" | "approved" | "rejected"
+  profilePictureUrl?: string
+  // Admin-specific fields
+  department?: string
+  permissions?: string[]
   createdAt: string
   updatedAt: string
+  // KYC data (collected via verification process)
+  nin?: string
+  bvn?: string
 }
 
 export interface Creator extends User {
@@ -20,8 +29,12 @@ export interface Creator extends User {
 }
 
 export interface Admin extends User {
-  department?: string
+  department: string
   permissions: string[]
+}
+
+export interface SuperAdmin extends User {
+  // Super admin has all permissions by default
 }
 
 export interface Filler extends User {

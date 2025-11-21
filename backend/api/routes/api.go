@@ -24,7 +24,7 @@ func New() *fiber.App {
 	})
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000,http://localhost:3001,https://onetimesurvey.com,https://www.onetimesurvey.xyz",
+		AllowOrigins:     "http://localhost:3000,http://localhost:3001,https://www.onetimesurvey.xyz",
 		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS,PATCH",
 		AllowHeaders:     "Origin,Content-Type,Accept,Authorization,X-Requested-With,X-CSRF-Token",
 		ExposeHeaders:    "Content-Length,X-JSON-Response-Count",

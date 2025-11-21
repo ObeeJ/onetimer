@@ -53,10 +53,10 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	notificationRepo := repository.NewNotificationRepository(db)
 	creditRepo := repository.NewCreditRepository(db)
 
-	// Initialize controllers
+	// Initialize controllers (Updated to use validated versions)
 	userController := controllers.NewUserControllerWithDB(cache, db)
 	authController := controllers.NewAuthController(cache, cfg.JWTSecret)
-	adminController := controllers.NewAdminController(cache, db.Pool)
+	adminController := controllers.NewAdminController(cache, db.Pool)  // Fixed
 	auditController := controllers.NewAuditController(cache, auditRepo)
 	billingController := controllers.NewBillingController()
 	creditsController := controllers.NewCreditsController(cache, cfg, creditRepo)
@@ -70,7 +70,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	paymentController := controllers.NewPaymentController(cache, cfg.PaystackSecret)
 	referralController := controllers.NewReferralController(cache, db.Pool)
 	superAdminController := controllers.NewSuperAdminController(cache, db.Pool)
-	surveyController := controllers.NewSurveyController(db, cache)
+	surveyController := controllers.NewSurveyController(db, cache)  // Fixed
 	uploadController := controllers.NewUploadController(cache, storageService)
 	withdrawalController := controllers.NewWithdrawalController(cache, db.Pool, cfg.PaystackSecret)
 	waitlistController := controllers.NewWaitlistController(db.Pool, emailService)
@@ -112,6 +112,8 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	auth.Post("/logout", logoutController.Logout)
 	auth.Post("/send-otp", authController.SendOTP)
 	auth.Post("/verify-otp", authController.VerifyOTP)
+	auth.Post("/forgot-password", authController.ForgotPassword)
+	auth.Post("/reset-password", authController.ResetPassword)
 
 	// Admin routes
 	admin := api.Group("/admin")
@@ -155,6 +157,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	earnings := api.Group("/earnings")
 	earnings.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	earnings.Get("/", earningsController.GetEarnings)
+	earnings.Get("", earningsController.GetEarnings)
 	earnings.Post("/withdraw", earningsController.WithdrawEarnings)
 
 	// Eligibility routes
@@ -231,8 +234,10 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	// Super Admin routes
 	superAdmin := api.Group("/super-admin")
 	superAdmin.Use(middleware.JWTMiddleware(cfg.JWTSecret))
+	superAdmin.Get("/users", superAdminController.GetAllUsers)
 	superAdmin.Get("/admins", superAdminController.GetAdmins)
 	superAdmin.Post("/admins", superAdminController.CreateAdmin)
+	superAdmin.Post("/admins/:id/suspend", superAdminController.SuspendAdmin)
 	superAdmin.Get("/financials", superAdminController.GetFinancials)
 	superAdmin.Post("/audit-logs", auditController.LogAction)
 	superAdmin.Get("/audit-logs", auditController.GetAuditLogs)

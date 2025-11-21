@@ -24,7 +24,7 @@ export function useRoleCommunication() {
 
   const logRoleAction = async (action: Omit<RoleAction, 'id' | 'timestamp'>) => {
     try {
-      await api.post('/v1/audit/actions', action)
+      await api.post('/super-admin/audit-logs', action)
     } catch (error) {
       console.error('Failed to log role action', error)
       toast.error('Failed to log action')
@@ -33,7 +33,7 @@ export function useRoleCommunication() {
 
   const approveCreator = async (creatorId: string, reason?: string) => {
     try {
-      const result = await api.post(`/v1/admin/users/${creatorId}/approve`, {})
+      const result = await api.post(`/admin/users/${creatorId}/approve`, {})
       toast.success('Creator account has been approved successfully')
       await logRoleAction({
         type: 'approval',
@@ -50,7 +50,7 @@ export function useRoleCommunication() {
 
   const approveFillerKYC = async (fillerId: string) => {
     try {
-      const result = await api.post(`/v1/admin/users/${fillerId}/approve`, {})
+      const result = await api.post(`/admin/users/${fillerId}/approve`, {})
       toast.success('Filler KYC has been verified and approved')
       await logRoleAction({
         type: 'approval',
@@ -66,7 +66,7 @@ export function useRoleCommunication() {
 
   const rejectUser = async (userId: string, reason: string) => {
     try {
-      const result = await api.post(`/v1/admin/users/${userId}/reject`, { reason })
+      const result = await api.post(`/admin/users/${userId}/reject`, { reason })
       toast.error(`User has been rejected: ${reason}`)
       await logRoleAction({
         type: 'rejection',
@@ -83,7 +83,7 @@ export function useRoleCommunication() {
 
   const approveSurvey = async (surveyId: string) => {
     try {
-      const result = await api.post(`/v1/admin/surveys/${surveyId}/approve`, {})
+      const result = await api.post(`/admin/surveys/${surveyId}/approve`, {})
       toast.success('Survey has been approved and is now live')
       await logRoleAction({
         type: 'approval',
@@ -99,7 +99,7 @@ export function useRoleCommunication() {
 
   const createAdmin = async (adminData: AdminData) => {
     try {
-      const result = await api.post('/v1/super-admin/admins', adminData)
+      const result = await api.post('/super-admin/admins', adminData)
       toast.success(`New admin account created for ${adminData.email}`)
       await logRoleAction({
         type: 'creation',
@@ -115,7 +115,7 @@ export function useRoleCommunication() {
 
   const suspendAdmin = async (adminId: string, reason: string) => {
     try {
-      const result = await api.post(`/v1/super-admin/admins/${adminId}/suspend`, { reason })
+      const result = await api.post(`/super-admin/admins/${adminId}/suspend`, { reason })
       toast.error(`Admin has been suspended: ${reason}`)
       await logRoleAction({
         type: 'suspension',
