@@ -3,28 +3,26 @@ package repository
 import (
 	"context"
 	"fmt"
-	"onetimer-backend/database"
 	"onetimer-backend/models"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 )
 
 type AuditRepository struct {
-	db *database.SupabaseDB
+	*BaseRepository
 }
 
-func NewAuditRepository(db *database.SupabaseDB) *AuditRepository {
-	return &AuditRepository{db: db}
+func NewAuditRepository(base *BaseRepository) *AuditRepository {
+	return &AuditRepository{BaseRepository: base}
 }
 
-func (r *AuditRepository) CreateAuditLog(log *models.AuditLog) error {
-	_, err := r.db.Exec(context.Background(),
+func (r *AuditRepository) CreateAuditLog(ctx context.Context, log *models.AuditLog) error {
+	return r.Exec(ctx,
 		"INSERT INTO audit_logs (id, user_id, action, resource, details, ip_address, user_agent, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
 		log.ID, log.UserID, log.Action, log.Resource, log.Details, log.IPAddress, log.UserAgent, log.CreatedAt)
-	return err
 }
 
-func (r *AuditRepository) GetAuditLogs(limit, offset int, filters map[string]interface{}) ([]models.AuditLog, int, error) {
+func (r *AuditRepository) GetAuditLogs(ctx context.Context, limit, offset int, filters map[string]interface{}) ([]models.AuditLog, int, error) {
 	var logs []models.AuditLog
 	var total int
 
@@ -49,12 +47,12 @@ func (r *AuditRepository) GetAuditLogs(limit, offset int, filters map[string]int
 	query += fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", argCount, argCount+1)
 	args = append(args, limit, offset)
 
-	err := pgxscan.Select(context.Background(), r.db, &logs, query, args...)
+	err := pgxscan.Select(ctx, r.db, &logs, query, args...)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	err = r.db.QueryRow(context.Background(), countQuery, args[:argCount-1]...).Scan(&total)
+	err = r.db.QueryRow(ctx, countQuery, args[:argCount-1]...).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -62,7 +60,7 @@ func (r *AuditRepository) GetAuditLogs(limit, offset int, filters map[string]int
 	return logs, total, nil
 }
 
-func (r *AuditRepository) GetAuditStats(period string) (map[string]interface{}, error) {
+func (r *AuditRepository) GetAuditStats(ctx context.Context, period string) (map[string]interface{}, error) {
 	query := `
 		SELECT
 			COUNT(*) AS total_actions,
@@ -82,7 +80,7 @@ func (r *AuditRepository) GetAuditStats(period string) (map[string]interface{}, 
 		ConfigChanges  int `db:"config_changes"`
 	}
 
-	err := pgxscan.Get(context.Background(), r.db, &stats, query, period)
+	err := pgxscan.Get(ctx, r.db, &stats, query, period)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +95,7 @@ func (r *AuditRepository) GetAuditStats(period string) (map[string]interface{}, 
 	}, nil
 }
 
-func (r *AuditRepository) ExportAuditLogs(filters map[string]interface{}) ([][]string, error) {
+func (r *AuditRepository) ExportAuditLogs(ctx context.Context, filters map[string]interface{}) ([][]string, error) {
 	var logs []models.AuditLog
 
 	query := "SELECT * FROM audit_logs"
@@ -117,7 +115,7 @@ func (r *AuditRepository) ExportAuditLogs(filters map[string]interface{}) ([][]s
 	query += whereClause
 	query += " ORDER BY created_at DESC"
 
-	err := pgxscan.Select(context.Background(), r.db, &logs, query, args...)
+	err := pgxscan.Select(ctx, r.db, &logs, query, args...)
 	if err != nil {
 		return nil, err
 	}

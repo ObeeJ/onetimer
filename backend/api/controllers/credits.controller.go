@@ -143,7 +143,7 @@ func (h *CreditsController) GetCredits(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"credits": 150, "ok": true})
 	}
 
-	credits, err := h.creditRepo.GetUserCredits(userID)
+	credits, err := h.creditRepo.GetUserCredits(c.Context(), userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to get user credits"})
 	}

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"onetimer-backend/api/controllers"
+	"onetimer-backend/api/handlers"
 	"onetimer-backend/api/middleware"
 	"onetimer-backend/cache"
 	"onetimer-backend/config"
@@ -48,20 +49,22 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	})
 
 	// Initialize repositories
-	userRepo := repository.NewUserRepository(db)
-	auditRepo := repository.NewAuditRepository(db)
-	notificationRepo := repository.NewNotificationRepository(db)
-	creditRepo := repository.NewCreditRepository(db)
+	baseRepo := repository.NewBaseRepository(db)
+	userRepo := repository.NewUserRepository(baseRepo)
+	auditRepo := repository.NewAuditRepository(baseRepo)
+	notificationRepo := repository.NewNotificationRepository(baseRepo)
+	creditRepo := repository.NewCreditRepository(baseRepo)
+	surveyRepo := repository.NewSurveyRepository(baseRepo)
 
 	// Initialize controllers (Updated to use validated versions)
-	userController := controllers.NewUserControllerWithDB(cache, db)
+	userController := controllers.NewUserControllerWithDB(cache, db, userRepo)
 	authController := controllers.NewAuthController(cache, cfg.JWTSecret)
 	adminController := controllers.NewAdminController(cache, db.Pool)  // Fixed
 	auditController := controllers.NewAuditController(cache, auditRepo)
 	billingController := controllers.NewBillingController()
 	creditsController := controllers.NewCreditsController(cache, cfg, creditRepo)
 	earningsController := controllers.NewEarningsController(cache, db.Pool, cfg)
-	eligibilityController := controllers.NewEligibilityController(cache, db)
+	eligibilityController := controllers.NewEligibilityController(cache, db, userRepo)
 	exportController := controllers.NewExportController(cache, db.Pool)
 	fillerController := controllers.NewFillerController(cache, db.Pool)
 	loginController := controllers.NewLoginHandler(cache, cfg.JWTSecret, userRepo)
@@ -70,13 +73,14 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	paymentController := controllers.NewPaymentController(cache, cfg.PaystackSecret)
 	referralController := controllers.NewReferralController(cache, db.Pool)
 	superAdminController := controllers.NewSuperAdminController(cache, db.Pool)
-	surveyController := controllers.NewSurveyController(db, cache)  // Fixed
+	surveyController := controllers.NewSurveyController(cache, surveyRepo)
 	uploadController := controllers.NewUploadController(cache, storageService)
 	withdrawalController := controllers.NewWithdrawalController(cache, db.Pool, cfg.PaystackSecret)
 	waitlistController := controllers.NewWaitlistController(db.Pool, emailService)
 	analyticsController := controllers.NewAnalyticsController(cache, db.Pool)
 	wsController := controllers.NewWebSocketController(wsHub)
 	notificationController := controllers.NewNotificationHandler(cache, notificationRepo)
+	kycHandler := handlers.NewKYCHandler(cfg)
 
 	// WebSocket route (requires upgrade check)
 	app.Use("/ws", func(c *fiber.Ctx) error {
@@ -101,6 +105,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	user.Get("/profile", jwtMiddleware, userController.GetProfile)
 	user.Put("/profile", jwtMiddleware, userController.UpdateProfile)
 	user.Post("/kyc", jwtMiddleware, userController.UploadKYC)
+	user.Post("/kyc/verify-nin", jwtMiddleware, kycHandler.VerifyKYC)
 	user.Post("/change-password", jwtMiddleware, userController.ChangePassword)
 	user.Get("/kyc-status", jwtMiddleware, userController.GetKYCStatus)
 	user.Get("/preferences", jwtMiddleware, userController.GetPreferences)

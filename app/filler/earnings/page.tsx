@@ -15,6 +15,7 @@ import { useAuth } from "@/providers/auth-provider"
 import { useEarnings } from "@/hooks/use-earnings"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { ErrorMessage } from "@/components/ui/error-message"
+import { KYCVerificationForm } from "@/components/kyc/kyc-verification-form"
 import WithdrawDialog from "@/components/earnings/withdraw-dialog"
 
 export default function EarningsPage() {
@@ -24,6 +25,7 @@ export default function EarningsPage() {
   const reduceMotion = useReducedMotion()
   const [timeRange, setTimeRange] = useState("lifetime")
   const [withdrawOpen, setWithdrawOpen] = useState(false)
+  const [showKYCForm, setShowKYCForm] = useState(false)
 
   const handleCompleteVerification = () => {
     router.push('/filler/onboarding/verify')
@@ -98,33 +100,6 @@ export default function EarningsPage() {
             description="Please sign in to access your earnings dashboard."
             action={{ label: "Sign in", href: "/filler/auth/sign-in" }}
           />
-        </div>
-      </div>
-    )
-  }
-
-  if (!isKycVerified) {
-    return (
-      <div className="flex-1 min-w-0 overflow-auto">
-        <div className="mx-auto max-w-none space-y-8 p-4 sm:p-6 lg:p-8">
-          <Breadcrumb items={[{ label: "Earnings" }]} />
-          
-          <Card className="border-yellow-200 bg-yellow-50 rounded-xl">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Lock className="h-8 w-8 text-yellow-600" />
-                <div>
-                  <h3 className="text-lg font-semibold text-yellow-800">Complete Verification Required</h3>
-                  <p className="text-sm text-yellow-700 mt-1">
-                    Please complete your account verification to unlock earnings tracking and withdrawals.
-                  </p>
-                  <Button variant="filler" className="mt-4" onClick={handleCompleteVerification}>
-                    Complete Verification
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     )
@@ -288,15 +263,30 @@ export default function EarningsPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <p className="text-sm text-slate-600">Available balance: ₦{(earningsData.total - earningsData.withdrawn).toLocaleString()}</p>
-                      <Button 
-                        variant="filler" 
-                        className="w-full"
-                        onClick={() => setWithdrawOpen(true)}
-                        disabled={earningsData.available < 1000}
-                      >
-                        Request Withdrawal
-                      </Button>
-                      <p className="text-xs text-slate-500">Minimum withdrawal: ₦5,000</p>
+                      {!isKycVerified ? (
+                        <div className="space-y-2">
+                          <Button 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={() => setShowKYCForm(true)}
+                          >
+                            Complete KYC to Withdraw
+                          </Button>
+                          <p className="text-xs text-slate-500">KYC verification required for withdrawals</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Button 
+                            variant="filler" 
+                            className="w-full"
+                            onClick={() => setWithdrawOpen(true)}
+                            disabled={earningsData.available < 1000}
+                          >
+                            Request Withdrawal
+                          </Button>
+                          <p className="text-xs text-slate-500">Minimum withdrawal: ₦5,000</p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -354,6 +344,27 @@ export default function EarningsPage() {
           onOpenChange={setWithdrawOpen}
           balance={earningsData.available}
         />
+
+        {/* KYC Verification Modal */}
+        {showKYCForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="relative">
+              <button
+                onClick={() => setShowKYCForm(false)}
+                className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-lg z-10"
+              >
+                ✕
+              </button>
+              <KYCVerificationForm 
+                onSuccess={() => {
+                  setShowKYCForm(false)
+                  // Refresh user data to update KYC status
+                  window.location.reload()
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

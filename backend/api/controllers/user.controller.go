@@ -26,8 +26,8 @@ func NewUserController(cache *cache.Cache) *UserController {
 	return &UserController{cache: cache}
 }
 
-func NewUserControllerWithDB(cache *cache.Cache, db *database.SupabaseDB) *UserController {
-	return &UserController{cache: cache, db: db, userRepo: repository.NewUserRepository(db)}
+func NewUserControllerWithDB(cache *cache.Cache, db *database.SupabaseDB, userRepo *repository.UserRepository) *UserController {
+	return &UserController{cache: cache, db: db, userRepo: userRepo}
 }
 
 func (h *UserController) Register(c *fiber.Ctx) error {
@@ -267,6 +267,47 @@ func (h *UserController) GetKYCStatus(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"status": user.KycStatus,
+	})
+}
+
+func (h *UserController) UpdateKYCStatus(c *fiber.Ctx) error {
+	userIDInterface := c.Locals("user_id")
+	if userIDInterface == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID, ok := userIDInterface.(string)
+	if !ok || userID == "" {
+		return c.Status(401).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	var req struct {
+		KycStatus string `json:"kycStatus"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	// Validate KYC status
+	if req.KycStatus != "pending" && req.KycStatus != "approved" && req.KycStatus != "rejected" {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid KYC status"})
+	}
+
+	// Check if user repository is available
+	if h.userRepo == nil {
+		return c.Status(503).JSON(fiber.Map{"error": "Database unavailable"})
+	}
+
+	// Update user KYC status in database
+	err := h.userRepo.UpdateKYCStatus(context.Background(), uuid.MustParse(userID), req.KycStatus)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to update KYC status"})
+	}
+
+	return c.JSON(fiber.Map{
+		"ok":      true,
+		"message": "KYC status updated successfully",
+		"status":  req.KycStatus,
 	})
 }
 

@@ -35,7 +35,7 @@ func (h *AuditController) LogAction(c *fiber.Ctx) error {
 	ua := string(c.Request().Header.UserAgent())
 	req.UserAgent = &ua
 
-	if err := h.auditRepo.CreateAuditLog(&req); err != nil {
+	if err := h.auditRepo.CreateAuditLog(c.Context(), &req); err != nil {
 		// TODO: Send to monitoring system if critical action
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to log action"})
 	}
@@ -59,7 +59,7 @@ func (h *AuditController) GetAuditLogs(c *fiber.Ctx) error {
 		filters["user_id"] = userID
 	}
 
-	logs, total, err := h.auditRepo.GetAuditLogs(limit, offset, filters)
+	logs, total, err := h.auditRepo.GetAuditLogs(c.Context(), limit, offset, filters)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to get audit logs"})
 	}
@@ -80,7 +80,7 @@ func (h *AuditController) GetAuditLogs(c *fiber.Ctx) error {
 func (h *AuditController) GetAuditStats(c *fiber.Ctx) error {
 	period := c.Query("period", "30d") // 24h, 7d, 30d, 90d
 
-	stats, err := h.auditRepo.GetAuditStats(period)
+	stats, err := h.auditRepo.GetAuditStats(c.Context(), period)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to get audit stats"})
 	}
@@ -102,7 +102,7 @@ func (h *AuditController) ExportAuditLogs(c *fiber.Ctx) error {
 		filters["user_id"] = userID
 	}
 
-	data, err := h.auditRepo.ExportAuditLogs(filters)
+	data, err := h.auditRepo.ExportAuditLogs(c.Context(), filters)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to export audit logs"})
 	}

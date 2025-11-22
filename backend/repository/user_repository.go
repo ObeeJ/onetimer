@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"onetimer-backend/database"
 	"onetimer-backend/models"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
@@ -10,11 +9,11 @@ import (
 )
 
 type UserRepository struct {
-	db *database.SupabaseDB
+	*BaseRepository
 }
 
-func NewUserRepository(db *database.SupabaseDB) *UserRepository {
-	return &UserRepository{db: db}
+func NewUserRepository(base *BaseRepository) *UserRepository {
+	return &UserRepository{BaseRepository: base}
 }
 
 func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
@@ -37,5 +36,10 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Use
 
 func (r *UserRepository) UpdateUserPassword(ctx context.Context, id uuid.UUID, newPasswordHash string) error {
 	_, err := r.db.Exec(ctx, "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2", newPasswordHash, id)
+	return err
+}
+
+func (r *UserRepository) UpdateKYCStatus(ctx context.Context, id uuid.UUID, kycStatus string) error {
+	_, err := r.db.Exec(ctx, "UPDATE users SET kyc_status = $1, updated_at = NOW() WHERE id = $2", kycStatus, id)
 	return err
 }

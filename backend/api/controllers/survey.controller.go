@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"onetimer-backend/cache"
-	"onetimer-backend/database"
 	"onetimer-backend/models"
 	"onetimer-backend/repository"
 	"onetimer-backend/utils"
@@ -16,15 +15,13 @@ import (
 
 type SurveyController struct {
 	cache *cache.Cache
-	db    *database.SupabaseDB
 	repo  *repository.SurveyRepository
 }
 
-func NewSurveyController(db *database.SupabaseDB, cache *cache.Cache) *SurveyController {
+func NewSurveyController(cache *cache.Cache, repo *repository.SurveyRepository) *SurveyController {
 	return &SurveyController{
 		cache: cache,
-		db:    db,
-		repo:  repository.NewSurveyRepository(db),
+		repo:  repo,
 	}
 }
 
@@ -85,7 +82,7 @@ func (h *SurveyController) CreateSurvey(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.repo.CreateSurvey(&survey, questions, 0); err != nil {
+	if err := h.repo.CreateSurvey(c.Context(), &survey, questions, 0); err != nil {
 		utils.LogError("Failed to create survey in database: %v", err)
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to save survey to database"})
 	}
@@ -483,7 +480,7 @@ func (h *SurveyController) ImportSurvey(c *fiber.Ctx) error {
 	surveyData.CreatorID, _ = uuid.Parse(userID)
 	surveyData.Status = "draft"
 
-	if err = h.repo.CreateSurvey(&surveyData, []models.Question{}, 0); err != nil {
+	if err = h.repo.CreateSurvey(c.Context(), &surveyData, []models.Question{}, 0); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to import survey", "success": false})
 	}
 
@@ -520,7 +517,7 @@ func (h *SurveyController) DuplicateSurvey(c *fiber.Ctx) error {
 	newSurvey.CreatedAt = time.Now()
 	newSurvey.UpdatedAt = time.Now()
 
-	if err := h.repo.CreateSurvey(&newSurvey, []models.Question{}, 0); err != nil {
+	if err := h.repo.CreateSurvey(c.Context(), &newSurvey, []models.Question{}, 0); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to duplicate survey"})
 	}
 
@@ -578,7 +575,7 @@ func (h *SurveyController) SaveSurveyDraft(c *fiber.Ctx) error {
 		UpdatedAt:   time.Now(),
 	}
 
-	if err := h.repo.CreateSurvey(&survey, []models.Question{}, 0); err != nil {
+	if err := h.repo.CreateSurvey(c.Context(), &survey, []models.Question{}, 0); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to save draft"})
 	}
 

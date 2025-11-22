@@ -2,22 +2,22 @@ package repository
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgxpool"
+	"fmt"
+	"onetimer-backend/database"
 )
 
 type BaseRepository struct {
-	db *pgxpool.Pool
+	db *database.SupabaseDB
 }
 
-func NewBaseRepository(db *pgxpool.Pool) *BaseRepository {
+func NewBaseRepository(db *database.SupabaseDB) *BaseRepository {
 	return &BaseRepository{db: db}
 }
 
 func (r *BaseRepository) WithTx(ctx context.Context, fn func(tx interface{}) error) error {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
 
@@ -26,4 +26,12 @@ func (r *BaseRepository) WithTx(ctx context.Context, fn func(tx interface{}) err
 	}
 
 	return tx.Commit(ctx)
+}
+
+func (r *BaseRepository) Exec(ctx context.Context, query string, args ...interface{}) error {
+	_, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("exec failed: %w", err)
+	}
+	return nil
 }

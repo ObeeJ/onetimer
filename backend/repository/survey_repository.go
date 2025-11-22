@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"onetimer-backend/database"
 	"onetimer-backend/models"
 	"time"
 
@@ -12,46 +11,42 @@ import (
 )
 
 type SurveyRepository struct {
-	db *database.SupabaseDB
+	*BaseRepository
 }
 
-func NewSurveyRepository(db *database.SupabaseDB) *SurveyRepository {
-	return &SurveyRepository{db: db}
+func NewSurveyRepository(base *BaseRepository) *SurveyRepository {
+	return &SurveyRepository{BaseRepository: base}
 }
 
-func (r *SurveyRepository) CreateSurvey(survey *models.Survey, questions []models.Question, totalCost int) error {
-	tx, err := r.db.Begin(context.Background())
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback(context.Background())
-
-	// Deduct credits
-	_, err = tx.Exec(context.Background(), "INSERT INTO credits (user_id, amount, type, description) VALUES ($1, $2, $3, $4)", survey.CreatorID, -totalCost, "deduction", fmt.Sprintf("Survey creation: %s", survey.Title))
-	if err != nil {
-		return err
-	}
-
-	// Save survey
-	err = tx.QueryRow(context.Background(),
-		"INSERT INTO surveys (id, creator_id, title, description, category, reward_amount, estimated_duration, target_responses, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
-		survey.ID, survey.CreatorID, survey.Title, survey.Description, survey.Category, survey.RewardAmount, survey.EstimatedDuration, survey.TargetResponses, survey.Status).Scan(&survey.ID)
-	if err != nil {
-		return err
-	}
-
-	// Save questions
-	for _, q := range questions {
-		q.SurveyID = survey.ID
-		_, err := tx.Exec(context.Background(),
-			"INSERT INTO questions (id, survey_id, type, title, description, required, options, order_index) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-			q.ID, q.SurveyID, q.Type, q.Title, q.Description, q.Required, q.Options, q.OrderIndex)
+func (r *SurveyRepository) CreateSurvey(ctx context.Context, survey *models.Survey, questions []models.Question, totalCost int) error {
+	return r.WithTx(ctx, func(tx interface{}) error {
+		// Deduct credits
+		_, err := r.db.Exec(ctx, "INSERT INTO credits (user_id, amount, type, description) VALUES ($1, $2, $3, $4)", survey.CreatorID, -totalCost, "deduction", fmt.Sprintf("Survey creation: %s", survey.Title))
 		if err != nil {
 			return err
 		}
-	}
 
-	return tx.Commit(context.Background())
+		// Save survey
+		err = r.db.QueryRow(ctx,
+			"INSERT INTO surveys (id, creator_id, title, description, category, reward_amount, estimated_duration, target_responses, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
+			survey.ID, survey.CreatorID, survey.Title, survey.Description, survey.Category, survey.RewardAmount, survey.EstimatedDuration, survey.TargetResponses, survey.Status).Scan(&survey.ID)
+		if err != nil {
+			return err
+		}
+
+		// Save questions
+		for _, q := range questions {
+			q.SurveyID = survey.ID
+			_, err := r.db.Exec(ctx,
+				"INSERT INTO questions (id, survey_id, type, title, description, required, options, order_index) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+				q.ID, q.SurveyID, q.Type, q.Title, q.Description, q.Required, q.Options, q.OrderIndex)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 func (r *SurveyRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Survey, error) {

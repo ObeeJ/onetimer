@@ -16,11 +16,7 @@ type EligibilityController struct {
 	userRepo *repository.UserRepository
 }
 
-func NewEligibilityController(cache *cache.Cache, db *database.SupabaseDB) *EligibilityController {
-	var userRepo *repository.UserRepository
-	if db != nil {
-		userRepo = repository.NewUserRepository(db)
-	}
+func NewEligibilityController(cache *cache.Cache, db *database.SupabaseDB, userRepo *repository.UserRepository) *EligibilityController {
 	return &EligibilityController{
 		cache:    cache,
 		db:       db,

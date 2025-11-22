@@ -24,7 +24,7 @@ func (h *NotificationHandler) GetNotifications(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid user ID"})
 	}
 
-	notifications, err := h.notificationRepo.GetNotifications(userID)
+	notifications, err := h.notificationRepo.GetNotifications(c.Context(), userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to get notifications"})
 	}
@@ -49,7 +49,7 @@ func (h *NotificationHandler) UpdateNotifications(c *fiber.Ctx) error {
 	}
 
 	for _, id := range req.NotificationIDs {
-		err := h.notificationRepo.MarkNotificationRead(id)
+		err := h.notificationRepo.MarkNotificationRead(c.Context(), id)
 		if err != nil {
 			// Log error but continue with others
 			fmt.Printf("Failed to mark notification %s as read: %v\n", id, err)
