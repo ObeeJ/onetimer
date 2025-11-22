@@ -1,8 +1,9 @@
+/* eslint-disable no-unused-vars */
 export enum LogLevel {
-  _DEBUG = 'DEBUG',
-  _INFO = 'INFO', 
-  _WARN = 'WARN',
-  _ERROR = 'ERROR',
+  DEBUG = 'DEBUG',
+  INFO = 'INFO',
+  WARN = 'WARN',
+  ERROR = 'ERROR',
 }
 
 export interface LogContext {

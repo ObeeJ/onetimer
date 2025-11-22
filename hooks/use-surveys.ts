@@ -11,13 +11,13 @@ const fetchSurveys = async ({ pageParam = 1 }: { pageParam?: number }): Promise<
   try {
     const res = await api.get<PaginatedResponse<Survey>>(`/survey?page=${pageParam}&limit=10`)
     // Ensure surveys array exists
-    if (res && typeof res === 'object' && !Array.isArray(res.surveys)) {
-      return { ...res, surveys: [] }
+    if (res && typeof res === 'object' && !(res as any).surveys) {
+      return { ...res, surveys: [] } as PaginatedResponse<Survey>
     }
     return res
   } catch (error) {
     console.error('Failed to fetch surveys:', error)
-    return { surveys: [], hasNextPage: false, totalCount: 0 }
+    return { data: [], page: 1, limit: 10, total: 0, hasNextPage: false } as PaginatedResponse<Survey>
   }
 }
 
