@@ -56,8 +56,12 @@ export default function SignUpForm() {
     }
 
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Send OTP for email verification
+      await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email })
+      })
       
       // Redirect to OTP verification
       router.push(`/filler/auth/verify-otp?email=${encodeURIComponent(formData.email)}`)

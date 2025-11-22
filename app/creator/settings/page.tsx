@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { User, Building2, CreditCard, Bell, Shield, CheckCircle } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { SettingsSkeleton } from "@/components/ui/skeleton-loader"
+import { apiClient } from "@/lib/api-client"
 import type { Creator } from "@/types/user"
 
 export default function CreatorSettingsPage() {
@@ -28,6 +29,47 @@ export default function CreatorSettingsPage() {
     const fetchSettings = async () => {
       try {
         await new Promise(resolve => setTimeout(resolve, 800))
+        
+        // Load user preferences
+        if (user) {
+          try {
+            const prefs = await apiClient.getUserPreferences()
+            setNotifications({
+              surveyApproved: prefs.notifications,
+              newResponses: prefs.notifications,
+              lowCredits: prefs.email_updates,
+              weeklyReport: prefs.email_updates,
+            })
+          } catch (error) {
+            console.error('Failed to load preferences:', error)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+      } finally {
+        setSettingsLoading(false)
+      }
+    }
+
+    fetchSettings()
+  }, [user])
+
+  const handleSavePreferences = async () => {
+    try {
+      setIsLoading(true)
+      await apiClient.updateUserPreferences({
+        notifications: notifications.surveyApproved,
+        email_updates: notifications.weeklyReport,
+        survey_categories: ['lifestyle', 'technology'], // Default categories
+      })
+      // Show success message
+    } catch (error) {
+      console.error('Failed to save preferences:', error)
+      // Show error message
+    } finally {
+      setIsLoading(false)
+    }
+  }
         setSettingsLoading(false)
       } catch (error) {
         setSettingsLoading(false)
@@ -388,8 +430,12 @@ export default function CreatorSettingsPage() {
                   </div>
                 </div>
 
-                <Button className="bg-[#C1654B] hover:bg-[#b25a43]">
-                  Save Preferences
+                <Button 
+                  className="bg-[#C1654B] hover:bg-[#b25a43]"
+                  onClick={handleSavePreferences}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Saving...' : 'Save Preferences'}
                 </Button>
               </CardContent>
             </Card>

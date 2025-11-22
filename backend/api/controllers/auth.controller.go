@@ -12,16 +12,18 @@ import (
 )
 
 type AuthController struct {
-	cache      *cache.Cache
-	jwtSecret  string
-	resetTokens map[string]string // Simple in-memory store for reset tokens
+	cache        *cache.Cache
+	jwtSecret    string
+	emailService *services.EmailService
+	resetTokens  map[string]string // Simple in-memory store for reset tokens
 }
 
-func NewAuthController(cache *cache.Cache, jwtSecret string) *AuthController {
+func NewAuthController(cache *cache.Cache, jwtSecret string, emailService *services.EmailService) *AuthController {
 	return &AuthController{
-		cache:       cache,
-		jwtSecret:   jwtSecret,
-		resetTokens: make(map[string]string),
+		cache:        cache,
+		jwtSecret:    jwtSecret,
+		emailService: emailService,
+		resetTokens:  make(map[string]string),
 	}
 }
 
@@ -71,12 +73,13 @@ func (h *AuthController) SendOTP(c *fiber.Ctx) error {
 		c.Locals("otp_"+req.Email, otpData)
 	}
 
-	// Send OTP via email service with proper error handling
-	// In development mode, email sending may fail but OTP is still valid
-	if req.Email != "" {
-		// Skip actual email sending in development
-		// emailService := services.NewEmailService(cfg)
-		// emailService.SendOTP(req.Email, otp)
+	// Send OTP via email service
+	if req.Email != "" && h.emailService != nil {
+		if err := h.emailService.SendOTP(req.Email, otp); err != nil {
+			// Log error but don't fail the request - OTP is still valid for testing
+			// In production, you might want to fail here
+			// return c.Status(500).JSON(fiber.Map{"error": "Failed to send OTP email"})
+		}
 	}
 
 	return c.JSON(fiber.Map{

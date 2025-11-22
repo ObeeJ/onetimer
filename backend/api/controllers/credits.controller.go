@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+	"time"
 	"onetimer-backend/cache"
 	"onetimer-backend/config"
 	"onetimer-backend/repository"
@@ -75,16 +77,26 @@ func (h *CreditsController) PurchaseCredits(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
-	// TODO: Initialize Paystack payment
-	// For now, return mock success
+	// Initialize Paystack payment
+	paystackService := services.NewPaystackService("sk_test_placeholder_key") // TODO: Use actual key from config
+	
+	// Get user email (for now use placeholder)
+	userEmail := "user@example.com" // TODO: Get from user record
+	reference := "txn_" + userID[:8] + "_" + fmt.Sprintf("%d", time.Now().Unix())
+	
+	initResp, err := paystackService.InitializeTransaction(userEmail, req.Amount*100, reference) // Convert to kobo
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to initialize payment"})
+	}
 
 	return c.JSON(fiber.Map{
-		"ok":             true,
-		"transaction_id": "txn_" + userID[:8],
-		"amount":         req.Amount,
-		"credits":        req.Credits,
-		"status":         "success",
-		"message":        "Credits purchased successfully",
+		"ok":               true,
+		"authorization_url": initResp.Data.AuthorizationURL,
+		"reference":        initResp.Data.Reference,
+		"amount":           req.Amount,
+		"credits":          req.Credits,
+		"status":           "pending",
+		"message":          "Payment initialized successfully",
 	})
 }
 

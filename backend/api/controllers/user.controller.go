@@ -173,18 +173,36 @@ func (h *UserController) UploadKYC(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "Invalid user ID"})
 	}
 
-	file, err := c.FormFile("document")
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "No file uploaded"})
+	var req struct {
+		DocumentID string `json:"document_id"`
 	}
 
-	// TODO: Save file to AWS S3
-	// TODO: Update user KYC status
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	if req.DocumentID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "Document ID is required"})
+	}
+
+	// Update user KYC status with document ID
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	if h.userRepo != nil {
+		err = h.userRepo.UpdateKYCStatus(c.Context(), userUUID, "pending_review")
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to update KYC status"})
+		}
+	}
 
 	return c.JSON(fiber.Map{
-		"ok":       true,
-		"message":  "KYC document uploaded successfully",
-		"filename": file.Filename,
+		"ok":          true,
+		"message":     "KYC document ID submitted successfully",
+		"document_id": req.DocumentID,
+		"status":      "pending_review",
 	})
 }
 
@@ -330,11 +348,37 @@ func (h *UserController) GetPreferences(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Implement actual preferences retrieval from database
+	// Parse user ID
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid user ID format"})
+	}
+
+	// Get user preferences from database
+	user, err := h.userRepo.GetUserPreferences(c.Context(), userUUID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to retrieve preferences"})
+	}
+
+	// Set defaults if preferences are nil
+	notifications := true
+	emailUpdates := true
+	categories := []string{"lifestyle", "technology"}
+	
+	if user.Notifications != nil {
+		notifications = *user.Notifications
+	}
+	if user.EmailUpdates != nil {
+		emailUpdates = *user.EmailUpdates
+	}
+	if len(user.SurveyCategories) > 0 {
+		categories = user.SurveyCategories
+	}
+
 	return c.JSON(fiber.Map{
-		"notifications": true,
-		"email_updates": true,
-		"survey_categories": []string{"lifestyle", "technology"},
+		"notifications": notifications,
+		"email_updates": emailUpdates,
+		"survey_categories": categories,
 	})
 }
 
@@ -363,6 +407,17 @@ func (h *UserController) UpdatePreferences(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"message": "Preferences updated successfully"})
 	}
 
-	// TODO: Implement actual preferences update in database
+	// Parse user ID
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid user ID format"})
+	}
+
+	// Update preferences in database
+	err = h.userRepo.UpdateUserPreferences(c.Context(), userUUID, req.Notifications, req.EmailUpdates, req.SurveyCategories)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to update preferences"})
+	}
+
 	return c.JSON(fiber.Map{"message": "Preferences updated successfully"})
 }

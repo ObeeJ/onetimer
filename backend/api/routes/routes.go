@@ -49,16 +49,25 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	})
 
 	// Initialize repositories
-	baseRepo := repository.NewBaseRepository(db)
-	userRepo := repository.NewUserRepository(baseRepo)
-	auditRepo := repository.NewAuditRepository(baseRepo)
-	notificationRepo := repository.NewNotificationRepository(baseRepo)
-	creditRepo := repository.NewCreditRepository(baseRepo)
-	surveyRepo := repository.NewSurveyRepository(baseRepo)
+	var baseRepo *repository.BaseRepository
+	var userRepo *repository.UserRepository
+	var auditRepo *repository.AuditRepository
+	var notificationRepo *repository.NotificationRepository
+	var creditRepo *repository.CreditRepository
+	var surveyRepo *repository.SurveyRepository
+	
+	if db != nil {
+		baseRepo = repository.NewBaseRepository(db)
+		userRepo = repository.NewUserRepository(baseRepo)
+		auditRepo = repository.NewAuditRepository(baseRepo)
+		notificationRepo = repository.NewNotificationRepository(baseRepo)
+		creditRepo = repository.NewCreditRepository(baseRepo)
+		surveyRepo = repository.NewSurveyRepository(baseRepo)
+	}
 
 	// Initialize controllers (Updated to use validated versions)
 	userController := controllers.NewUserControllerWithDB(cache, db, userRepo)
-	authController := controllers.NewAuthController(cache, cfg.JWTSecret)
+	authController := controllers.NewAuthController(cache, cfg.JWTSecret, emailService)
 	adminController := controllers.NewAdminController(cache, db.Pool)  // Fixed
 	auditController := controllers.NewAuditController(cache, auditRepo)
 	billingController := controllers.NewBillingController()
@@ -154,6 +163,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 
 	// Credits routes
 	credits := api.Group("/credits")
+	credits.Use(jwtMiddleware)
 	credits.Get("/packages", creditsController.GetPackages)
 	credits.Post("/purchase", creditsController.PurchaseCredits)
 	credits.Post("/purchase/custom", creditsController.PurchaseCustom)

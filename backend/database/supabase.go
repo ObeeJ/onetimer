@@ -62,6 +62,9 @@ func (db *SupabaseDB) InitSchema() error {
 		is_active BOOLEAN DEFAULT TRUE,
 		kyc_status VARCHAR(50) DEFAULT 'pending',
 		profile_picture_url TEXT,
+		notifications BOOLEAN DEFAULT TRUE,
+		email_updates BOOLEAN DEFAULT TRUE,
+		survey_categories TEXT[] DEFAULT ARRAY['lifestyle', 'technology'],
 		created_at TIMESTAMP DEFAULT NOW(),
 		updated_at TIMESTAMP DEFAULT NOW()
 	);

@@ -341,6 +341,28 @@ class ApiClient {
     })
   }
 
+  // User Preferences
+  async getUserPreferences() {
+    return this.request<{
+      notifications: boolean
+      email_updates: boolean
+      survey_categories: string[]
+    }>('/user/preferences', {
+      method: 'GET',
+    })
+  }
+
+  async updateUserPreferences(preferences: {
+    notifications: boolean
+    email_updates: boolean
+    survey_categories: string[]
+  }) {
+    return this.request<{ message: string }>('/user/preferences', {
+      method: 'POST',
+      body: JSON.stringify(preferences),
+    })
+  }
+
   // Survey Management
   async getSurveyQuestions(surveyId: string) {
     return this.request<Record<string, unknown>>(`/survey/${surveyId}/questions`)

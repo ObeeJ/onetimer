@@ -27,6 +27,10 @@ type User struct {
 	KycStatus         string     `json:"kyc_status" db:"kyc_status"`
 	KycData           *KYCData   `json:"kyc_data" db:"kyc_data"`
 	ProfilePictureURL *string    `json:"profile_picture_url" db:"profile_picture_url"`
+	// Preferences
+	Notifications     *bool      `json:"notifications" db:"notifications"`
+	EmailUpdates      *bool      `json:"email_updates" db:"email_updates"`
+	SurveyCategories  []string   `json:"survey_categories" db:"survey_categories"`
 	// Admin-specific fields
 	Department        *string    `json:"department,omitempty" db:"department"`
 	Permissions       []string   `json:"permissions,omitempty" db:"permissions"`
