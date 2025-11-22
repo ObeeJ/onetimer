@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,7 +23,7 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  const role = searchParams.get('role') || 'filler' // Default to filler
+  const role = searchParams?.get('role') || 'filler' // Default to filler
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

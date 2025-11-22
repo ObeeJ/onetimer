@@ -14,7 +14,7 @@ interface Column {
 interface ResponsiveTableProps {
   columns: Column[]
   data: Record<string, any>[]
-  renderCell: (item: Record<string, any>, column: Column) => ReactNode
+  renderCell: (_item: Record<string, any>, _column: Column) => ReactNode
   className?: string
 }
 
@@ -41,7 +41,7 @@ export function ResponsiveTable({ columns, data, renderCell, className }: Respon
               <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                 {columns.map((column) => (
                   <td key={column.key} className={cn("py-4 px-4", column.className)}>
-                    {renderCell(item, column)}
+                    {renderCell(_item, _column)}
                   </td>
                 ))}
               </tr>
@@ -61,7 +61,7 @@ export function ResponsiveTable({ columns, data, renderCell, className }: Respon
                     {column.mobileLabel || column.label}:
                   </span>
                   <div className="ml-2 text-right">
-                    {renderCell(item, column)}
+                    {renderCell(_item, _column)}
                   </div>
                 </div>
               ))}

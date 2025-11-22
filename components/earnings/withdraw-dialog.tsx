@@ -44,7 +44,7 @@ export default function WithdrawDialog({
   balance = 0,
 }: {
   open?: boolean
-  onOpenChange?: (open: boolean) => void
+  onOpenChange?: (_open: boolean) => void
   balance?: number
 }) {
   const [formData, setFormData] = useState({

@@ -8,7 +8,7 @@ export function CategoryFilter({
   onChange,
 }: {
   value?: string
-  onChange?: (v: string) => void
+  onChange?: (_v: string) => void
 }) {
   return (
     <Tabs value={value} onValueChange={onChange} className="w-full">

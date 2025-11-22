@@ -1,8 +1,8 @@
 export enum LogLevel {
-  DEBUG = 'DEBUG',
-  INFO = 'INFO',
-  WARN = 'WARN',
-  ERROR = 'ERROR',
+  _DEBUG = 'DEBUG',
+  _INFO = 'INFO', 
+  _WARN = 'WARN',
+  _ERROR = 'ERROR',
 }
 
 export interface LogContext {

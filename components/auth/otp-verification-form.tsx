@@ -11,7 +11,7 @@ import Link from "next/link"
 interface OTPVerificationFormProps {
   email?: string
   phone?: string
-  onVerify: (otp: string) => void
+  onVerify: (_otp: string) => void
   onResend: () => void
   isLoading?: boolean
   error?: string

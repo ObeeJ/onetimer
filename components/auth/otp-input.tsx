@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Input } from "@/components/ui/input"
 
-export default function OTPInput({ length = 6, onComplete }: { length?: number; onComplete?: (code: string) => void }) {
+export default function OTPInput({ length = 6, onComplete }: { length?: number; onComplete?: (_code: string) => void }) {
   const [values, setValues] = useState(Array.from({ length }, () => ""))
   const refs = useRef<HTMLInputElement[]>([])
 

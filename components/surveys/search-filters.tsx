@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { useSearchFilters } from "@/hooks/use-search"
 
-interface SearchFilters {
+interface _SearchFilters {
   query?: string
   category?: string
   status?: string
@@ -16,13 +16,13 @@ interface SearchFilters {
 }
 
 interface SearchFiltersProps {
-  onFiltersChange?: (filters: any) => void
+  onFiltersChange?: (_filters: any) => void
 }
 
 export function SearchFilters({ onFiltersChange }: SearchFiltersProps) {
   const { filters, updateFilter, clearFilters, hasFilters } = useSearchFilters()
   
-  const handleFilterChange = (key: keyof SearchFilters, value: any) => {
+  const handleFilterChange = (key: keyof _SearchFilters, value: any) => {
     updateFilter(key, value)
     onFiltersChange?.({ ...filters, [key]: value })
   }
