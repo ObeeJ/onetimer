@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-const publicRoutes = ['/', '/login', '/pricing', '/unauthorized']
+const publicRoutes = ['/', '/login', '/pricing', '/unauthorized', '/auth/role-selection', '/creator/onboarding', '/filler/onboarding']
 const authRoutes = ['/auth/', '/filler/auth/', '/creator/auth/', '/admin/auth/', '/super-admin/auth/']
-const onboardingRoutes = ['/creator/onboarding', '/filler/onboarding']
 
 // Role-based route protection
 const roleRoutes = {
@@ -28,11 +27,6 @@ export function middleware(request: NextRequest) {
 
   // Allow auth routes
   if (authRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.next()
-  }
-
-  // Allow onboarding routes for new user registration
-  if (onboardingRoutes.some(route => pathname.startsWith(route))) {
     return NextResponse.next()
   }
 
