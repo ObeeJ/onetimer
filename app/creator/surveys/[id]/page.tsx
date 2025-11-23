@@ -103,7 +103,7 @@ export default function SurveyDetailsPage({ params }: { params: Promise<{ id: st
   const handleStatusChange = async (newStatus: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/surveys/${params.id}`, {
+      const response = await fetch(`/api/surveys/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })

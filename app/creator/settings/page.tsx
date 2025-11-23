@@ -35,10 +35,10 @@ export default function CreatorSettingsPage() {
           try {
             const prefs = await apiClient.getUserPreferences()
             setNotifications({
-              surveyApproved: prefs.notifications,
-              newResponses: prefs.notifications,
-              lowCredits: prefs.email_updates,
-              weeklyReport: prefs.email_updates,
+              surveyApproved: prefs.data?.notifications || false,
+              newResponses: prefs.data?.notifications || false,
+              lowCredits: prefs.data?.email_updates || false,
+              weeklyReport: prefs.data?.email_updates || false,
             })
           } catch (error) {
             console.error('Failed to load preferences:', error)
@@ -70,15 +70,6 @@ export default function CreatorSettingsPage() {
       setIsLoading(false)
     }
   }
-        setSettingsLoading(false)
-      } catch (error) {
-        setSettingsLoading(false)
-      }
-    }
-    if (user) {
-      fetchSettings()
-    }
-  }, [user])
   const [profileData, setProfileData] = useState({
     name: user?.name || "",
     email: user?.email || "",

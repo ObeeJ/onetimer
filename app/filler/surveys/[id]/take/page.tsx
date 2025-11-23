@@ -84,7 +84,7 @@ export default function TakeSurveyPage({ params }: { params: { id: string } }) {
   }
 
   const handleNext = () => {
-    if (idx < currentSurvey.questions.length - 1) {
+    if (currentSurvey?.questions && idx < currentSurvey.questions.length - 1) {
       setIdx(prev => prev + 1)
     }
   }
@@ -122,8 +122,8 @@ export default function TakeSurveyPage({ params }: { params: { id: string } }) {
     )
   }
 
-  const currentQuestion = currentSurvey.questions[idx]
-  const isLastQuestion = idx === currentSurvey.questions.length - 1
+  const currentQuestion = currentSurvey?.questions?.[idx]
+  const isLastQuestion = idx === (currentSurvey?.questions?.length || 0) - 1
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
@@ -148,23 +148,23 @@ export default function TakeSurveyPage({ params }: { params: { id: string } }) {
         <div className="p-6">
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-slate-900 mb-2">
-              Question {idx + 1} of {currentSurvey.questions.length}
+              Question {idx + 1} of {currentSurvey?.questions?.length || 0}
             </h3>
-            <p className="text-lg text-slate-700">{currentQuestion.title}</p>
+            <p className="text-lg text-slate-700">{(currentQuestion as any)?.title || 'Question'}</p>
           </div>
 
           {/* Question Input */}
           <div className="mb-8">
-            {currentQuestion.type === 'multiple_choice' && (
+            {currentQuestion?.type === 'multiple_choice' && (
               <div className="space-y-3">
-                {currentQuestion.options?.map((option: string, optionIdx: number) => (
+                {currentQuestion?.options?.map((option: string, optionIdx: number) => (
                   <label key={optionIdx} className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="radio"
-                      name={`question_${currentQuestion.id}`}
+                      name={`question_${currentQuestion?.id}`}
                       value={option}
-                      checked={answers[currentQuestion.id] === option}
-                      onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                      checked={answers[currentQuestion?.id || ''] === option}
+                      onChange={(e) => currentQuestion?.id && handleAnswerChange(currentQuestion.id, e.target.value)}
                       className="w-4 h-4 text-blue-600"
                     />
                     <span className="text-slate-700">{option}</span>
@@ -173,24 +173,24 @@ export default function TakeSurveyPage({ params }: { params: { id: string } }) {
               </div>
             )}
 
-            {currentQuestion.type === 'text' && (
+            {currentQuestion?.type === 'text' && (
               <textarea
                 className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={4}
                 placeholder="Type your answer here..."
-                value={answers[currentQuestion.id] || ''}
-                onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                value={answers[currentQuestion?.id || ''] || ''}
+                onChange={(e) => currentQuestion?.id && handleAnswerChange(currentQuestion.id, e.target.value)}
               />
             )}
 
-            {currentQuestion.type === 'rating' && (
+            {currentQuestion?.type === 'rating' && (
               <div className="flex space-x-4">
                 {[1, 2, 3, 4, 5].map((rating) => (
                   <button
                     key={rating}
-                    onClick={() => handleAnswerChange(currentQuestion.id, rating.toString())}
+                    onClick={() => currentQuestion?.id && handleAnswerChange(currentQuestion.id, rating.toString())}
                     className={`w-12 h-12 rounded-full border-2 font-semibold transition-colors ${
-                      answers[currentQuestion.id] === rating.toString()
+                      answers[currentQuestion?.id || ''] === rating.toString()
                         ? 'bg-blue-600 text-white border-blue-600'
                         : 'border-slate-300 text-slate-600 hover:border-blue-400'
                     }`}
@@ -215,7 +215,7 @@ export default function TakeSurveyPage({ params }: { params: { id: string } }) {
             {isLastQuestion ? (
               <button
                 onClick={handleSubmit}
-                disabled={!answers[currentQuestion.id]}
+                disabled={!answers[currentQuestion?.id || '']}
                 className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Submit Survey
@@ -223,7 +223,7 @@ export default function TakeSurveyPage({ params }: { params: { id: string } }) {
             ) : (
               <button
                 onClick={handleNext}
-                disabled={!answers[currentQuestion.id]}
+                disabled={!answers[currentQuestion?.id || '']}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next

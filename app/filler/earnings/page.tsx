@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { motion, useReducedMotion, easeOut } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -19,17 +18,12 @@ import { KYCVerificationForm } from "@/components/kyc/kyc-verification-form"
 import WithdrawDialog from "@/components/earnings/withdraw-dialog"
 
 export default function EarningsPage() {
-  const router = useRouter()
   const { user, isAuthenticated, isKycVerified } = useAuth()
   const { data: earnings, isLoading, error, refetch } = useEarnings()
   const reduceMotion = useReducedMotion()
   const [timeRange, setTimeRange] = useState("lifetime")
   const [withdrawOpen, setWithdrawOpen] = useState(false)
   const [showKYCForm, setShowKYCForm] = useState(false)
-
-  const handleCompleteVerification = () => {
-    router.push('/filler/onboarding/verify')
-  }
 
   const handleExport = async () => {
     try {
