@@ -17,11 +17,23 @@ export default function ForgotPasswordPage() {
     setIsLoading(true)
     
     try {
-      // TODO: Implement forgot password API call
-      console.log("Sending reset email to:", email)
-      setIsSubmitted(true)
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        setIsSubmitted(true)
+      } else {
+        throw new Error(data.error || 'Failed to send reset email')
+      }
     } catch (error) {
       console.error("Failed to send reset email:", error)
+      // Show error to user
+      alert(error instanceof Error ? error.message : 'Failed to send reset email')
     } finally {
       setIsLoading(false)
     }

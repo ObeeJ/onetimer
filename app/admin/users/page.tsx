@@ -45,9 +45,23 @@ export default function UsersPage() {
     return <div className="p-6">Loading users...</div>
   }
 
-  const handleExport = () => {
-    console.log("Exporting users...")
-    // TODO: Implement export functionality
+  const handleExport = async () => {
+    try {
+      const response = await fetch('/api/admin/users/export')
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `users-${new Date().toISOString().split('T')[0]}.csv`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }
+    } catch (error) {
+      console.error('Export failed:', error)
+    }
   }
 
   const handleFilter = () => {
@@ -56,13 +70,22 @@ export default function UsersPage() {
   }
 
   const handleViewUser = (userId: string) => {
-    console.log("Viewing user:", userId)
-    // TODO: Navigate to user detail page
+    window.open(`/admin/users/${userId}`, '_blank')
   }
 
-  const handleToggleUserStatus = (userId: string, currentStatus: boolean) => {
-    console.log("Toggling user status:", userId, !currentStatus)
-    // TODO: Implement user status toggle
+  const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
+    try {
+      const action = currentStatus ? 'suspend' : 'activate'
+      const response = await fetch(`/api/admin/users/${userId}/${action}`, {
+        method: 'POST'
+      })
+      if (response.ok) {
+        // Refresh data
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Status toggle failed:', error)
+    }
   }
 
   const handleMoreActions = (userId: string) => {

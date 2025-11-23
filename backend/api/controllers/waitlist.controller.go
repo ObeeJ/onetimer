@@ -32,13 +32,15 @@ type WaitlistEntry struct {
 
 // JoinWaitlist handles email submission from landing page
 func (h *WaitlistController) JoinWaitlist(c *fiber.Ctx) error {
+	ctx := context.Background()
+
 	var req struct {
 		Email  string `json:"email"`
 		Source string `json:"source"` // e.g., "landing_page", "hero_section"
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		utils.LogError("Invalid waitlist request: %v", err)
+		utils.LogError(ctx, "⚠️ Invalid waitlist request", err)
 		return c.Status(400).JSON(fiber.Map{
 			"success": false,
 			"error":   "Invalid request data",
@@ -47,7 +49,7 @@ func (h *WaitlistController) JoinWaitlist(c *fiber.Ctx) error {
 
 	// Validate email
 	if req.Email == "" || !isValidEmail(req.Email) {
-		utils.LogWarn("Invalid email provided to waitlist: %s", req.Email)
+		utils.LogWarn(ctx, "⚠️ Invalid email provided to waitlist", "email", req.Email)
 		return c.Status(400).JSON(fiber.Map{
 			"success": false,
 			"error":   "Please provide a valid email address",
@@ -59,13 +61,11 @@ func (h *WaitlistController) JoinWaitlist(c *fiber.Ctx) error {
 		req.Source = "hero_section"
 	}
 
-	ctx := context.Background()
-
 	// Check if email already exists
 	var existingEmail string
 	err := h.db.QueryRow(ctx, "SELECT email FROM waitlist WHERE email = $1", req.Email).Scan(&existingEmail)
 	if err == nil {
-		utils.LogInfo("Email already on waitlist: %s", req.Email)
+		utils.LogInfo(ctx, "→ Email already on waitlist", "email", req.Email)
 		return c.JSON(fiber.Map{
 			"success": true,
 			"message": "You're already on our waitlist! We'll notify you soon.",
@@ -76,24 +76,25 @@ func (h *WaitlistController) JoinWaitlist(c *fiber.Ctx) error {
 	// Create waitlist entry
 	entryID := uuid.New()
 	_, err = h.db.Exec(ctx,
-		`INSERT INTO waitlist (id, email, source, created_at) 
+		`INSERT INTO waitlist (id, email, source, created_at)
 		 VALUES ($1, $2, $3, $4)`,
 		entryID, req.Email, req.Source, time.Now())
 
 	if err != nil {
-		utils.LogError("Failed to save waitlist entry: %v", err)
+		utils.LogError(ctx, "⚠️ Failed to save waitlist entry", err, "email", req.Email)
 		return c.Status(500).JSON(fiber.Map{
 			"success": false,
 			"error":   "Failed to join waitlist. Please try again.",
 		})
 	}
 
-	utils.LogInfo("New waitlist entry: email=%s, source=%s", req.Email, req.Source)
+	utils.LogInfo(ctx, "✅ New waitlist entry", "email", req.Email, "source", req.Source)
 
 	// Send welcome email asynchronously (don't block response)
 	go func() {
+		bgCtx := context.Background()
 		if err := h.emailService.SendWaitlistConfirmation(req.Email); err != nil {
-			utils.LogError("Failed to send waitlist confirmation email to %s: %v", req.Email, err)
+			utils.LogError(bgCtx, "⚠️ Failed to send waitlist confirmation email", err, "email", req.Email)
 		}
 	}()
 
@@ -111,7 +112,7 @@ func (h *WaitlistController) GetWaitlistStats(c *fiber.Ctx) error {
 	var total int
 	err := h.db.QueryRow(ctx, "SELECT COUNT(*) FROM waitlist").Scan(&total)
 	if err != nil {
-		utils.LogError("Failed to get waitlist stats: %v", err)
+		utils.LogError(ctx, "⚠️ Failed to get waitlist stats", err)
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch stats"})
 	}
 
@@ -120,7 +121,7 @@ func (h *WaitlistController) GetWaitlistStats(c *fiber.Ctx) error {
 	h.db.QueryRow(ctx,
 		"SELECT COUNT(*) FROM waitlist WHERE created_at >= CURRENT_DATE").Scan(&todayCount)
 
-	utils.LogInfo("Waitlist stats requested - total: %d, today: %d", total, todayCount)
+	utils.LogInfo(ctx, "✅ Waitlist stats requested", "total", total, "today", todayCount)
 
 	return c.JSON(fiber.Map{
 		"success":     true,

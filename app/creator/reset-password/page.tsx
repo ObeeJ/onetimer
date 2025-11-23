@@ -1,27 +1,65 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Mail } from "lucide-react"
+import { ArrowLeft, CheckCircle } from "lucide-react"
 import Link from "next/link"
+import { useSearchParams, useRouter } from "next/navigation"
 
 export default function ResetPasswordPage() {
-  const [email, setEmail] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [error, setError] = useState("")
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const token = searchParams.get('token')
+
+  useEffect(() => {
+    if (!token) {
+      router.push('/creator/forgot-password')
+    }
+  }, [token, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
+    
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match")
+      setIsLoading(false)
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters")
+      setIsLoading(false)
+      return
+    }
     
     try {
-      // TODO: Implement forgot password API call
-      console.log("Sending reset email to:", email)
-      setIsSubmitted(true)
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          token,
+          new_password: newPassword 
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        setIsSubmitted(true)
+      } else {
+        setError(data.error || 'Failed to reset password')
+      }
     } catch (error) {
-      console.error("Failed to send reset email:", error)
+      setError('Failed to reset password. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -39,35 +77,51 @@ export default function ResetPasswordPage() {
               </Button>
             </Link>
           </div>
-          <CardTitle className="text-center">Reset Password</CardTitle>
+          <CardTitle className="text-center">{!token ? 'Invalid Reset Link' : 'Reset Password'}</CardTitle>
         </CardHeader>
         <CardContent>
           {!isSubmitted ? (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="text-red-600 text-sm text-center">
+                  {error}
+                </div>
+              )}
               <div>
                 <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="password"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
                   required
+                  minLength={8}
+                />
+              </div>
+              <div>
+                <Input
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={8}
                 />
               </div>
               <Button 
                 type="submit" 
                 className="w-full bg-[#013F5C] hover:bg-[#012d42]"
-                disabled={isLoading}
+                disabled={isLoading || !token}
               >
-                {isLoading ? "Sending..." : "Send Reset Link"}
+                {isLoading ? "Resetting..." : "Reset Password"}
               </Button>
             </form>
           ) : (
             <div className="text-center space-y-4">
-              <Mail className="h-12 w-12 mx-auto text-green-600" />
-              <p>Reset link sent to {email}</p>
+              <CheckCircle className="h-12 w-12 mx-auto text-green-600" />
+              <p>Password reset successful!</p>
               <Link href="/creator/auth/sign-in">
-                <Button variant="outline" className="w-full">
-                  Back to Sign In
+                <Button className="w-full bg-[#013F5C] hover:bg-[#012d42]">
+                  Sign In
                 </Button>
               </Link>
             </div>

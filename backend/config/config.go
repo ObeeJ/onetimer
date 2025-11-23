@@ -27,6 +27,11 @@ type Config struct {
 	SMTPPort           string
 	SMTPUser           string
 	SMTPPass           string
+	
+	// SendGrid
+	SendGridAPIKey     string
+	SendGridFromEmail  string
+	SendGridFromName   string
 	// QoreIDClientID string
 	// QoreIDSecret   string
 	PremblyAPIKey string
@@ -58,6 +63,11 @@ func Load() *Config {
 		SMTPPort:           getEnv("SMTP_PORT", "587"),
 		SMTPUser:           getEnv("SMTP_USER", ""),
 		SMTPPass:           getEnv("SMTP_PASS", ""),
+		
+		// SendGrid
+		SendGridAPIKey:     getEnv("SENDGRID_API_KEY", ""),
+		SendGridFromEmail:  getEnv("SENDGRID_FROM_EMAIL", "noreply@onetimer.com"),
+		SendGridFromName:   getEnv("SENDGRID_FROM_NAME", "OneTime Survey"),
 		// QoreIDClientID: getEnv("QOREID_CLIENT_ID", ""),
 		// QoreIDSecret:   getEnv("QOREID_SECRET_KEY", ""),
 		PremblyAPIKey: getEnv("PREMBLY_API_KEY", ""),

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, DollarSign, Users, Award } from "lucide-react"
 
@@ -9,13 +10,25 @@ interface StatsCardsProps {
 }
 
 export default function StatsCards({ isAuthenticated, isVerified = false }: StatsCardsProps) {
-  // TODO: Replace with actual data from API
-  const stats = isAuthenticated ? [
-    {
-      title: "Total Earnings",
-      value: isVerified ? "₦24,750" : "₦0",
-      change: isVerified ? "+12.5%" : "Complete verification",
-      icon: DollarSign,
+  const [stats, setStats] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!isAuthenticated) {
+        setLoading(false)
+        return
+      }
+      
+      try {
+        // Mock API call for now
+        await new Promise(resolve => setTimeout(resolve, 500))
+        setStats(isVerified ? [
+          {
+            title: "Total Earnings",
+            value: "₦24,750",
+            change: "+12.5%",
+            icon: DollarSign,
       color: "text-green-600",
       locked: !isVerified
     },

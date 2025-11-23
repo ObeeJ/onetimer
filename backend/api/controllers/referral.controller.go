@@ -21,9 +21,10 @@ func NewReferralController(cache *cache.Cache, db *pgxpool.Pool) *ReferralContro
 }
 
 func (h *ReferralController) GetReferrals(c *fiber.Ctx) error {
+	ctx := context.Background()
 	userID, ok := c.Locals("user_id").(string)
 	if !ok {
-		utils.LogError("Unauthorized referral access attempt")
+		utils.LogError(ctx, "Unauthorized referral access attempt", nil)
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
@@ -50,7 +51,7 @@ func (h *ReferralController) GetReferrals(c *fiber.Ctx) error {
 			},
 		}
 
-		utils.LogInfo("Retrieved referrals for user %s: count=%d", userID, len(referrals))
+		utils.LogInfo(ctx, "Retrieved referrals for user", "user_id", userID, "count", len(referrals))
 		return c.JSON(fiber.Map{
 			"success": true,
 			"data":    referrals,
@@ -59,7 +60,7 @@ func (h *ReferralController) GetReferrals(c *fiber.Ctx) error {
 	}
 
 	link := "https://onetimer.com/ref/" + referralCode
-	utils.LogInfo("Referral info requested for user %s", userID)
+	utils.LogInfo(ctx, "Referral info requested for user", "user_id", userID)
 
 	return c.JSON(fiber.Map{
 		"success": true,
@@ -74,16 +75,17 @@ func (h *ReferralController) GetReferrals(c *fiber.Ctx) error {
 }
 
 func (h *ReferralController) GenerateCode(c *fiber.Ctx) error {
+	ctx := context.Background()
 	userID, ok := c.Locals("user_id").(string)
 	if !ok {
-		utils.LogError("Unauthorized code generation attempt")
+		utils.LogError(ctx, "Unauthorized code generation attempt", nil)
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
 	code := userID[:8] + "_" + uuid.New().String()[:4]
 	link := "https://onetimer.com/ref/" + code
 
-	utils.LogInfo("Generated referral code for user %s: code=%s", userID, code)
+	utils.LogInfo(ctx, "Generated referral code for user", "user_id", userID, "code", code)
 
 	return c.Status(201).JSON(fiber.Map{
 		"success": true,
@@ -96,9 +98,10 @@ func (h *ReferralController) GenerateCode(c *fiber.Ctx) error {
 }
 
 func (h *ReferralController) GetStats(c *fiber.Ctx) error {
+	ctx := context.Background()
 	userID, ok := c.Locals("user_id").(string)
 	if !ok {
-		utils.LogError("Unauthorized stats access attempt")
+		utils.LogError(ctx, "Unauthorized stats access attempt", nil)
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
@@ -113,7 +116,7 @@ func (h *ReferralController) GetStats(c *fiber.Ctx) error {
 		"top_referrer_rank": 15,
 	}
 
-	utils.LogInfo("Referral stats requested for user %s", userID)
+	utils.LogInfo(ctx, "Referral stats requested for user", "user_id", userID)
 
 	return c.JSON(fiber.Map{
 		"success": true,
@@ -123,6 +126,7 @@ func (h *ReferralController) GetStats(c *fiber.Ctx) error {
 
 // Track referral - when a user signs up via referral link
 func (h *ReferralController) TrackReferral(c *fiber.Ctx) error {
+	ctx := context.Background()
 	var req struct {
 		ReferralCode string `json:"referral_code"`
 		NewUserID    string `json:"new_user_id"`
@@ -130,20 +134,19 @@ func (h *ReferralController) TrackReferral(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		utils.LogError("Invalid referral tracking request: %v", err)
+		utils.LogError(ctx, "Invalid referral tracking request", err)
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
 	if req.ReferralCode == "" || req.NewUserID == "" {
-		utils.LogWarn("Missing required fields in referral tracking")
+		utils.LogWarn(ctx, "Missing required fields in referral tracking")
 		return c.Status(400).JSON(fiber.Map{"error": "Referral code and new user ID are required"})
 	}
 
 	// In production, save referral to database
-	ctx := context.Background()
 	_ = ctx // Would be used for database operations
 
-	utils.LogInfo("Referral tracked: referral_code=%s, new_user=%s", req.ReferralCode, req.NewUserID)
+	utils.LogInfo(ctx, "Referral tracked", "referral_code", req.ReferralCode, "new_user", req.NewUserID)
 
 	return c.Status(201).JSON(fiber.Map{
 		"success": true,

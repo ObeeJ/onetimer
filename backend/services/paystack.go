@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -77,6 +78,7 @@ func NewPaystackService(secretKey string) *PaystackService {
 
 // InitializeTransaction initializes a payment transaction
 func (ps *PaystackService) InitializeTransaction(email string, amount int, reference string) (*PaystackInitResponse, error) {
+	ctx := context.Background()
 	req := PaystackInitRequest{
 		Email:  email,
 		Amount: amount,
@@ -85,13 +87,13 @@ func (ps *PaystackService) InitializeTransaction(email string, amount int, refer
 
 	data, err := json.Marshal(req)
 	if err != nil {
-		utils.LogError("Failed to marshal Paystack request: %v", err)
+		utils.LogError(ctx, "Failed to marshal Paystack request", err, "email", email)
 		return nil, err
 	}
 
 	httpReq, err := http.NewRequest("POST", fmt.Sprintf("%s/transaction/initialize", ps.baseURL), bytes.NewBuffer(data))
 	if err != nil {
-		utils.LogError("Failed to create Paystack request: %v", err)
+		utils.LogError(ctx, "Failed to create Paystack request", err, "email", email)
 		return nil, err
 	}
 
@@ -101,37 +103,38 @@ func (ps *PaystackService) InitializeTransaction(email string, amount int, refer
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(httpReq)
 	if err != nil {
-		utils.LogError("Paystack API call failed: %v", err)
+		utils.LogError(ctx, "Paystack API call failed", err, "email", email, "amount", amount)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		utils.LogError("Failed to read Paystack response: %v", err)
+		utils.LogError(ctx, "Failed to read Paystack response", err, "email", email)
 		return nil, err
 	}
 
 	var result PaystackInitResponse
 	if err := json.Unmarshal(body, &result); err != nil {
-		utils.LogError("Failed to parse Paystack response: %v", err)
+		utils.LogError(ctx, "Failed to parse Paystack response", err, "email", email)
 		return nil, err
 	}
 
 	if !result.Status {
-		utils.LogWarn("Paystack initialization failed: %s", result.Message)
+		utils.LogWarn(ctx, "⚠️ Paystack initialization failed", "message", result.Message, "email", email)
 		return nil, fmt.Errorf("paystack error: %s", result.Message)
 	}
 
-	utils.LogInfo("Paystack transaction initialized: reference=%s", result.Data.Reference)
+	utils.LogInfo(ctx, "✅ Paystack transaction initialized", "reference", result.Data.Reference, "email", email)
 	return &result, nil
 }
 
 // VerifyTransaction verifies a payment transaction
 func (ps *PaystackService) VerifyTransaction(reference string) (*PaystackVerifyResponse, error) {
+	ctx := context.Background()
 	httpReq, err := http.NewRequest("GET", fmt.Sprintf("%s/transaction/verify/%s", ps.baseURL, reference), nil)
 	if err != nil {
-		utils.LogError("Failed to create Paystack verify request: %v", err)
+		utils.LogError(ctx, "Failed to create Paystack verify request", err, "reference", reference)
 		return nil, err
 	}
 
@@ -140,34 +143,35 @@ func (ps *PaystackService) VerifyTransaction(reference string) (*PaystackVerifyR
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(httpReq)
 	if err != nil {
-		utils.LogError("Paystack verify API call failed: %v", err)
+		utils.LogError(ctx, "Paystack verify API call failed", err, "reference", reference)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		utils.LogError("Failed to read Paystack verify response: %v", err)
+		utils.LogError(ctx, "Failed to read Paystack verify response", err, "reference", reference)
 		return nil, err
 	}
 
 	var result PaystackVerifyResponse
 	if err := json.Unmarshal(body, &result); err != nil {
-		utils.LogError("Failed to parse Paystack verify response: %v", err)
+		utils.LogError(ctx, "Failed to parse Paystack verify response", err, "reference", reference)
 		return nil, err
 	}
 
 	if !result.Status {
-		utils.LogWarn("Paystack verification failed: %s", result.Message)
+		utils.LogWarn(ctx, "⚠️ Paystack verification failed", "message", result.Message, "reference", reference)
 		return nil, fmt.Errorf("paystack error: %s", result.Message)
 	}
 
-	utils.LogInfo("Paystack transaction verified: reference=%s, status=%s, amount=%d", reference, result.Data.Status, result.Data.Amount)
+	utils.LogInfo(ctx, "✅ Paystack transaction verified", "reference", reference, "status", result.Data.Status, "amount", result.Data.Amount)
 	return &result, nil
 }
 
 // InitiateTransfer initiates a transfer/withdrawal
 func (ps *PaystackService) InitiateTransfer(amount int, recipientID int, reason string, reference string) (*TransferInitResponse, error) {
+	ctx := context.Background()
 	req := TransferInitRequest{
 		Source:    "balance",
 		Amount:    amount,
@@ -178,13 +182,13 @@ func (ps *PaystackService) InitiateTransfer(amount int, recipientID int, reason 
 
 	data, err := json.Marshal(req)
 	if err != nil {
-		utils.LogError("Failed to marshal transfer request: %v", err)
+		utils.LogError(ctx, "Failed to marshal transfer request", err, "amount", amount, "recipient_id", recipientID)
 		return nil, err
 	}
 
 	httpReq, err := http.NewRequest("POST", fmt.Sprintf("%s/transfer", ps.baseURL), bytes.NewBuffer(data))
 	if err != nil {
-		utils.LogError("Failed to create transfer request: %v", err)
+		utils.LogError(ctx, "Failed to create transfer request", err, "amount", amount, "recipient_id", recipientID)
 		return nil, err
 	}
 
@@ -194,28 +198,28 @@ func (ps *PaystackService) InitiateTransfer(amount int, recipientID int, reason 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(httpReq)
 	if err != nil {
-		utils.LogError("Paystack transfer API call failed: %v", err)
+		utils.LogError(ctx, "Paystack transfer API call failed", err, "amount", amount, "recipient_id", recipientID)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		utils.LogError("Failed to read transfer response: %v", err)
+		utils.LogError(ctx, "Failed to read transfer response", err, "amount", amount)
 		return nil, err
 	}
 
 	var result TransferInitResponse
 	if err := json.Unmarshal(body, &result); err != nil {
-		utils.LogError("Failed to parse transfer response: %v", err)
+		utils.LogError(ctx, "Failed to parse transfer response", err, "amount", amount, "recipient_id", recipientID)
 		return nil, err
 	}
 
 	if !result.Status {
-		utils.LogWarn("Paystack transfer failed: %s", result.Message)
+		utils.LogWarn(ctx, "⚠️ Paystack transfer failed", "message", result.Message, "amount", amount, "recipient_id", recipientID)
 		return nil, fmt.Errorf("paystack error: %s", result.Message)
 	}
 
-	utils.LogInfo("Paystack transfer initiated: reference=%s, amount=%d", result.Data.Reference, amount)
+	utils.LogInfo(ctx, "✅ Paystack transfer initiated", "reference", result.Data.Reference, "amount", amount, "recipient_id", recipientID)
 	return &result, nil
 }

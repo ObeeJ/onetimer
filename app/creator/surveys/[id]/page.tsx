@@ -100,11 +100,24 @@ export default function SurveyDetailsPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  const handleStatusChange = async (_newStatus: string) => {
+  const handleStatusChange = async (newStatus: string) => {
     setIsLoading(true)
-    // TODO: API call to update survey status
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setIsLoading(false)
+    try {
+      const response = await fetch(`/api/surveys/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+      
+      if (response.ok) {
+        // Update local state or refetch data
+        window.location.reload() // Simple refresh for now
+      }
+    } catch (error) {
+      console.error('Failed to update survey status:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const exportResponses = (format: string) => {

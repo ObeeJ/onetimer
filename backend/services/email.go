@@ -2,9 +2,9 @@ package services
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"html/template"
-	"log"
 	"net/smtp"
 	"onetimer-backend/config"
 	"onetimer-backend/utils"
@@ -12,73 +12,131 @@ import (
 )
 
 type EmailService struct {
-	config *config.Config
+	config       *config.Config
+	sendGrid     *SendGridService
 }
 
 func NewEmailService(cfg *config.Config) *EmailService {
+	sendGrid := NewSendGridService(cfg)
+
 	// Log email service initialization
-	if cfg.SMTPHost != "" && cfg.SMTPUser != "" {
-		log.Println("✅ Email service initialized (SMTP configured)")
+	if cfg.SendGridAPIKey != "" && cfg.SendGridAPIKey != "SG.placeholder_key_here" {
+		utils.LogInfoSimple("✅ Email service initialized", "provider", "SendGrid")
+	} else if cfg.SMTPHost != "" && cfg.SMTPUser != "" {
+		utils.LogInfoSimple("✅ Email service initialized", "provider", "SMTP", "host", cfg.SMTPHost)
 	} else {
-		log.Println("⚠️ Email service initialized (SMTP not configured - emails will be logged only)")
+		utils.LogWarnSimple("⚠️ Email service initialized", "provider", "none", "mode", "log_only")
 	}
-	return &EmailService{config: cfg}
+
+	return &EmailService{
+		config:   cfg,
+		sendGrid: sendGrid,
+	}
 }
 
 func (e *EmailService) SendWelcomeEmail(email, name string) error {
+	ctx := context.Background()
+	defer func() {
+		if r := recover(); r != nil {
+			utils.LogErrorSimple("SendWelcomeEmail panicked", "email", email, "panic", r)
+		}
+	}()
+
 	subject := "Welcome to Onetime Survey Platform!"
 	body := e.getWelcomeTemplate(name)
-	return e.sendEmail(email, subject, body)
+	err := e.sendSMTP(ctx, email, subject, body)
+
+	if err != nil {
+		utils.LogError(ctx, "Failed to send welcome email", err, "email", email, "name", name)
+	}
+	return err
 }
 
 func (e *EmailService) SendOTP(email, otp string) error {
-	subject := "Your Onetime Survey Verification Code"
-	body := e.getOTPTemplate(otp)
-	return e.sendEmail(email, subject, body)
+	ctx := context.Background()
+	defer func() {
+		if r := recover(); r != nil {
+			utils.LogErrorSimple("SendOTP panicked", "email", email, "panic", r)
+		}
+	}()
+
+	// Try SendGrid first
+	if e.config.SendGridAPIKey != "" && e.config.SendGridAPIKey != "SG.placeholder_key_here" {
+		err := e.sendGrid.SendOTP(email, otp)
+		if err == nil {
+			utils.LogInfo(ctx, "✅ Email sent successfully via SendGrid", "email", email, "type", "OTP")
+			return nil
+		}
+		utils.LogWarn(ctx, "SendGrid failed, falling back to SMTP", "email", email, "error", err.Error())
+	}
+
+	// Fallback to SMTP
+	if e.config.SMTPHost != "" && e.config.SMTPUser != "" {
+		subject := "Your Onetime Survey Verification Code"
+		body := e.getOTPTemplate(otp)
+		err := e.sendSMTP(ctx, email, subject, body)
+		if err == nil {
+			utils.LogInfo(ctx, "✅ Email sent successfully via SMTP", "email", email, "type", "OTP")
+			return nil
+		}
+		utils.LogError(ctx, "Failed to send OTP email", err, "email", email)
+		return err
+	}
+
+	// No email provider configured
+	utils.LogWarn(ctx, "No email provider configured", "email", email, "type", "OTP")
+	return fmt.Errorf("no email provider configured")
 }
 
 func (e *EmailService) SendKYCApproval(email, name string) error {
+	ctx := context.Background()
 	subject := "KYC Verification Approved - Start Earning!"
 	body := e.getKYCApprovalTemplate(name)
-	return e.sendEmail(email, subject, body)
+	return e.sendSMTP(ctx, email, subject, body)
 }
 
 func (e *EmailService) SendPayoutNotification(email, name string, amount int) error {
+	ctx := context.Background()
 	subject := "Payout Processed Successfully"
 	body := e.getPayoutTemplate(name, amount)
-	return e.sendEmail(email, subject, body)
+	return e.sendSMTP(ctx, email, subject, body)
 }
 
 // SendWaitlistConfirmation sends email to waitlist subscribers
 func (e *EmailService) SendWaitlistConfirmation(email string) error {
+	ctx := context.Background()
 	subject := "🎉 You're on the Waitlist!"
 	body := e.getWaitlistTemplate(email)
-	return e.sendEmail(email, subject, body)
+	return e.sendSMTP(ctx, email, subject, body)
 }
 
 // SendSurveyCompletionNotification sends email when survey is completed
 func (e *EmailService) SendSurveyCompletionNotification(email, name, surveyTitle string, reward int) error {
+	ctx := context.Background()
 	subject := "Survey Completed - Earnings Added!"
 	body := e.getSurveyCompletionTemplate(name, surveyTitle, reward)
-	return e.sendEmail(email, subject, body)
+	return e.sendSMTP(ctx, email, subject, body)
 }
 
 // SendPaymentConfirmation sends email when payment is received
 func (e *EmailService) SendPaymentConfirmation(email, name string, amount int, credits int) error {
+	ctx := context.Background()
 	subject := "Payment Confirmed - Credits Added!"
 	body := e.getPaymentConfirmationTemplate(name, amount, credits)
-	return e.sendEmail(email, subject, body)
+	return e.sendSMTP(ctx, email, subject, body)
 }
 
 // SendWithdrawalRequest sends email when withdrawal is requested
 func (e *EmailService) SendWithdrawalRequest(email, name string, amount int) error {
+	ctx := context.Background()
 	subject := "Withdrawal Request Received"
 	body := e.getWithdrawalRequestTemplate(name, amount)
-	return e.sendEmail(email, subject, body)
+	return e.sendSMTP(ctx, email, subject, body)
 }
 
 // SendNewSurveyNotification sends email when new surveys are available
 func (e *EmailService) SendNewSurveyNotification(email, name string, surveyCount int) error {
+	ctx := context.Background()
 	subject := fmt.Sprintf("🔔 %d New Survey%s Available!", surveyCount, func() string {
 		if surveyCount > 1 {
 			return "s"
@@ -86,14 +144,28 @@ func (e *EmailService) SendNewSurveyNotification(email, name string, surveyCount
 		return ""
 	}())
 	body := e.getNewSurveyTemplate(name, surveyCount)
-	return e.sendEmail(email, subject, body)
+	return e.sendSMTP(ctx, email, subject, body)
 }
 
-func (e *EmailService) sendEmail(to, subject, body string) error {
+// SendPasswordReset sends password reset email with reset link
+func (e *EmailService) SendPasswordReset(email, resetToken string) error {
+	ctx := context.Background()
+	subject := "Reset Your Password - Onetime Survey"
+	body := e.getPasswordResetTemplate(email, resetToken)
+	return e.sendSMTP(ctx, email, subject, body)
+}
+
+func (e *EmailService) sendSMTP(ctx context.Context, to, subject, body string) error {
+	defer func() {
+		if r := recover(); r != nil {
+			utils.LogErrorSimple("sendSMTP panicked", "to", to, "subject", subject, "panic", r)
+		}
+	}()
+
 	// Check if config is nil or SMTP not configured
 	if e.config == nil || e.config.SMTPHost == "" {
 		// Log email instead of sending (development mode)
-		utils.LogInfo("📧 [EMAIL NOT SENT - SMTP not configured] To: %s, Subject: %s", to, subject)
+		utils.LogInfo(ctx, "📧 [EMAIL NOT SENT - SMTP not configured]", "to", to, "subject", subject)
 		return nil
 	}
 
@@ -108,11 +180,11 @@ func (e *EmailService) sendEmail(to, subject, body string) error {
 	err := smtp.SendMail(host+":"+port, auth, from, []string{to}, []byte(msg))
 
 	if err != nil {
-		utils.LogError("Failed to send email to %s: %v", to, err)
+		utils.LogError(ctx, "Failed to send email", err, "to", to, "subject", subject, "host", host)
 		return err
 	}
 
-	utils.LogInfo("✅ Email sent successfully to %s: %s", to, subject)
+	utils.LogInfo(ctx, "✅ Email sent successfully", "to", to, "subject", subject)
 	return nil
 }
 
@@ -456,6 +528,54 @@ func (e *EmailService) getNewSurveyTemplate(name string, surveyCount int) string
 	t.Execute(&buf, map[string]string{
 		"Name":  name,
 		"Count": strconv.Itoa(surveyCount),
+	})
+	return buf.String()
+}
+
+func (e *EmailService) getPasswordResetTemplate(email, resetToken string) string {
+	tmpl := `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #013F5C; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .button { background: #013F5C; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; font-weight: bold; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Reset Your Password</h1>
+        </div>
+        <div class="content">
+            <p>We received a request to reset the password for your Onetime Survey account ({{.Email}}).</p>
+            <p>Click the button below to reset your password:</p>
+            <a href="http://localhost:3000/creator/reset-password?token={{.Token}}" class="button">Reset Password</a>
+            <div class="warning">
+                <strong>⚠️ Security Notice:</strong>
+                <ul>
+                    <li>This link will expire in 15 minutes</li>
+                    <li>If you didn't request this reset, please ignore this email</li>
+                    <li>Never share this link with anyone</li>
+                </ul>
+            </div>
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; background: #f8f9fa; padding: 10px; border-radius: 3px;">http://localhost:3000/creator/reset-password?token={{.Token}}</p>
+            <p>Best regards,<br>The Onetime Survey Team</p>
+        </div>
+    </div>
+</body>
+</html>`
+
+	t, _ := template.New("password_reset").Parse(tmpl)
+	var buf bytes.Buffer
+	t.Execute(&buf, map[string]string{
+		"Email": email,
+		"Token": resetToken,
 	})
 	return buf.String()
 }

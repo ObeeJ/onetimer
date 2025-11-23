@@ -31,9 +31,27 @@ export default function EarningsPage() {
     router.push('/filler/onboarding/verify')
   }
 
-  const handleExport = () => {
-    console.log("Exporting earnings data...")
-    // TODO: Implement export functionality
+  const handleExport = async () => {
+    try {
+      const response = await fetch('/api/earnings/export', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `earnings-${new Date().toISOString().split('T')[0]}.csv`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }
+    } catch (error) {
+      console.error('Export failed:', error)
+    }
   }
 
   const handleCopyReferral = () => {

@@ -26,6 +26,9 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 
 	api := app.Group("/api")
 
+	// Apply trace middleware (must be first for accurate request logging)
+	api.Use(middleware.TraceMiddleware())
+
 	// Apply global rate limiting (100 requests per minute per IP/user)
 	if rateLimiter != nil {
 		api.Use(rateLimiter.PerEndpointRateLimit())

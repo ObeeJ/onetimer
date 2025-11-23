@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"onetimer-backend/utils"
 	"time"
 
 	"github.com/google/uuid"
@@ -93,37 +93,73 @@ func (n *NotificationService) NotifySuperAdminSuspiciousActivity(activity string
 }
 
 func (n *NotificationService) sendNotification(notification *Notification) error {
+	ctx := context.Background()
+
 	// Save to database
 	query := `
 		INSERT INTO notifications (id, user_id, type, title, message, data, read, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
 	`
-	_, err := n.db.Exec(context.Background(), query,
+	_, err := n.db.Exec(ctx, query,
 		notification.ID, notification.UserID, notification.Type,
 		notification.Title, notification.Message, notification.Data, false)
 
 	if err != nil {
-		log.Printf("Failed to save notification: %v", err)
+		utils.LogError(ctx, "Failed to save notification to database", err,
+			"user_id", notification.UserID.String(),
+			"notification_type", notification.Type,
+			"notification_id", notification.ID.String(),
+		)
 		return err
 	}
 
+	utils.LogInfo(ctx, "✅ Notification saved successfully",
+		"user_id", notification.UserID.String(),
+		"notification_type", notification.Type,
+		"notification_id", notification.ID.String(),
+	)
+
 	// Send email notification
-	go n.sendEmail(notification)
+	go n.sendSMTP(notification)
 	return nil
 }
 
-func (n *NotificationService) sendEmail(notification *Notification) {
+func (n *NotificationService) sendSMTP(notification *Notification) {
+	ctx := context.Background()
+
 	// Get user email
 	var email string
 	query := `SELECT email FROM users WHERE id = $1`
-	err := n.db.QueryRow(context.Background(), query, notification.UserID).Scan(&email)
+	err := n.db.QueryRow(ctx, query, notification.UserID).Scan(&email)
 	if err != nil {
-		log.Printf("Failed to get user email: %v", err)
+		utils.LogError(ctx, "Failed to get user email for notification", err,
+			"user_id", notification.UserID.String(),
+			"notification_id", notification.ID.String(),
+		)
 		return
 	}
 
 	// Send email
-	n.emailService.sendEmail(email, notification.Title, notification.Message)
+	utils.LogInfo(ctx, "→ SENDING email notification",
+		"to", email,
+		"user_id", notification.UserID.String(),
+		"type", notification.Type,
+	)
+
+	sendErr := n.emailService.sendSMTP(ctx, email, notification.Title, notification.Message)
+	if sendErr != nil {
+		utils.LogError(ctx, "Failed to send notification email", sendErr,
+			"to", email,
+			"user_id", notification.UserID.String(),
+		)
+		return
+	}
+
+	utils.LogInfo(ctx, "✅ Notification email sent successfully",
+		"to", email,
+		"user_id", notification.UserID.String(),
+		"type", notification.Type,
+	)
 }
 
 func (n *NotificationService) getSuperAdmins() ([]uuid.UUID, error) {

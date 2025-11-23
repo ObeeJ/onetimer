@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"onetimer-backend/services"
 	"onetimer-backend/utils"
 
@@ -18,6 +19,7 @@ func NewWebSocketController(hub *services.Hub) *WebSocketController {
 
 // HandleWebSocket handles WebSocket upgrade and communication
 func (wsc *WebSocketController) HandleWebSocket(c *websocket.Conn) {
+	ctx := context.Background()
 	// Get user ID from query parameter or locals (set by middleware)
 	userID := c.Query("user_id")
 	if userID == "" {
@@ -28,7 +30,7 @@ func (wsc *WebSocketController) HandleWebSocket(c *websocket.Conn) {
 	}
 
 	if userID == "" {
-		utils.LogWarn("WebSocket connection attempted without user_id")
+		utils.LogWarn(ctx, "⚠️ WebSocket connection attempted without user_id")
 		c.Close()
 		return
 	}
@@ -43,7 +45,7 @@ func (wsc *WebSocketController) HandleWebSocket(c *websocket.Conn) {
 	// Register client with hub
 	wsc.hub.RegisterClient(client)
 
-	utils.LogInfo("WebSocket connection established for user: %s", userID)
+	utils.LogInfo(ctx, "✅ WebSocket connection established", "user_id", userID)
 
 	// Send welcome message
 	wsc.hub.SendNotification(userID, services.WSMessage{

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"onetimer-backend/cache"
 	"onetimer-backend/models"
 	"onetimer-backend/utils"
@@ -21,21 +22,23 @@ func NewSuperAdminController(cache *cache.Cache, db *pgxpool.Pool) *SuperAdminCo
 }
 
 func (h *SuperAdminController) GetAllUsers(c *fiber.Ctx) error {
+	ctx := context.Background()
+
 	superAdminID, ok := c.Locals("user_id").(string)
 	if !ok {
-		utils.LogError("Unauthorized user list access attempt")
+		utils.LogError(ctx, "⚠️ Unauthorized user list access attempt", nil)
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
 	// Query all users from database
 	rows, err := h.db.Query(c.Context(), `
-		SELECT id, email, name, role, phone, is_verified, is_active, 
-		       kyc_status, created_at, updated_at 
-		FROM users 
+		SELECT id, email, name, role, phone, is_verified, is_active,
+		       kyc_status, created_at, updated_at
+		FROM users
 		ORDER BY created_at DESC
 	`)
 	if err != nil {
-		utils.LogError("Failed to fetch users: " + err.Error())
+		utils.LogError(ctx, "⚠️ Failed to fetch users", err)
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch users"})
 	}
 	defer rows.Close()
@@ -54,7 +57,7 @@ func (h *SuperAdminController) GetAllUsers(c *fiber.Ctx) error {
 		users = append(users, user)
 	}
 
-	utils.LogInfo("Super admin " + superAdminID + " accessed user list")
+	utils.LogInfo(ctx, "✅ Super admin accessed user list", "admin_id", superAdminID, "total_users", len(users))
 	return c.JSON(fiber.Map{
 		"success": true,
 		"users":   users,
@@ -63,9 +66,11 @@ func (h *SuperAdminController) GetAllUsers(c *fiber.Ctx) error {
 }
 
 func (h *SuperAdminController) GetAdmins(c *fiber.Ctx) error {
+	ctx := context.Background()
+
 	superAdminID, ok := c.Locals("user_id").(string)
 	if !ok {
-		utils.LogError("Unauthorized admin list access attempt")
+		utils.LogError(ctx, "⚠️ Unauthorized admin list access attempt", nil)
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
@@ -89,7 +94,7 @@ func (h *SuperAdminController) GetAdmins(c *fiber.Ctx) error {
 		},
 	}
 
-	utils.LogInfo("Admin list retrieved by super admin %s: count=%d", superAdminID, len(admins))
+	utils.LogInfo(ctx, "✅ Admin list retrieved by super admin", "admin_id", superAdminID, "count", len(admins))
 
 	return c.JSON(fiber.Map{
 		"success": true,
@@ -99,12 +104,15 @@ func (h *SuperAdminController) GetAdmins(c *fiber.Ctx) error {
 }
 
 func (h *SuperAdminController) CreateAdmin(c *fiber.Ctx) error {
+	ctx := context.Background()
+
 	var req struct {
 		Email string `json:"email"`
 		Name  string `json:"name"`
 	}
 
 	if err := c.BodyParser(&req); err != nil {
+		utils.LogError(ctx, "⚠️ Invalid request for admin creation", err)
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
@@ -117,6 +125,8 @@ func (h *SuperAdminController) CreateAdmin(c *fiber.Ctx) error {
 		CreatedAt: time.Now(),
 	}
 
+	utils.LogInfo(ctx, "✅ Admin created successfully", "email", req.Email, "name", req.Name)
+
 	return c.Status(201).JSON(fiber.Map{
 		"ok":    true,
 		"admin": admin,
@@ -124,6 +134,8 @@ func (h *SuperAdminController) CreateAdmin(c *fiber.Ctx) error {
 }
 
 func (h *SuperAdminController) GetFinancials(c *fiber.Ctx) error {
+	ctx := context.Background()
+
 	financials := fiber.Map{
 		"total_revenue":       15000000,
 		"total_payouts":       8500000,
@@ -135,6 +147,8 @@ func (h *SuperAdminController) GetFinancials(c *fiber.Ctx) error {
 		"total_users":         12500,
 	}
 
+	utils.LogInfo(ctx, "→ Financials data retrieved")
+
 	return c.JSON(fiber.Map{
 		"success": true,
 		"data":    financials,
@@ -142,6 +156,8 @@ func (h *SuperAdminController) GetFinancials(c *fiber.Ctx) error {
 }
 
 func (h *SuperAdminController) GetAuditLogs(c *fiber.Ctx) error {
+	ctx := context.Background()
+
 	logs := []fiber.Map{
 		{
 			"id":        uuid.New().String(),
@@ -161,10 +177,14 @@ func (h *SuperAdminController) GetAuditLogs(c *fiber.Ctx) error {
 		},
 	}
 
+	utils.LogInfo(ctx, "→ Audit logs retrieved", "log_count", len(logs))
+
 	return c.JSON(fiber.Map{"logs": logs})
 }
 
 func (h *SuperAdminController) GetSystemSettings(c *fiber.Ctx) error {
+	ctx := context.Background()
+
 	settings := fiber.Map{
 		"platform_fee_percentage": 15.0,
 		"min_withdrawal_amount":   1000,
@@ -174,6 +194,8 @@ func (h *SuperAdminController) GetSystemSettings(c *fiber.Ctx) error {
 		"maintenance_mode":        false,
 	}
 
+	utils.LogInfo(ctx, "→ System settings retrieved")
+
 	return c.JSON(fiber.Map{
 		"success": true,
 		"data":    settings,
@@ -181,10 +203,15 @@ func (h *SuperAdminController) GetSystemSettings(c *fiber.Ctx) error {
 }
 
 func (h *SuperAdminController) UpdateSettings(c *fiber.Ctx) error {
+	ctx := context.Background()
+
 	var settings map[string]interface{}
 	if err := c.BodyParser(&settings); err != nil {
+		utils.LogError(ctx, "⚠️ Invalid settings update request", err)
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
+
+	utils.LogInfo(ctx, "✅ System settings updated successfully", "settings_count", len(settings))
 
 	return c.JSON(fiber.Map{
 		"success": true,
@@ -194,16 +221,21 @@ func (h *SuperAdminController) UpdateSettings(c *fiber.Ctx) error {
 }
 
 func (h *SuperAdminController) SuspendAdmin(c *fiber.Ctx) error {
+	ctx := context.Background()
+
 	adminID := c.Params("id")
-	
+
 	var req struct {
 		Reason string `json:"reason"`
 	}
-	
+
 	if err := c.BodyParser(&req); err != nil {
+		utils.LogError(ctx, "⚠️ Invalid suspend admin request", err)
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
-	
+
+	utils.LogInfo(ctx, "✅ Admin suspended successfully", "admin_id", adminID, "reason", req.Reason)
+
 	// Mock implementation - in production, update admin status in database
 	return c.JSON(fiber.Map{
 		"success": true,
