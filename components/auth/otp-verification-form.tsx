@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle, AlertCircle, ArrowLeft } from "lucide-react"
+import { CheckCircle, AlertCircle, ArrowLeft, Loader2, RefreshCw } from "lucide-react"
 import Link from "next/link"
+import { toast } from "sonner"
 
 interface OTPVerificationFormProps {
   email?: string
@@ -30,6 +31,7 @@ export default function OTPVerificationForm({
   const router = useRouter()
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const [resendCooldown, setResendCooldown] = useState(0)
+  const [isResending, setIsResending] = useState(false)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
@@ -51,7 +53,12 @@ export default function OTPVerificationForm({
       inputRefs.current[index + 1]?.focus()
     }
 
+    // Auto-verify when all digits are entered
     if (newOtp.every(digit => digit !== "") && !isLoading) {
+      toast.loading("Verifying your code...", {
+        description: "Please wait while we confirm your verification code",
+        id: "otp-verify"
+      })
       onVerify(newOtp.join(""))
     }
   }
@@ -62,10 +69,75 @@ export default function OTPVerificationForm({
     }
   }
 
-  const handleResend = () => {
-    onResend()
-    setResendCooldown(60)
+  const handleResend = useCallback(async () => {
+    setIsResending(true)
+    
+    toast.loading("Sending new code...", {
+      description: `Sending a fresh verification code to ${email || phone}`,
+      id: "otp-resend"
+    })
+
+    try {
+      await onResend()
+      setResendCooldown(60)
+      
+      toast.success("New code sent!", {
+        description: "Check your email for the new 6-digit verification code",
+        id: "otp-resend"
+      })
+    } catch (error) {
+      toast.error("Failed to send code", {
+        description: "Please try again or contact support if the issue persists",
+        id: "otp-resend"
+      })
+    } finally {
+      setIsResending(false)
+    }
+  }, [email, phone, onResend])
+
+  const handleManualVerify = () => {
+    const otpCode = otp.join("")
+    if (otpCode.length !== 6) {
+      toast.error("Incomplete code", {
+        description: "Please enter all 6 digits of your verification code"
+      })
+      return
+    }
+
+    toast.loading("Verifying your code...", {
+      description: "Please wait while we confirm your verification code",
+      id: "otp-verify"
+    })
+    
+    onVerify(otpCode)
   }
+
+  // Show success notification when verification completes
+  useEffect(() => {
+    if (success) {
+      toast.success("Verification successful!", {
+        description: "Welcome! You'll be redirected to your dashboard shortly",
+        id: "otp-verify",
+        icon: <CheckCircle className="h-4 w-4" />
+      })
+    }
+  }, [success])
+
+  // Show error notification
+  useEffect(() => {
+    if (error) {
+      toast.error("Verification failed", {
+        description: error.includes("expired") 
+          ? "Your code has expired. Please request a new one"
+          : "The code you entered is incorrect. Please try again",
+        id: "otp-verify",
+        action: error.includes("expired") ? {
+          label: "Get New Code",
+          onClick: handleResend
+        } : undefined
+      })
+    }
+  }, [error, handleResend])
 
   const isComplete = otp.every(digit => digit !== "")
 
@@ -75,6 +147,8 @@ export default function OTPVerificationForm({
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
           {success ? (
             <CheckCircle className="h-8 w-8 text-green-600" />
+          ) : isLoading ? (
+            <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
           ) : (
             <div className="text-2xl">📱</div>
           )}
@@ -92,6 +166,10 @@ export default function OTPVerificationForm({
               <span className="font-medium text-slate-900">
                 {email || phone}
               </span>
+              <br />
+              <span className="text-xs text-slate-500 mt-1 block">
+                The code expires in 5 minutes
+              </span>
             </p>
 
             <div className="flex justify-center gap-2">
@@ -106,7 +184,7 @@ export default function OTPVerificationForm({
                   value={digit}
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="h-12 w-12 rounded-xl border border-slate-300 text-center text-lg font-semibold focus:border-[#013F5C] focus:outline-none focus:ring-2 focus:ring-[#013F5C]/20"
+                  className="h-12 w-12 rounded-xl border border-slate-300 text-center text-lg font-semibold focus:border-[#013F5C] focus:outline-none focus:ring-2 focus:ring-[#013F5C]/20 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isLoading}
                 />
               ))}
@@ -115,7 +193,32 @@ export default function OTPVerificationForm({
             {error && (
               <Alert className="border-red-200 bg-red-50">
                 <AlertCircle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-700">{error}</AlertDescription>
+                <AlertDescription className="text-red-700">
+                  {error}
+                  {error.includes("expired") && (
+                    <div className="mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleResend}
+                        disabled={isResending}
+                        className="text-xs"
+                      >
+                        {isResending ? (
+                          <>
+                            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="mr-1 h-3 w-3" />
+                            Get New Code
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </AlertDescription>
               </Alert>
             )}
 
@@ -127,13 +230,22 @@ export default function OTPVerificationForm({
                 variant="ghost"
                 size="sm"
                 onClick={handleResend}
-                disabled={resendCooldown > 0 || isLoading}
-                className="text-[#013F5C] hover:text-[#0b577a]"
+                disabled={resendCooldown > 0 || isLoading || isResending}
+                className="text-[#013F5C] hover:text-[#0b577a] disabled:opacity-50"
               >
-                {resendCooldown > 0 
-                  ? `Resend in ${resendCooldown}s` 
-                  : "Resend code"
-                }
+                {isResending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : resendCooldown > 0 ? (
+                  `Resend in ${resendCooldown}s`
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Resend code
+                  </>
+                )}
               </Button>
             </div>
           </>
@@ -164,11 +276,18 @@ export default function OTPVerificationForm({
           </Button>
           
           <Button
-            onClick={() => onVerify(otp.join(""))}
+            onClick={handleManualVerify}
             disabled={!isComplete || isLoading}
-            className="bg-[#013F5C] hover:bg-[#0b577a]"
+            className="bg-[#013F5C] hover:bg-[#0b577a] disabled:opacity-50"
           >
-            {isLoading ? "Verifying..." : "Verify"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              "Verify"
+            )}
           </Button>
         </CardFooter>
       )}

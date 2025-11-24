@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@/types/user"
 import { apiClient } from "@/lib/api-client"
 import { logger } from "@/lib/logger"
+import { toast } from "sonner"
 
 interface AuthContextType {
   user: User | null
@@ -96,8 +97,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await apiClient.logout()
       logger.logUserAction('sign_out_success', { userId, timestamp: new Date().toISOString() })
+      
+      toast.success("Signed out successfully", {
+        description: "You've been securely logged out of your account"
+      })
     } catch (error) {
       logger.error('Sign out failed', error as Error, { userId, timestamp: new Date().toISOString() })
+      
+      toast.error("Sign out failed", {
+        description: "There was an issue signing you out. Please try again"
+      })
     } finally {
       setUser(null)
     }

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, AlertCircle, Check } from "lucide-react"
+import { Eye, EyeOff, AlertCircle, Check, Loader2, Mail } from "lucide-react"
+import { toast } from "sonner"
 
 export default function SignUpForm() {
   const [formData, setFormData] = useState({
@@ -46,27 +47,65 @@ export default function SignUpForm() {
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match")
       setIsLoading(false)
+      toast.error("Password mismatch", {
+        description: "Please make sure both password fields match exactly"
+      })
       return
     }
 
     if (!validatePassword(formData.password)) {
       setError("Password must be at least 8 characters long")
       setIsLoading(false)
+      toast.error("Weak password", {
+        description: "Password must contain uppercase, lowercase, number, and special character"
+      })
       return
     }
 
+    // Show loading notification
+    toast.loading("Creating your account...", {
+      description: "Sending verification code to your email",
+      id: "signup-loading"
+    })
+
     try {
       // Send OTP for email verification
-      await fetch('/api/auth/send-otp', {
+      const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email })
       })
-      
-      // Redirect to OTP verification
-      router.push(`/filler/auth/verify-otp?email=${encodeURIComponent(formData.email)}`)
+
+      if (response.ok) {
+        // Success notification
+        toast.success("Account created!", {
+          description: "Check your email for a verification code to complete setup",
+          id: "signup-loading",
+          icon: <Mail className="h-4 w-4" />
+        })
+        
+        // Redirect to OTP verification with delay to show success message
+        setTimeout(() => {
+          router.push(`/filler/auth/verify-otp?email=${encodeURIComponent(formData.email)}`)
+        }, 1000)
+      } else {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to create account')
+      }
     } catch (err) {
-      setError("Failed to create account. Please try again.")
+      const errorMessage = err instanceof Error ? err.message : "Failed to create account. Please try again."
+      setError(errorMessage)
+      
+      toast.error("Account creation failed", {
+        description: errorMessage.includes("exists") 
+          ? "This email is already registered. Try signing in instead"
+          : "Please check your details and try again",
+        id: "signup-loading",
+        action: errorMessage.includes("exists") ? {
+          label: "Sign In",
+          onClick: () => router.push("/filler/auth/sign-in")
+        } : undefined
+      })
     } finally {
       setIsLoading(false)
     }
@@ -98,6 +137,7 @@ export default function SignUpForm() {
               value={formData.name}
               onChange={(e) => handleChange("name", e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -110,6 +150,7 @@ export default function SignUpForm() {
               value={formData.email}
               onChange={(e) => handleChange("email", e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -122,6 +163,7 @@ export default function SignUpForm() {
               value={formData.phone}
               onChange={(e) => handleChange("phone", e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           
@@ -135,6 +177,7 @@ export default function SignUpForm() {
                 value={formData.password}
                 onChange={(e) => handleChange("password", e.target.value)}
                 required
+                disabled={isLoading}
                 className="pr-10"
               />
               <button
@@ -167,6 +210,7 @@ export default function SignUpForm() {
                 value={formData.confirmPassword}
                 onChange={(e) => handleChange("confirmPassword", e.target.value)}
                 required
+                disabled={isLoading}
                 className="pr-10"
               />
               <button
@@ -181,10 +225,17 @@ export default function SignUpForm() {
           
           <Button 
             type="submit" 
-            className="w-full bg-[#013F5C] hover:bg-[#0b577a]"
+            className="w-full bg-[#013F5C] hover:bg-[#0b577a] disabled:opacity-50"
             disabled={isLoading}
           >
-            {isLoading ? "Creating account..." : "Create account"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              "Create account"
+            )}
           </Button>
           
           <div className="text-center text-sm text-slate-600">

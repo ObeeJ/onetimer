@@ -21,9 +21,12 @@ func SetupGateway(app *fiber.App, rateLimit int) {
 
 	// CORS middleware
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
-		AllowHeaders: "Origin,Content-Type,Accept,Authorization",
+		AllowOrigins:     "http://localhost:3000,http://localhost:3001,https://www.onetimesurvey.xyz",
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+		AllowHeaders:     "Origin,Content-Type,Accept,Authorization,X-Requested-With,X-CSRF-Token",
+		ExposeHeaders:    "Content-Length,X-JSON-Response-Count",
+		AllowCredentials: true,
+		MaxAge:           300,
 	}))
 
 	// Rate limiting

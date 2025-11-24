@@ -3,12 +3,15 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"onetimer-backend/cache"
+	"onetimer-backend/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -67,7 +70,15 @@ func (h *OnboardingController) CompleteFillerOnboarding(c *fiber.Ctx) error {
 	`
 	_, err = h.db.Exec(context.Background(), query, userID, req.Email, fullName, "filler", string(hashedPassword), false, true, "pending")
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Email already exists or database error"})
+		ctx := context.Background()
+		// Check for PostgreSQL unique constraint violation (SQLSTATE 23505)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.SQLState() == "23505" {
+			utils.LogWarn(ctx, "⚠️ Filler registration failed - email already exists", "email", req.Email, "constraint", pgErr.ConstraintName)
+			return c.Status(409).JSON(fiber.Map{"error": "Looks like you're already with us! Try logging in instead."})
+		}
+		utils.LogError(ctx, "Failed to create filler user in database", err, "email", req.Email)
+		return c.Status(500).JSON(fiber.Map{"error": "Something went wrong. Please try again in a moment."})
 	}
 
 	// Create user profile
@@ -160,7 +171,15 @@ func (h *OnboardingController) CompleteCreatorOnboarding(c *fiber.Ctx) error {
 	`
 	_, err = h.db.Exec(context.Background(), query, userID, req.Email, fullName, "creator", string(hashedPassword), false, true, "pending")
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Email already exists or database error"})
+		ctx := context.Background()
+		// Check for PostgreSQL unique constraint violation (SQLSTATE 23505)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.SQLState() == "23505" {
+			utils.LogWarn(ctx, "⚠️ Creator registration failed - email already exists", "email", req.Email, "constraint", pgErr.ConstraintName)
+			return c.Status(409).JSON(fiber.Map{"error": "Looks like you're already with us! Try logging in instead."})
+		}
+		utils.LogError(ctx, "Failed to create creator user in database", err, "email", req.Email)
+		return c.Status(500).JSON(fiber.Map{"error": "Something went wrong. Please try again in a moment."})
 	}
 
 	// Create creator profile - store extended data in interests JSONB field

@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type UserController struct {
@@ -97,13 +98,14 @@ func (h *UserController) Register(c *fiber.Ctx) error {
 			userID, req.Email, req.Name, req.Phone, passwordHash, req.Role, false, true)
 
 		if err != nil {
-			// Check for unique constraint violation (duplicate email)
-			if err.Error() == "unique violation" || err.Error() == "UNIQUE constraint failed: users.email" {
-				utils.LogWarn(ctx, "⚠️ Registration failed - email already exists", "email", req.Email)
-				return c.Status(409).JSON(fiber.Map{"error": "Email already registered"})
+			// Check for PostgreSQL unique constraint violation (SQLSTATE 23505)
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgErr.SQLState() == "23505" {
+				utils.LogWarn(ctx, "⚠️ Registration failed - email already exists", "email", req.Email, "constraint", pgErr.ConstraintName)
+				return c.Status(409).JSON(fiber.Map{"error": "Looks like you're already with us! Try logging in instead."})
 			}
 			utils.LogError(ctx, "Failed to create user in database", err, "email", req.Email, "user_id", userID)
-			return c.Status(500).JSON(fiber.Map{"error": "Failed to create user", "details": err.Error()})
+			return c.Status(500).JSON(fiber.Map{"error": "Something went wrong. Please try again in a moment."})
 		}
 	}
 

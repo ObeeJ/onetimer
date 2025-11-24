@@ -38,14 +38,20 @@ func (h *AuthController) SendOTP(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		utils.LogError(ctx, "Invalid OTP request body", err, "ip", c.IP())
-		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+		utils.LogError(ctx, "❌ Invalid OTP request body", err, "ip", c.IP())
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Please ensure your request format is correct",
+			"code":  "INVALID_REQUEST",
+		})
 	}
 
 	// Validate email
 	if req.Email == "" {
-		utils.LogWarn(ctx, "OTP request missing email", "ip", c.IP())
-		return c.Status(400).JSON(fiber.Map{"error": "Email is required"})
+		utils.LogWarn(ctx, "⚠️ OTP request missing email", "ip", c.IP())
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Email is required to proceed",
+			"code":  "MISSING_EMAIL",
+		})
 	}
 
 	utils.LogInfo(ctx, "→ OTP request initiated", "email", req.Email)

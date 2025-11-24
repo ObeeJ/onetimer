@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"onetimer-backend/services"
 	"onetimer-backend/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -81,10 +83,20 @@ func (h *WaitlistController) JoinWaitlist(c *fiber.Ctx) error {
 		entryID, req.Email, req.Source, time.Now())
 
 	if err != nil {
+		// Check for PostgreSQL unique constraint violation (SQLSTATE 23505)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.SQLState() == "23505" {
+			utils.LogWarn(ctx, "⚠️ Waitlist - email already exists", "email", req.Email, "constraint", pgErr.ConstraintName)
+			return c.Status(409).JSON(fiber.Map{
+				"success": true,
+				"message": "You're already on our waitlist! We'll notify you soon.",
+				"status":  "already_subscribed",
+			})
+		}
 		utils.LogError(ctx, "⚠️ Failed to save waitlist entry", err, "email", req.Email)
 		return c.Status(500).JSON(fiber.Map{
 			"success": false,
-			"error":   "Failed to join waitlist. Please try again.",
+			"error":   "Something went wrong. Please try again in a moment.",
 		})
 	}
 
