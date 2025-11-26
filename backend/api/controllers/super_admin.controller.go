@@ -107,29 +107,69 @@ func (h *SuperAdminController) CreateAdmin(c *fiber.Ctx) error {
 	ctx := context.Background()
 
 	var req struct {
-		Email string `json:"email"`
-		Name  string `json:"name"`
+		Email    string `json:"email" validate:"required,email"`
+		Name     string `json:"name" validate:"required,min=2,max=100"`
+		Password string `json:"password" validate:"required,min=8,max=128"`
 	}
 
 	if err := c.BodyParser(&req); err != nil {
 		utils.LogError(ctx, "⚠️ Invalid request for admin creation", err)
-		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
-	admin := models.User{
-		ID:        uuid.New(),
-		Email:     req.Email,
-		Name:      req.Name,
-		Role:      "admin",
-		IsActive:  true,
-		CreatedAt: time.Now(),
+	// Validate input
+	if req.Email == "" || req.Name == "" || req.Password == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "Email, name, and password are required"})
 	}
 
-	utils.LogInfo(ctx, "✅ Admin created successfully", "email", req.Email, "name", req.Name)
+	if len(req.Password) < 8 {
+		return c.Status(400).JSON(fiber.Map{"error": "Password must be at least 8 characters"})
+	}
+
+	// Check if email already exists
+	var existingEmail string
+	err := h.db.QueryRow(ctx, "SELECT email FROM users WHERE email = $1", req.Email).Scan(&existingEmail)
+	if err == nil {
+		utils.LogInfo(ctx, "⚠️ Admin creation failed - email already exists", "email", req.Email)
+		return c.Status(409).JSON(fiber.Map{"error": "Email already exists"})
+	}
+
+	// Hash password
+	passwordHash, err := utils.HashPassword(req.Password)
+	if err != nil {
+		utils.LogError(ctx, "⚠️ Failed to hash password during admin creation", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to create admin"})
+	}
+
+	// Create admin user in database
+	adminID := uuid.New()
+	_, err = h.db.Exec(ctx,
+		`INSERT INTO users (id, email, name, password_hash, role, is_verified, is_active, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`,
+		adminID, req.Email, req.Name, passwordHash, "admin", true, true,
+	)
+	if err != nil {
+		utils.LogError(ctx, "⚠️ Failed to create admin in database", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to create admin"})
+	}
+
+	superAdminID, _ := c.Locals("user_id").(string)
+	utils.LogInfo(ctx, "✅ Admin created successfully by superadmin",
+		"admin_id", adminID,
+		"admin_email", req.Email,
+		"admin_name", req.Name,
+		"created_by", superAdminID,
+	)
 
 	return c.Status(201).JSON(fiber.Map{
-		"ok":    true,
-		"admin": admin,
+		"ok":      true,
+		"message": "Admin account created successfully",
+		"admin": fiber.Map{
+			"id":    adminID,
+			"email": req.Email,
+			"name":  req.Name,
+			"role":  "admin",
+		},
 	})
 }
 

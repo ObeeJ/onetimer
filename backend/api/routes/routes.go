@@ -70,7 +70,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 
 	// Initialize controllers (Updated to use validated versions)
 	userController := controllers.NewUserControllerWithDB(cache, db, userRepo)
-	authController := controllers.NewAuthController(cache, cfg.JWTSecret, emailService)
+	authController := controllers.NewAuthControllerWithDB(cache, cfg.JWTSecret, emailService, db.Pool)
 	adminController := controllers.NewAdminController(cache, db.Pool)  // Fixed
 	auditController := controllers.NewAuditController(cache, auditRepo)
 	billingController := controllers.NewBillingController()
@@ -135,6 +135,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	// Admin routes
 	admin := api.Group("/admin")
 	admin.Use(middleware.JWTMiddleware(cfg.JWTSecret))
+	admin.Use(middleware.RequireRole("admin", "super_admin"))
 	admin.Get("/users", adminController.GetUsers)
 	admin.Post("/users/:id/approve", adminController.ApproveUser)
 	admin.Post("/users/:id/reject", adminController.RejectUser)
@@ -252,6 +253,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	// Super Admin routes
 	superAdmin := api.Group("/super-admin")
 	superAdmin.Use(middleware.JWTMiddleware(cfg.JWTSecret))
+	superAdmin.Use(middleware.RequireRole("super_admin"))
 	superAdmin.Get("/users", superAdminController.GetAllUsers)
 	superAdmin.Get("/admins", superAdminController.GetAdmins)
 	superAdmin.Post("/admins", superAdminController.CreateAdmin)

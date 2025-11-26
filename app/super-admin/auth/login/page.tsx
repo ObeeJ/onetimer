@@ -38,7 +38,14 @@ export default function SuperAdminLoginPage() {
     setError("")
 
     try {
-      await signIn(email, password)
+      const user = await signIn(email, password)
+
+      // Only allow super_admin role to login here
+      if (user.role !== "super_admin") {
+        setError("Super Admin access only. Please use the appropriate login page for your role.")
+        return
+      }
+
       router.push("/super-admin")
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again."

@@ -10,6 +10,7 @@ import { Home, Plus, FileText, BarChart3, CreditCard, Settings, LogOut, User2 } 
 import { cn } from "@/lib/utils"
 import { SidebarToggle } from "@/components/ui/sidebar-toggle"
 import { useSidebarStore } from "@/lib/sidebar-store"
+import { useAuth } from "@/hooks/use-auth"
 
 const navItems = [
   { title: "Dashboard", url: "/creator/dashboard", icon: Home },
@@ -27,6 +28,7 @@ export default function CreatorLayout({
 }) {
   const pathname = usePathname()
   const router = useRouter()
+  const { signOut } = useAuth()
   const isAuthPage = pathname?.includes("/auth/")
   const isOnboardingPage = pathname?.includes("/onboarding")
   const { isOpen: sidebarOpen } = useSidebarStore()
@@ -105,7 +107,10 @@ export default function CreatorLayout({
                     </div>
                   </div>
                   <Button
-                    onClick={() => router.push("/auth/login")}
+                    onClick={() => {
+                      signOut()
+                      router.push("/creator/auth/sign-in")
+                    }}
                     variant="ghost"
                     className="w-full justify-start text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] px-3 py-2"
                   >
@@ -121,7 +126,10 @@ export default function CreatorLayout({
                     </div>
                   </div>
                   <Button
-                    onClick={() => router.push("/auth/login")}
+                    onClick={() => {
+                      signOut()
+                      router.push("/creator/auth/sign-in")
+                    }}
                     variant="ghost"
                     className="w-full justify-center text-slate-600 hover:bg-[#013e5c]/10 hover:text-[#013e5c] p-2"
                     title="Sign Out"

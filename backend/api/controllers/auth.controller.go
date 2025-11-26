@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"onetimer-backend/api/middleware"
 	"onetimer-backend/cache"
 	"onetimer-backend/security"
@@ -11,12 +12,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AuthController struct {
 	cache        *cache.Cache
 	jwtSecret    string
 	emailService *services.EmailService
+	db           *pgxpool.Pool
 	resetTokens  map[string]string // Simple in-memory store for reset tokens
 }
 
@@ -25,6 +28,17 @@ func NewAuthController(cache *cache.Cache, jwtSecret string, emailService *servi
 		cache:        cache,
 		jwtSecret:    jwtSecret,
 		emailService: emailService,
+		db:           nil,
+		resetTokens:  make(map[string]string),
+	}
+}
+
+func NewAuthControllerWithDB(cache *cache.Cache, jwtSecret string, emailService *services.EmailService, db *pgxpool.Pool) *AuthController {
+	return &AuthController{
+		cache:        cache,
+		jwtSecret:    jwtSecret,
+		emailService: emailService,
+		db:           db,
 		resetTokens:  make(map[string]string),
 	}
 }
@@ -128,59 +142,54 @@ func (h *AuthController) VerifyOTP(c *fiber.Ctx) error {
 
 	utils.LogInfo(ctx, "→ OTP verification initiated", "email", req.Email)
 
-	// Development bypass for testing
-	if req.OTP == "123456" {
-		utils.LogWarn(ctx, "Development OTP used - bypassing verification", "email", req.Email)
-		// Allow development OTP for testing
-	} else {
-		// Verify OTP from cache
-		key := "otp:" + req.Email
-		var otpData fiber.Map
-		var found bool
+	// Verify OTP from cache
+	key := "otp:" + req.Email
+	var otpData fiber.Map
+	var found bool
 
-		if h.cache != nil {
-			if err := h.cache.Get(c.Context(), key, &otpData); err == nil {
-				found = true
-				utils.LogInfo(ctx, "OTP found in cache", "email", req.Email)
-			}
+	if h.cache != nil {
+		if err := h.cache.Get(c.Context(), key, &otpData); err == nil {
+			found = true
+			utils.LogInfo(ctx, "OTP found in cache", "email", req.Email)
 		}
+	}
 
-		if !found {
-			// Fallback: check memory storage
-			if localData := c.Locals("otp_" + req.Email); localData != nil {
-				otpData = localData.(fiber.Map)
-				found = true
-				utils.LogInfo(ctx, "OTP found in memory storage", "email", req.Email)
-			}
+	if !found {
+		// Fallback: check memory storage
+		if localData := c.Locals("otp_" + req.Email); localData != nil {
+			otpData = localData.(fiber.Map)
+			found = true
+			utils.LogInfo(ctx, "OTP found in memory storage", "email", req.Email)
 		}
+	}
 
-		if !found {
-			utils.LogWarn(ctx, "OTP not found or expired", "email", req.Email)
-			return c.Status(400).JSON(fiber.Map{"error": "Invalid or expired OTP"})
-		}
+	if !found {
+		utils.LogWarn(ctx, "OTP not found or expired", "email", req.Email)
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid or expired OTP"})
+	}
 
-		// Check OTP expiry
-		otpService := services.NewOTPService()
-		createdAt, _ := time.Parse(time.RFC3339, otpData["created_at"].(string))
-		if otpService.IsExpired(createdAt) {
-			if h.cache != nil {
-				h.cache.Delete(c.Context(), key)
-			}
-			utils.LogWarn(ctx, "OTP has expired", "email", req.Email)
-			return c.Status(400).JSON(fiber.Map{"error": "OTP has expired"})
-		}
-
-		if otpData["code"].(string) != req.OTP {
-			utils.LogWarn(ctx, "Invalid OTP code provided", "email", req.Email)
-			return c.Status(400).JSON(fiber.Map{"error": "Invalid OTP"})
-		}
-
-		// Delete OTP from cache
+	// Check OTP expiry
+	otpService := services.NewOTPService()
+	createdAt, _ := time.Parse(time.RFC3339, otpData["created_at"].(string))
+	if otpService.IsExpired(createdAt) {
 		if h.cache != nil {
 			h.cache.Delete(c.Context(), key)
 		}
-		utils.LogInfo(ctx, "✅ OTP verified successfully", "email", req.Email)
+		utils.LogWarn(ctx, "OTP has expired", "email", req.Email)
+		return c.Status(400).JSON(fiber.Map{"error": "OTP has expired"})
 	}
+
+	// Verify OTP code
+	if otpData["code"].(string) != req.OTP {
+		utils.LogWarn(ctx, "Invalid OTP code provided", "email", req.Email)
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid OTP"})
+	}
+
+	// Delete OTP from cache after successful verification
+	if h.cache != nil {
+		h.cache.Delete(c.Context(), key)
+	}
+	utils.LogInfo(ctx, "✅ OTP verified successfully", "email", req.Email)
 
 	// Generate JWT token
 	userID := uuid.New().String()
@@ -345,15 +354,35 @@ func (h *AuthController) ResetPassword(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid or expired reset token"})
 	}
 
-	// TODO: Update password in database
-	// This should hash the password and update the user's password in the database
-	// For now, we'll just return success
+	// Hash the new password
+	passwordHash, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		utils.LogError(ctx, "Failed to hash password during reset", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to reset password"})
+	}
+
+	// Update password in database if available
+	if h.db != nil {
+		_, err := h.db.Exec(context.Background(),
+			"UPDATE users SET password_hash = $1, updated_at = NOW() WHERE email = $2",
+			passwordHash, email,
+		)
+		if err != nil {
+			utils.LogError(ctx, "Failed to update password in database", err, "email", email)
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to reset password"})
+		}
+		utils.LogInfo(ctx, "✅ Password updated in database successfully", "email", email)
+	} else {
+		utils.LogWarn(ctx, "Database not available for password reset", "email", email)
+		return c.Status(500).JSON(fiber.Map{"error": "Password reset service temporarily unavailable"})
+	}
+
 	utils.LogInfo(ctx, "✅ Password reset successful", "email", email)
 	utils.LogInfo(ctx, "← Reset password request completed successfully", "email", email)
 
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Password reset successful",
-		"email": email,
+		"email":   email,
 	})
 }
