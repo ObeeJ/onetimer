@@ -26,10 +26,22 @@ export default function SuperAdminLoginPage() {
     setIsLoading(true)
     setError("")
 
-    // TODO: Implement real MFA verification with backend
-    // For now, proceed directly to actual login
-    setShowMFA(false)
-    setIsLoading(false)
+    try {
+      const user = await signIn(email, password)
+
+      // Only allow super_admin role to login here
+      if (user.role !== "super_admin") {
+        setError("Super Admin access only. Please use the appropriate login page for your role.")
+        setIsLoading(false)
+        return
+      }
+
+      router.push("/super-admin")
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again."
+      setError(errorMessage || "Login failed. Please try again.")
+      setIsLoading(false)
+    }
   }
 
   const handleMFA = async (e: React.FormEvent) => {
