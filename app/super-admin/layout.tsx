@@ -40,7 +40,7 @@ export default function SuperAdminLayout({
 
   return (
     <ErrorBoundary routeName="super-admin">
-      <RoleGuard requiredRole="super-admin" requireAuth={false}>
+      <RoleGuard requiredRole="super_admin" requireAuth={false}>
       <div className="min-h-screen bg-gray-50">
 
 
