@@ -148,6 +148,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	admin.Get("/users/:id", adminController.GetUserDetails)
 	admin.Post("/users/:id/suspend", adminController.SuspendUser)
 	admin.Post("/users/:id/activate", adminController.ActivateUser)
+	admin.Post("/users/bulk", adminController.BulkUserActions)
 
 	// Creator routes
 	creator := api.Group("/creator")
@@ -177,6 +178,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	earnings.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	earnings.Get("/", earningsController.GetEarnings)
 	earnings.Get("", earningsController.GetEarnings)
+	earnings.Get("/export", earningsController.ExportEarnings)
 	earnings.Post("/withdraw", earningsController.WithdrawEarnings)
 
 	// Eligibility routes
@@ -223,6 +225,7 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	notification.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	notification.Get("/", notificationController.GetNotifications)
 	notification.Post("/mark-read", notificationController.UpdateNotifications)
+	notification.Post("/:id/read", notificationController.MarkAsRead)
 
 	// Onboarding routes
 	onboarding := api.Group("/onboarding")

@@ -7,6 +7,8 @@ import (
 	"os"
 	"runtime"
 	"strings"
+
+	"github.com/getsentry/sentry-go"
 )
 
 var globalLogger *slog.Logger
@@ -100,7 +102,7 @@ func LogWarn(ctx context.Context, msg string, keysAndValues ...interface{}) {
 	GetLogger(ctx).Warn(msg, keysAndValues...)
 }
 
-// LogError logs an error with stack trace
+// LogError logs an error with stack trace and sends to Sentry
 func LogError(ctx context.Context, msg string, err error, keysAndValues ...interface{}) {
 	logger := GetLogger(ctx)
 
@@ -117,6 +119,20 @@ func LogError(ctx context.Context, msg string, err error, keysAndValues ...inter
 	}
 
 	logger.Error(msg, attrs...)
+
+	// Send to Sentry with context
+	sentry.WithScope(func(scope *sentry.Scope) {
+		scope.SetContext("log_context", map[string]interface{}{
+			"message": msg,
+		})
+		if traceID, ok := ctx.Value("trace_id").(string); ok {
+			scope.SetTag("trace_id", traceID)
+		}
+		if userID, ok := ctx.Value("user_id").(string); ok {
+			scope.SetTag("user_id", userID)
+		}
+		sentry.CaptureException(err)
+	})
 }
 
 // LogDebug logs debug message (disabled in prod by default)

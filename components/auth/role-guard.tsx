@@ -7,7 +7,7 @@ import { Shield, Lock } from "lucide-react"
 
 interface RoleGuardProps {
   children: React.ReactNode
-  requiredRole: "filler" | "creator" | "admin" | "super-admin"
+  requiredRole: "filler" | "creator" | "admin" | "super_admin"
   requireAuth?: boolean
 }
 

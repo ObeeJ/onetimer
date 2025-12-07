@@ -24,43 +24,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Mock successful verification (replace with real Prembly call later)
-    const verificationData = {
-      nin: nin,
-      firstname: 'John',
-      lastname: 'Doe', 
-      phone: '08012345678',
-      birthdate: '1990-01-01',
-      gender: 'Male'
+    // Call backend to verify NIN
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8081';
+    const response = await fetch(`${backendUrl}/api/user/kyc/verify-nin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ nin })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errorData.error || 'KYC verification failed' },
+        { status: response.status }
+      );
     }
 
-    // Update user KYC status in backend
-    try {
-      const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          kycStatus: 'approved'
-        })
-      })
-
-      if (!updateResponse.ok) {
-        console.error('Failed to update user KYC status:', await updateResponse.text())
-      }
-    } catch (updateError) {
-      console.error('Error updating KYC status:', updateError)
-    }
+    const data = await response.json();
 
     return NextResponse.json({
       status: 'success',
       message: 'KYC verification successful',
-      data: {
-        ...verificationData,
-        verified: true
-      }
+      data: data
     }, { status: 200 })
 
   } catch (error) {

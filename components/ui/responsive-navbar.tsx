@@ -16,7 +16,7 @@ interface NavItem {
 }
 
 interface ResponsiveNavbarProps {
-  role: "filler" | "creator" | "admin" | "super-admin"
+  role: "filler" | "creator" | "admin" | "super_admin"
   navItems: NavItem[]
   user?: { name?: string; email?: string }
   onSignOut?: () => void
@@ -38,7 +38,7 @@ const roleThemes = {
     accent: "text-[#004AAD]",
     border: "border-[#004AAD]"
   },
-  "super-admin": {
+  "super_admin": {
     primary: "bg-[#004AAD] hover:bg-[#003080]",
     accent: "text-[#004AAD]",
     border: "border-[#004AAD]"

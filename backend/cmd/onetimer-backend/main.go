@@ -7,9 +7,11 @@ import (
 	"onetimer-backend/cache"
 	"onetimer-backend/config"
 	"onetimer-backend/database"
+	"onetimer-backend/observability"
 	"onetimer-backend/services"
 	"os"
 
+	sentryfiber "github.com/getsentry/sentry-go/fiber"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
@@ -18,8 +20,27 @@ func main() {
 	cfg := config.Load()
 	log.Printf("DATABASE_URL: %s", cfg.DatabaseURL)
 
+	// Initialize Sentry with production-ready configuration
+	if err := observability.InitSentry(observability.SentryConfig{
+		DSN:         cfg.SentryDSN,
+		Environment: cfg.Env,
+		Release:     cfg.SentryRelease,
+		ServerName:  cfg.SentryServerName,
+		Debug:       cfg.Env == "development",
+	}); err != nil {
+		log.Printf("⚠️ Sentry initialization failed: %v", err)
+	}
+
 	// Initialize Fiber app
 	app := routes.New()
+
+	// Sentry Middleware
+	if cfg.SentryDSN != "" { // Only add middleware if Sentry is initialized
+		app.Use(sentryfiber.New(sentryfiber.Options{
+			Repanic:         true,
+			WaitForDelivery: true,
+		}))
+	}
 
 	// Middleware
 	app.Use(recover.New())

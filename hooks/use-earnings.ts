@@ -9,7 +9,7 @@ export function useEarnings() {
   return useQuery(
     createQueryOptions({
       queryKey: ['earnings'],
-      queryFn: () => api.get<Earnings>('/analytics/filler/earnings')  // Fixed endpoint
+      queryFn: () => api.get<Earnings>('/earnings')
     })
   )
 }

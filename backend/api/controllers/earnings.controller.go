@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"context"
+	"encoding/csv"
+	"fmt"
 	"onetimer-backend/api/middleware"
 	"onetimer-backend/cache"
 	"onetimer-backend/config"
@@ -200,4 +202,62 @@ func (h *EarningsController) WithdrawEarnings(c *fiber.Ctx) error {
 		"ok":      true,
 		"message": "Withdrawal processed successfully",
 	})
+}
+
+// ExportEarnings exports earnings history as CSV
+func (h *EarningsController) ExportEarnings(c *fiber.Ctx) error {
+	ctx := middleware.GetContextWithTrace(c)
+	utils.LogInfo(ctx, "→ ExportEarnings request")
+
+	userIDInterface := c.Locals("user_id")
+	if userIDInterface == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID := userIDInterface.(string)
+
+	utils.LogInfo(ctx, "Exporting earnings", "user_id", userID)
+
+	filename := fmt.Sprintf("earnings_%s.csv", time.Now().Format("20060102"))
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+
+	writer := csv.NewWriter(c)
+	defer writer.Flush()
+
+	// Write header
+	if err := writer.Write([]string{"Date", "Description", "Type", "Amount", "Status"}); err != nil {
+		utils.LogError(ctx, "Failed to write CSV header", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate export"})
+	}
+
+	// Fetch all transactions
+	rows, err := h.db.Query(context.Background(), 
+		"SELECT created_at, 'Survey Completion' as description, type, amount, status FROM earnings WHERE user_id = $1 ORDER BY created_at DESC", 
+		userID)
+	if err != nil {
+		utils.LogError(ctx, "Failed to fetch transactions for export", err, "user_id", userID)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch data"})
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var createdAt time.Time
+		var description, earningType, status string
+		var amount int
+		
+		if err := rows.Scan(&createdAt, &description, &earningType, &amount, &status); err != nil {
+			continue
+		}
+
+		writer.Write([]string{
+			createdAt.Format("2006-01-02 15:04:05"),
+			description,
+			earningType,
+			fmt.Sprintf("%d", amount),
+			status,
+		})
+	}
+
+	utils.LogInfo(ctx, "✅ Earnings exported successfully", "user_id", userID)
+	return nil
 }

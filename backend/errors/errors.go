@@ -3,6 +3,7 @@ package errors
 import (
 	"net/http"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -50,10 +51,20 @@ func NewConflictError(resource string) APIError {
 }
 
 func HandleError(c *fiber.Ctx, err error) error {
+	// Capture error in Sentry for 5xx errors
 	switch e := err.(type) {
 	case APIError:
-		return c.Status(getStatusCode(e.Code)).JSON(e)
+		statusCode := getStatusCode(e.Code)
+		if statusCode >= 500 {
+			sentry.WithScope(func(scope *sentry.Scope) {
+				scope.SetTag("error_code", e.Code)
+				scope.SetContext("error_details", e.Details)
+				sentry.CaptureException(err)
+			})
+		}
+		return c.Status(statusCode).JSON(e)
 	default:
+		sentry.CaptureException(err)
 		return c.Status(http.StatusInternalServerError).JSON(ErrInternalServer)
 	}
 }

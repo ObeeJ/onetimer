@@ -573,3 +573,62 @@ func (h *AdminController) ActivateUser(c *fiber.Ctx) error {
 		"user_id": userID,
 	})
 }
+
+// BulkUserActions handles bulk operations on users
+func (h *AdminController) BulkUserActions(c *fiber.Ctx) error {
+	ctx := middleware.GetContextWithTrace(c)
+	utils.LogInfo(ctx, "→ BulkUserActions request (admin)")
+
+	adminID, _ := c.Locals("user_id").(string)
+
+	var req struct {
+		UserIDs []string `json:"user_ids"`
+		Action  string   `json:"action"` // approve, reject, suspend, activate, delete
+		Reason  string   `json:"reason"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	utils.LogInfo(ctx, "Processing bulk user actions", "admin_id", adminID, "action", req.Action, "count", len(req.UserIDs))
+
+	processed := 0
+	failed := 0
+
+	for _, userID := range req.UserIDs {
+		var err error
+		switch req.Action {
+		case "approve":
+			_, err = h.db.Exec(context.Background(), "UPDATE users SET kyc_status = 'approved', is_verified = true, updated_at = NOW() WHERE id = $1", userID)
+		case "reject":
+			_, err = h.db.Exec(context.Background(), "UPDATE users SET kyc_status = 'rejected', updated_at = NOW() WHERE id = $1", userID)
+		case "suspend":
+			// In a real system, we might set a suspended_at flag or status
+			_, err = h.db.Exec(context.Background(), "UPDATE users SET is_active = false, updated_at = NOW() WHERE id = $1", userID)
+		case "activate":
+			_, err = h.db.Exec(context.Background(), "UPDATE users SET is_active = true, updated_at = NOW() WHERE id = $1", userID)
+		}
+
+		if err != nil {
+			utils.LogError(ctx, "Failed to perform bulk action on user", err, "user_id", userID, "action", req.Action)
+			failed++
+		} else {
+			processed++
+			
+			// Audit log
+			auditQuery := `INSERT INTO audit_logs (id, user_id, action, resource, details, created_at) VALUES ($1, $2, $3, $4, $5, NOW())`
+			details := fmt.Sprintf(`{"admin_id": "%s", "user_id": "%s", "action": "%s", "reason": "%s"}`, adminID, userID, req.Action, req.Reason)
+			h.db.Exec(context.Background(), auditQuery, uuid.New(), adminID, "user:"+userID, "bulk_"+req.Action, details)
+		}
+	}
+
+	utils.LogInfo(ctx, "✅ Bulk actions completed", "admin_id", adminID, "processed", processed, "failed", failed)
+
+	return c.JSON(fiber.Map{
+		"ok":        true,
+		"processed": processed,
+		"failed":    failed,
+		"message":   fmt.Sprintf("Processed %d users, %d failed", processed, failed),
+	})
+}

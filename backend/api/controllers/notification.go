@@ -61,3 +61,26 @@ func (h *NotificationHandler) UpdateNotifications(c *fiber.Ctx) error {
 		"message": "Notifications updated successfully",
 	})
 }
+
+// MarkAsRead marks a single notification as read
+func (h *NotificationHandler) MarkAsRead(c *fiber.Ctx) error {
+	_, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	notificationID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid notification ID"})
+	}
+
+	err = h.notificationRepo.MarkNotificationRead(c.Context(), notificationID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to mark notification as read"})
+	}
+
+	return c.JSON(fiber.Map{
+		"ok":      true,
+		"message": "Notification marked as read",
+	})
+}

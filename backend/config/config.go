@@ -34,7 +34,10 @@ type Config struct {
 	SendGridFromName   string
 	// QoreIDClientID string
 	// QoreIDSecret   string
-	PremblyAPIKey string
+	PremblyAPIKey   string
+	SentryDSN       string
+	SentryRelease   string
+	SentryServerName string
 }
 
 func Load() *Config {
@@ -42,6 +45,8 @@ func Load() *Config {
 
 	rateLimit, _ := strconv.Atoi(getEnv("RATE_LIMIT", "100"))
 	cacheTTL, _ := strconv.Atoi(getEnv("CACHE_TTL", "300"))
+	
+
 
 	return &Config{
 		Port:               getEnv("PORT", "8080"),
@@ -61,8 +66,7 @@ func Load() *Config {
 		S3Endpoint:         getEnv("S3_ENDPOINT", ""),
 		SMTPHost:           getEnv("SMTP_HOST", ""),
 		SMTPPort:           getEnv("SMTP_PORT", "587"),
-		SMTPUser:           getEnv("SMTP_USER", ""),
-		SMTPPass:           getEnv("SMTP_PASS", ""),
+		SMTPUser:           getEnv("SMTP_USER", ""),		SMTPPass:           getEnv("SMTP_PASS", ""),
 		
 		// SendGrid
 		SendGridAPIKey:     getEnv("SENDGRID_API_KEY", ""),
@@ -70,7 +74,10 @@ func Load() *Config {
 		SendGridFromName:   getEnv("SENDGRID_FROM_NAME", "OneTime Survey"),
 		// QoreIDClientID: getEnv("QOREID_CLIENT_ID", ""),
 		// QoreIDSecret:   getEnv("QOREID_SECRET_KEY", ""),
-		PremblyAPIKey: getEnv("PREMBLY_API_KEY", ""),
+		PremblyAPIKey:    getEnv("PREMBLY_API_KEY", ""),
+		SentryDSN:        getEnv("SENTRY_DSN", ""),
+		SentryRelease:    getEnv("SENTRY_RELEASE", "onetimer-backend@dev"),
+		SentryServerName: getEnv("SENTRY_SERVER_NAME", ""),
 	}
 }
 
