@@ -9,19 +9,24 @@ import (
 	"onetimer-backend/config"
 	"onetimer-backend/utils"
 	"strconv"
+	"strings"
 )
 
 type EmailService struct {
 	config       *config.Config
+	mailerSend   *MailerSendService
 	sendGrid     *SendGridService
 }
 
 func NewEmailService(cfg *config.Config) *EmailService {
+	mailerSend := NewMailerSendService(cfg)
 	sendGrid := NewSendGridService(cfg)
 
-	// Log email service initialization
-	if cfg.SendGridAPIKey != "" && cfg.SendGridAPIKey != "SG.placeholder_key_here" {
-		utils.LogInfoSimple("✅ Email service initialized", "provider", "SendGrid")
+	// Log email service initialization with priority order
+	if cfg.MailerSendAPIKey != "" {
+		utils.LogInfoSimple("✅ Email service initialized", "primary_provider", "MailerSend", "fallback", "SendGrid/SMTP")
+	} else if cfg.SendGridAPIKey != "" && cfg.SendGridAPIKey != "SG.placeholder_key_here" {
+		utils.LogInfoSimple("✅ Email service initialized", "primary_provider", "SendGrid", "fallback", "SMTP")
 	} else if cfg.SMTPHost != "" && cfg.SMTPUser != "" {
 		utils.LogInfoSimple("✅ Email service initialized", "provider", "SMTP", "host", cfg.SMTPHost)
 	} else {
@@ -29,8 +34,9 @@ func NewEmailService(cfg *config.Config) *EmailService {
 	}
 
 	return &EmailService{
-		config:   cfg,
-		sendGrid: sendGrid,
+		config:     cfg,
+		mailerSend: mailerSend,
+		sendGrid:   sendGrid,
 	}
 }
 
@@ -42,6 +48,17 @@ func (e *EmailService) SendWelcomeEmail(email, name string) error {
 		}
 	}()
 
+	// Try MailerSend first
+	if e.mailerSend != nil {
+		err := e.mailerSend.SendWelcomeEmail(ctx, email, name)
+		if err == nil {
+			utils.LogInfo(ctx, "✅ Welcome email sent via MailerSend", "email", email, "name", name)
+			return nil
+		}
+		utils.LogWarn(ctx, "MailerSend failed, falling back to SMTP", "email", email, "error", err.Error())
+	}
+
+	// Fallback to SMTP
 	subject := "Welcome to Onetime Survey Platform!"
 	body := e.getWelcomeTemplate(name)
 	err := e.sendSMTP(ctx, email, subject, body)
@@ -60,7 +77,17 @@ func (e *EmailService) SendOTP(email, otp string) error {
 		}
 	}()
 
-	// Try SendGrid first
+	// Try MailerSend first
+	if e.mailerSend != nil {
+		err := e.mailerSend.SendOTP(ctx, email, otp)
+		if err == nil {
+			utils.LogInfo(ctx, "✅ Email sent successfully via MailerSend", "email", email, "type", "OTP")
+			return nil
+		}
+		utils.LogWarn(ctx, "MailerSend failed, falling back to SendGrid", "email", email, "error", err.Error())
+	}
+
+	// Fallback to SendGrid
 	if e.config.SendGridAPIKey != "" && e.config.SendGridAPIKey != "SG.placeholder_key_here" {
 		err := e.sendGrid.SendOTP(email, otp)
 		if err == nil {
@@ -97,6 +124,18 @@ func (e *EmailService) SendKYCApproval(email, name string) error {
 
 func (e *EmailService) SendPayoutNotification(email, name string, amount int) error {
 	ctx := context.Background()
+
+	// Try MailerSend first
+	if e.mailerSend != nil {
+		err := e.mailerSend.SendPayoutNotification(ctx, email, name, amount)
+		if err == nil {
+			utils.LogInfo(ctx, "✅ Payout notification sent via MailerSend", "email", email, "amount", amount)
+			return nil
+		}
+		utils.LogWarn(ctx, "MailerSend failed, falling back to SMTP", "email", email, "error", err.Error())
+	}
+
+	// Fallback to SMTP
 	subject := "Payout Processed Successfully"
 	body := e.getPayoutTemplate(name, amount)
 	return e.sendSMTP(ctx, email, subject, body)
@@ -150,6 +189,24 @@ func (e *EmailService) SendNewSurveyNotification(email, name string, surveyCount
 // SendPasswordReset sends password reset email with reset link
 func (e *EmailService) SendPasswordReset(email, resetToken string) error {
 	ctx := context.Background()
+
+	// Try MailerSend first
+	if e.mailerSend != nil {
+		// Extract name from email (use email prefix as name)
+		name := email
+		if idx := strings.Index(email, "@"); idx != -1 {
+			name = email[:idx]
+		}
+
+		err := e.mailerSend.SendPasswordResetEmail(ctx, email, name, resetToken)
+		if err == nil {
+			utils.LogInfo(ctx, "✅ Password reset email sent via MailerSend", "email", email)
+			return nil
+		}
+		utils.LogWarn(ctx, "MailerSend failed, falling back to SMTP", "email", email, "error", err.Error())
+	}
+
+	// Fallback to SMTP
 	subject := "Reset Your Password - Onetime Survey"
 	body := e.getPasswordResetTemplate(email, resetToken)
 	return e.sendSMTP(ctx, email, subject, body)

@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { superAdminApi } from "@/lib/api/super-admin"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,23 +17,46 @@ import {
 } from "lucide-react"
 
 export default function FinancePage() {
+  const [metrics, setMetrics] = useState<any>(null)
+  const [payoutQueue, setPayoutQueue] = useState<any[]>([])
+  const [reconciliation, setReconciliation] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchFinancialData()
+  }, [])
+
+  const fetchFinancialData = async () => {
+    try {
+      const [metricsData, payoutsData, reconciliationData] = await Promise.all([
+        superAdminApi.getFinancialMetrics(),
+        superAdminApi.getPayoutQueue(),
+        superAdminApi.getReconciliation(),
+      ])
+      setMetrics(metricsData.data)
+      setPayoutQueue(payoutsData.data || [])
+      setReconciliation(reconciliationData.data || [])
+    } catch (error) {
+      console.error("Failed to fetch financial data:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleApprovePayout = async (payoutId: string) => {
+    try {
+      await superAdminApi.approvePayout(payoutId)
+      fetchFinancialData()
+    } catch (error) {
+      console.error("Failed to approve payout:", error)
+    }
+  }
+
   const financialMetrics = [
-    { title: "Total Revenue", value: "₦24.8M", change: "+32%", period: "This month" },
-    { title: "Pending Payouts", value: "₦2.4M", change: "-8%", period: "Awaiting approval" },
-    { title: "Processing Fees", value: "₦620K", change: "+15%", period: "This month" },
-    { title: "Net Profit", value: "₦21.8M", change: "+28%", period: "After fees" },
-  ]
-
-  const payoutQueue = [
-    { id: "PO-001", amount: "₦450,000", users: 23, status: "pending", priority: "high", submittedBy: "John Admin" },
-    { id: "PO-002", amount: "₦280,000", users: 15, status: "processing", priority: "medium", submittedBy: "Jane Admin" },
-    { id: "PO-003", amount: "₦125,000", users: 8, status: "completed", priority: "low", submittedBy: "Mike Admin" },
-  ]
-
-  const reconciliation = [
-    { date: "2024-01-20", expected: "₦1.2M", processed: "₦1.18M", variance: "-₦20K", status: "review" },
-    { date: "2024-01-19", expected: "₦980K", processed: "₦980K", variance: "₦0", status: "matched" },
-    { date: "2024-01-18", expected: "₦1.5M", processed: "₦1.52M", variance: "+₦20K", status: "matched" },
+    { title: "Total Revenue", value: `₦${(metrics?.totalRevenue || 0).toLocaleString()}`, change: metrics?.revenueChange || "+0%", period: "This month" },
+    { title: "Pending Payouts", value: `₦${(metrics?.pendingPayouts || 0).toLocaleString()}`, change: metrics?.payoutChange || "+0%", period: "Awaiting approval" },
+    { title: "Processing Fees", value: `₦${(metrics?.processingFees || 0).toLocaleString()}`, change: metrics?.feeChange || "+0%", period: "This month" },
+    { title: "Net Profit", value: `₦${(metrics?.netProfit || 0).toLocaleString()}`, change: metrics?.profitChange || "+0%", period: "After fees" },
   ]
 
   const getStatusBadge = (status: string) => {

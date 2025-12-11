@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SuperAdminDashboardSkeleton } from "@/components/ui/skeleton-loader"
 import { useAuth } from "@/providers/auth-provider"
+import { superAdminApi } from "@/lib/api/super-admin"
 import { 
   Users, 
   Shield, 
@@ -22,45 +23,54 @@ import {
 export default function SuperAdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
+  const [stats, setStats] = useState<any>(null)
+  const [systemHealth, setSystemHealth] = useState<any[]>([])
+  const [adminActivity, setAdminActivity] = useState<any[]>([])
+  const [criticalAlerts, setCriticalAlerts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== "super_admin")) {
       router.push("/super-admin/auth/login")
+      return
+    }
+    if (isAuthenticated && user?.role === "super_admin") {
+      fetchData()
     }
   }, [isAuthenticated, isLoading, user?.role, router])
 
-  if (isLoading) {
+  const fetchData = async () => {
+    try {
+      const [statsData, healthData, activityData, alertsData] = await Promise.all([
+        superAdminApi.getDashboardStats(),
+        superAdminApi.getSystemHealth(),
+        superAdminApi.getActivityFeed(),
+        superAdminApi.getCriticalAlerts(),
+      ])
+      setStats(statsData)
+      setSystemHealth(healthData)
+      setAdminActivity(activityData)
+      setCriticalAlerts(alertsData)
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (isLoading || loading) {
     return <SuperAdminDashboardSkeleton />
   }
 
   if (!isAuthenticated || user?.role !== "super_admin") {
     return null
   }
+
   const globalStats = [
-    { title: "Total Users", value: "12,847", change: "+18%", icon: Users, color: "blue" },
-    { title: "Active Admins", value: "8", change: "+1", icon: Shield, color: "blue" },
-    { title: "Total Surveys", value: "3,456", change: "+24%", icon: ListChecks, color: "green" },
-    { title: "Total Revenue", value: "₦24.8M", change: "+32%", icon: CreditCard, color: "orange" },
-  ]
-
-  const systemHealth = [
-    { metric: "API Uptime", value: "99.9%", status: "healthy", icon: Server },
-    { metric: "Database", value: "Optimal", status: "healthy", icon: Activity },
-    { metric: "Payment Gateway", value: "Active", status: "healthy", icon: CreditCard },
-    { metric: "Failed Transactions", value: "0.2%", status: "warning", icon: AlertTriangle },
-  ]
-
-  const adminActivity = [
-    { admin: "John Admin", action: "Approved survey #1234", time: "2 min ago", type: "approval" },
-    { admin: "Jane Admin", action: "Processed payout ₦45,200", time: "8 min ago", type: "payout" },
-    { admin: "Mike Admin", action: "Suspended user account", time: "15 min ago", type: "moderation" },
-    { admin: "Sarah Admin", action: "Updated platform settings", time: "32 min ago", type: "config" },
-  ]
-
-  const criticalAlerts = [
-    { type: "Security", message: "Multiple failed login attempts detected", severity: "high", time: "5 min ago" },
-    { type: "Finance", message: "Large payout request pending review", severity: "medium", time: "12 min ago" },
-    { type: "System", message: "Database backup completed successfully", severity: "low", time: "1 hour ago" },
+    { title: "Total Users", value: stats?.totalUsers?.toLocaleString() || "0", change: stats?.userChange || "+0%", icon: Users, color: "blue" },
+    { title: "Active Admins", value: stats?.activeAdmins?.toString() || "0", change: stats?.adminChange || "+0", icon: Shield, color: "blue" },
+    { title: "Total Surveys", value: stats?.totalSurveys?.toLocaleString() || "0", change: stats?.surveyChange || "+0%", icon: ListChecks, color: "green" },
+    { title: "Total Revenue", value: `₦${(stats?.totalRevenue || 0).toLocaleString()}`, change: stats?.revenueChange || "+0%", icon: CreditCard, color: "orange" },
   ]
 
   return (

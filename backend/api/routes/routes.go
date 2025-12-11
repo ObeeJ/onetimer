@@ -85,6 +85,9 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	paymentController := controllers.NewPaymentController(cache, cfg.PaystackSecret)
 	referralController := controllers.NewReferralController(cache, db.Pool)
 	superAdminController := controllers.NewSuperAdminController(cache, db.Pool)
+	superAdminDashboardController := controllers.NewSuperAdminDashboardController(cache, db.Pool)
+	superAdminAnalyticsController := controllers.NewSuperAdminAnalyticsController(cache, db.Pool)
+	superAdminFinanceController := controllers.NewSuperAdminFinanceController(cache, db.Pool)
 	surveyController := controllers.NewSurveyController(cache, surveyRepo)
 	uploadController := controllers.NewUploadController(cache, storageService)
 	withdrawalController := controllers.NewWithdrawalController(cache, db.Pool, cfg.PaystackSecret)
@@ -257,11 +260,33 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 	superAdmin := api.Group("/super-admin")
 	superAdmin.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	superAdmin.Use(middleware.RequireRole("super_admin"))
+	
+	// User & Admin Management
 	superAdmin.Get("/users", superAdminController.GetAllUsers)
 	superAdmin.Get("/admins", superAdminController.GetAdmins)
 	superAdmin.Post("/admins", superAdminController.CreateAdmin)
 	superAdmin.Post("/admins/:id/suspend", superAdminController.SuspendAdmin)
-	superAdmin.Get("/financials", superAdminController.GetFinancials)
+	
+	// Dashboard
+	superAdmin.Get("/dashboard/stats", superAdminDashboardController.GetDashboardStats)
+	superAdmin.Get("/system-health", superAdminDashboardController.GetSystemHealth)
+	superAdmin.Get("/activity-feed", superAdminDashboardController.GetActivityFeed)
+	superAdmin.Get("/alerts", superAdminDashboardController.GetCriticalAlerts)
+	
+	// Analytics
+	superAdmin.Get("/analytics/monthly", superAdminAnalyticsController.GetMonthlyAnalytics)
+	superAdmin.Get("/analytics/user-distribution", superAdminAnalyticsController.GetUserDistribution)
+	superAdmin.Get("/analytics/revenue-trends", superAdminAnalyticsController.GetRevenueTrends)
+	superAdmin.Get("/surveys/stats", superAdminAnalyticsController.GetSurveyStats)
+	superAdmin.Get("/surveys/list", superAdminAnalyticsController.GetSurveysList)
+	
+	// Finance
+	superAdmin.Get("/financials/metrics", superAdminFinanceController.GetFinancialMetrics)
+	superAdmin.Get("/financials/payouts", superAdminFinanceController.GetPayoutQueue)
+	superAdmin.Get("/financials/reconciliation", superAdminFinanceController.GetReconciliation)
+	superAdmin.Post("/financials/approve-payout/:id", superAdminFinanceController.ApprovePayout)
+	
+	// Audit & Settings
 	superAdmin.Post("/audit-logs", auditController.LogAction)
 	superAdmin.Get("/audit-logs", auditController.GetAuditLogs)
 	superAdmin.Get("/settings", superAdminController.GetSystemSettings)

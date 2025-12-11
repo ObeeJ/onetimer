@@ -32,9 +32,15 @@ type Config struct {
 	SendGridAPIKey     string
 	SendGridFromEmail  string
 	SendGridFromName   string
-	// QoreIDClientID string
-	// QoreIDSecret   string
+
+	// MailerSend
+	MailerSendAPIKey   string
+	EmailFrom          string
+
+	// KYC
 	PremblyAPIKey   string
+
+	// Sentry
 	SentryDSN       string
 	SentryRelease   string
 	SentryServerName string
@@ -72,9 +78,15 @@ func Load() *Config {
 		SendGridAPIKey:     getEnv("SENDGRID_API_KEY", ""),
 		SendGridFromEmail:  getEnv("SENDGRID_FROM_EMAIL", "noreply@onetimer.com"),
 		SendGridFromName:   getEnv("SENDGRID_FROM_NAME", "OneTime Survey"),
-		// QoreIDClientID: getEnv("QOREID_CLIENT_ID", ""),
-		// QoreIDSecret:   getEnv("QOREID_SECRET_KEY", ""),
+
+		// MailerSend
+		MailerSendAPIKey:   getEnv("MAILERSEND_API_KEY", ""),
+		EmailFrom:          getEnv("EMAIL_FROM", "noreply@onetimesurvey.xyz"),
+
+		// KYC
 		PremblyAPIKey:    getEnv("PREMBLY_API_KEY", ""),
+
+		// Sentry
 		SentryDSN:        getEnv("SENTRY_DSN", ""),
 		SentryRelease:    getEnv("SENTRY_RELEASE", "onetimer-backend@dev"),
 		SentryServerName: getEnv("SENTRY_SERVER_NAME", ""),

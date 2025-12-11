@@ -1,34 +1,38 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { superAdminApi } from "@/lib/api/super-admin"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts"
 import { Download, TrendingUp, Users, DollarSign, Activity } from "lucide-react"
 
 export default function SuperAdminReportsPage() {
-  const monthlyData = [
-    { month: "Jan", users: 1200, surveys: 450, revenue: 125000 },
-    { month: "Feb", users: 1450, surveys: 520, revenue: 145000 },
-    { month: "Mar", users: 1680, surveys: 610, revenue: 168000 },
-    { month: "Apr", users: 1920, surveys: 720, revenue: 192000 },
-    { month: "May", users: 2150, surveys: 840, revenue: 215000 },
-    { month: "Jun", users: 2380, surveys: 950, revenue: 238000 },
-  ]
+  const [monthlyData, setMonthlyData] = useState<any[]>([])
+  const [userTypeData, setUserTypeData] = useState<any[]>([])
+  const [revenueData, setRevenueData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const userTypeData = [
-    { name: "Fillers", value: 8500, color: "#3b82f6" },
-    { name: "Creators", value: 1200, color: "#f59e0b" },
-    { name: "Admins", value: 45, color: "#10b981" },
-  ]
+  useEffect(() => {
+    fetchReportsData()
+  }, [])
 
-  const revenueData = [
-    { month: "Jan", revenue: 125000, profit: 25000 },
-    { month: "Feb", revenue: 145000, profit: 29000 },
-    { month: "Mar", revenue: 168000, profit: 33600 },
-    { month: "Apr", revenue: 192000, profit: 38400 },
-    { month: "May", revenue: 215000, profit: 43000 },
-    { month: "Jun", revenue: 238000, profit: 47600 },
-  ]
+  const fetchReportsData = async () => {
+    try {
+      const [monthly, distribution, revenue] = await Promise.all([
+        superAdminApi.getMonthlyAnalytics(),
+        superAdminApi.getUserDistribution(),
+        superAdminApi.getRevenueTrends(),
+      ])
+      setMonthlyData(monthly.data || [])
+      setUserTypeData(distribution.data || [])
+      setRevenueData(revenue.data || [])
+    } catch (error) {
+      console.error("Failed to fetch reports:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="p-6 space-y-6">

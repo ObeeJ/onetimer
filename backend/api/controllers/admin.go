@@ -45,11 +45,12 @@ func (h *AdminHandler) GetUsers(c *fiber.Ctx) error {
 		args = append(args, role)
 	}
 
-	if status == "active" {
+	switch status {
+	case "active":
 		argCount++
 		query += fmt.Sprintf(" AND u.is_active = $%d", argCount)
 		args = append(args, true)
-	} else if status == "inactive" {
+	case "inactive":
 		argCount++
 		query += fmt.Sprintf(" AND u.is_active = $%d", argCount)
 		args = append(args, false)

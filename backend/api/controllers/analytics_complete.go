@@ -344,6 +344,7 @@ func (h *AnalyticsCompleteHandler) getQualityMetrics(surveyID string) fiber.Map 
 }
 
 func (h *AnalyticsCompleteHandler) generateAnalyticsCSV(surveyID string) string {
+	_ = surveyID // Mark as used for future implementation
 	// Generate CSV content for analytics export
 	header := "Date,Responses,Completion Rate,Avg Quality Score\n"
 

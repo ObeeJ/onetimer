@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { superAdminApi } from "@/lib/api/super-admin"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -7,12 +9,28 @@ import { Input } from "@/components/ui/input"
 import { ListChecks, Search, Filter, Eye, Ban, CheckCircle } from "lucide-react"
 
 export default function SuperAdminSurveysPage() {
-  const surveys = [
-    { id: 1, title: "Customer Satisfaction Survey", creator: "TechCorp Ltd", status: "active", responses: 245, reward: "₦500", created: "2024-01-15" },
-    { id: 2, title: "Product Feedback Form", creator: "StartupXYZ", status: "pending", responses: 12, reward: "₦300", created: "2024-01-14" },
-    { id: 3, title: "Market Research Study", creator: "BigBrand Inc", status: "completed", responses: 1000, reward: "₦750", created: "2024-01-10" },
-    { id: 4, title: "User Experience Survey", creator: "DesignCo", status: "suspended", responses: 89, reward: "₦400", created: "2024-01-12" },
-  ]
+  const [surveys, setSurveys] = useState<any[]>([])
+  const [stats, setStats] = useState({ total: 0, active: 0, pending: 0, suspended: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      const [surveysList, surveyStats] = await Promise.all([
+        superAdminApi.getSurveysList(),
+        superAdminApi.getSurveyStats(),
+      ])
+      setSurveys(surveysList.data || [])
+      setStats(surveyStats.data || { total: 0, active: 0, pending: 0, suspended: 0 })
+    } catch (error) {
+      console.error("Failed to fetch surveys:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="p-6 space-y-6">

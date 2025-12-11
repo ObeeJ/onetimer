@@ -1,6 +1,7 @@
 package observability
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -65,7 +66,7 @@ func InitSentry(cfg SentryConfig) error {
 		return fmt.Errorf("sentry initialization failed: %w", err)
 	}
 
-	log.Printf("✅ Sentry initialized: env=%s, sample_rate=%.2f, traces_sample_rate=%.2f",
+	log.Printf("✅ Sentry initialized: env=%s, sample_rate=%.2f, traces_sample_rate=%.2f, tracing_enabled=true",
 		cfg.Environment, sampleRate, tracesSampleRate)
 	return nil
 }
@@ -220,5 +221,44 @@ func CaptureMessage(message string, level sentry.Level, tags map[string]string) 
 			scope.SetTag(k, v)
 		}
 		hub.CaptureMessage(message)
+	})
+}
+
+// StartDatabaseSpan creates a span for database operations
+// Usage: defer StartDatabaseSpan(ctx, "SELECT users WHERE email = ?").Finish()
+func StartDatabaseSpan(ctx context.Context, query string) *sentry.Span {
+	span := sentry.StartSpan(ctx, "db.query")
+	span.SetTag("db.operation", "query")
+	span.SetData("db.query", scrubSensitiveString(query))
+	return span
+}
+
+// StartExternalAPISpan creates a span for external API calls
+// Usage: defer StartExternalAPISpan(ctx, "POST", "https://api.paystack.co/transaction/initialize").Finish()
+func StartExternalAPISpan(ctx context.Context, method, url string) *sentry.Span {
+	span := sentry.StartSpan(ctx, "http.client")
+	span.SetTag("http.method", method)
+	span.SetTag("http.url", scrubSensitiveString(url))
+	return span
+}
+
+// SetBusinessContext adds business-specific context to the current scope
+// Usage: SetBusinessContext(ctx, "payment", map[string]interface{}{"survey_id": "123", "amount": 5000})
+func SetBusinessContext(ctx context.Context, contextName string, data map[string]interface{}) {
+	hub := sentry.CurrentHub()
+	if hub != nil {
+		hub.Scope().SetContext(contextName, scrubMap(data))
+	}
+}
+
+// SetUserContext sets user information in Sentry scope
+func SetUserContext(userID, email, role string) {
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetUser(sentry.User{
+			ID:       userID,
+			Email:    maskEmail(email),
+			Username: role,
+		})
+		scope.SetTag("user_role", role)
 	})
 }

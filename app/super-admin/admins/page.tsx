@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { superAdminApi } from "@/lib/api/super-admin"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,39 +20,33 @@ import {
 export default function AdminsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [admins, setAdmins] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const admins = [
-    {
-      id: "1",
-      name: "John Admin",
-      email: "john.admin@example.com",
-      role: "Finance Admin",
-      status: "Active",
-      lastLogin: "2024-01-20 14:30",
-      permissions: ["payments", "reports"],
-      createdAt: "2024-01-01"
-    },
-    {
-      id: "2", 
-      name: "Jane Admin",
-      email: "jane.admin@example.com",
-      role: "Survey Admin",
-      status: "Active",
-      lastLogin: "2024-01-20 16:45",
-      permissions: ["surveys", "users"],
-      createdAt: "2024-01-05"
-    },
-    {
-      id: "3",
-      name: "Mike Admin",
-      email: "mike.admin@example.com",
-      role: "User Admin",
-      status: "Suspended",
-      lastLogin: "2024-01-18 11:20",
-      permissions: ["users", "kyc"],
-      createdAt: "2024-01-10"
+  useEffect(() => {
+    fetchAdmins()
+  }, [])
+
+  const fetchAdmins = async () => {
+    try {
+      const data = await superAdminApi.getAdmins()
+      setAdmins(data.data || [])
+    } catch (error) {
+      console.error("Failed to fetch admins:", error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const handleCreateAdmin = async (email: string, name: string, password: string) => {
+    try {
+      await superAdminApi.createAdmin({ email, name, password })
+      setShowCreateModal(false)
+      fetchAdmins()
+    } catch (error) {
+      console.error("Failed to create admin:", error)
+    }
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {

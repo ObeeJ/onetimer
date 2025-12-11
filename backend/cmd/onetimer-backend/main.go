@@ -12,6 +12,7 @@ import (
 	"os"
 
 	sentryfiber "github.com/getsentry/sentry-go/fiber"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
@@ -35,11 +36,21 @@ func main() {
 	app := routes.New()
 
 	// Sentry Middleware
-	if cfg.SentryDSN != "" { // Only add middleware if Sentry is initialized
+	if cfg.SentryDSN != "" {
 		app.Use(sentryfiber.New(sentryfiber.Options{
 			Repanic:         true,
 			WaitForDelivery: true,
 		}))
+
+		// Enhanced Sentry event middleware
+		app.Use(func(ctx *fiber.Ctx) error {
+			if hub := sentryfiber.GetHubFromContext(ctx); hub != nil {
+				hub.Scope().SetTag("environment", cfg.Env)
+				hub.Scope().SetTag("method", ctx.Method())
+				hub.Scope().SetTag("path", ctx.Path())
+			}
+			return ctx.Next()
+		})
 	}
 
 	// Middleware
