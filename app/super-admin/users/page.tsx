@@ -11,7 +11,7 @@ import { Users, Search, Filter, MoreHorizontal, Shield, Ban } from "lucide-react
 
 export default function SuperAdminUsersPage() {
   const [users, setUsers] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [_loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchUsers()
@@ -20,7 +20,7 @@ export default function SuperAdminUsersPage() {
   const fetchUsers = async () => {
     try {
       const response = await superAdminApi.getAllUsers()
-      setUsers(response.users || [])
+      setUsers(response.data || [])
     } catch (error) {
       console.error("Failed to fetch users:", error)
     } finally {

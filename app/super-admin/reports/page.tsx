@@ -11,7 +11,7 @@ export default function SuperAdminReportsPage() {
   const [monthlyData, setMonthlyData] = useState<any[]>([])
   const [userTypeData, setUserTypeData] = useState<any[]>([])
   const [revenueData, setRevenueData] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [_loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchReportsData()

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { superAdminApi } from "@/lib/api/super-admin"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -21,32 +21,22 @@ export default function AdminsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [admins, setAdmins] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [_loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchAdmins()
-  }, [])
-
-  const fetchAdmins = async () => {
+  const fetchAdmins = useCallback(async () => {
     try {
       const data = await superAdminApi.getAdmins()
-      setAdmins(data.data || [])
+      setAdmins(data || [])
     } catch (error) {
       console.error("Failed to fetch admins:", error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleCreateAdmin = async (email: string, name: string, password: string) => {
-    try {
-      await superAdminApi.createAdmin({ email, name, password })
-      setShowCreateModal(false)
-      fetchAdmins()
-    } catch (error) {
-      console.error("Failed to create admin:", error)
-    }
-  }
+  useEffect(() => {
+    fetchAdmins()
+  }, [fetchAdmins])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -204,7 +194,7 @@ export default function AdminsPage() {
               </div>
               <div>
                 <label className="text-sm font-medium">Role</label>
-                <select className="w-full p-2 border rounded-lg">
+                <select className="w-full p-2 border rounded-lg" title="Select admin role">
                   <option>Finance Admin</option>
                   <option>Survey Admin</option>
                   <option>User Admin</option>

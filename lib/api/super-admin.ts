@@ -33,63 +33,63 @@ export interface Alert {
 
 export const superAdminApi = {
   getDashboardStats: async (): Promise<DashboardStats> => {
-    const response = await apiClient.get<{ data: DashboardStats }>('/super-admin/dashboard/stats')
-    return response.data
+    const response = await apiClient.get<DashboardStats>('/super-admin/dashboard/stats')
+    return response.data!
   },
 
   getSystemHealth: async (): Promise<SystemHealth[]> => {
-    const response = await apiClient.get<{ data: SystemHealth[] }>('/super-admin/system-health')
-    return response.data
+    const response = await apiClient.get<SystemHealth[]>('/super-admin/system-health')
+    return response.data!
   },
 
   getActivityFeed: async (): Promise<Activity[]> => {
-    const response = await apiClient.get<{ data: Activity[] }>('/super-admin/activity-feed')
-    return response.data
+    const response = await apiClient.get<Activity[]>('/super-admin/activity-feed')
+    return response.data!
   },
 
   getCriticalAlerts: async (): Promise<Alert[]> => {
-    const response = await apiClient.get<{ data: Alert[] }>('/super-admin/alerts')
-    return response.data
+    const response = await apiClient.get<Alert[]>('/super-admin/alerts')
+    return response.data!
   },
 
   getMonthlyAnalytics: async () => {
-    const response = await apiClient.get('/super-admin/analytics/monthly')
-    return response.data
+    const response = await apiClient.get<any>('/super-admin/analytics/monthly')
+    return response.data!
   },
 
   getUserDistribution: async () => {
-    const response = await apiClient.get('/super-admin/analytics/user-distribution')
-    return response.data
+    const response = await apiClient.get<any>('/super-admin/analytics/user-distribution')
+    return response.data!
   },
 
   getRevenueTrends: async () => {
-    const response = await apiClient.get('/super-admin/analytics/revenue-trends')
-    return response.data
+    const response = await apiClient.get<any>('/super-admin/analytics/revenue-trends')
+    return response.data!
   },
 
   getSurveyStats: async () => {
-    const response = await apiClient.get('/super-admin/surveys/stats')
-    return response.data
+    const response = await apiClient.get<any>('/super-admin/surveys/stats')
+    return response.data!
   },
 
   getSurveysList: async () => {
-    const response = await apiClient.get('/super-admin/surveys/list')
-    return response.data
+    const response = await apiClient.get<any>('/super-admin/surveys/list')
+    return response.data!
   },
 
   getFinancialMetrics: async () => {
-    const response = await apiClient.get('/super-admin/financials/metrics')
-    return response.data
+    const response = await apiClient.get<any>('/super-admin/financials/metrics')
+    return response.data!
   },
 
   getPayoutQueue: async () => {
-    const response = await apiClient.get('/super-admin/financials/payouts')
-    return response.data
+    const response = await apiClient.get<any>('/super-admin/financials/payouts')
+    return response.data!
   },
 
   getReconciliation: async () => {
-    const response = await apiClient.get('/super-admin/financials/reconciliation')
-    return response.data
+    const response = await apiClient.get<any>('/super-admin/financials/reconciliation')
+    return response.data!
   },
 
   approvePayout: async (payoutId: string) => {
@@ -97,12 +97,12 @@ export const superAdminApi = {
   },
 
   getAllUsers: async () => {
-    return await apiClient.get('/super-admin/users')
+    return await apiClient.get<any>('/super-admin/users')
   },
 
   getAdmins: async () => {
-    const response = await apiClient.get('/super-admin/admins')
-    return response.data
+    const response = await apiClient.get<any[]>('/super-admin/admins')
+    return response.data!
   },
 
   createAdmin: async (data: { email: string; name: string; password: string }) => {

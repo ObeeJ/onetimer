@@ -10,8 +10,8 @@ import { ListChecks, Search, Filter, Eye, Ban, CheckCircle } from "lucide-react"
 
 export default function SuperAdminSurveysPage() {
   const [surveys, setSurveys] = useState<any[]>([])
-  const [stats, setStats] = useState({ total: 0, active: 0, pending: 0, suspended: 0 })
-  const [loading, setLoading] = useState(true)
+  const [_stats, setStats] = useState({ total: 0, active: 0, pending: 0, suspended: 0 })
+  const [_loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchData()

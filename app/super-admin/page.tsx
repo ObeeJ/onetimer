@@ -7,16 +7,15 @@ import { Badge } from "@/components/ui/badge"
 import { SuperAdminDashboardSkeleton } from "@/components/ui/skeleton-loader"
 import { useAuth } from "@/providers/auth-provider"
 import { superAdminApi } from "@/lib/api/super-admin"
-import { 
-  Users, 
-  Shield, 
-  ListChecks, 
+import {
+  Users,
+  Shield,
+  ListChecks,
   CreditCard,
   AlertTriangle,
   CheckCircle,
   Clock,
   Activity,
-  Server,
   Settings
 } from "lucide-react"
 

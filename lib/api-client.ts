@@ -67,13 +67,13 @@ class ApiClient {
         if (data.code && data.message) {
           // New format: { code: "VALIDATION_ERROR", message: "...", details: {...} }
           let errorMessage = data.message
-          
+
           // Handle validation errors specially
           if (data.code === 'VALIDATION_ERROR' && data.details?.validation_errors?.errors) {
             const validationErrors = data.details.validation_errors.errors
             errorMessage = validationErrors.map((err: any) => `${err.field}: ${err.message}`).join(', ')
           }
-          
+
           throw new Error(errorMessage)
         } else {
           // Fallback to old format
@@ -90,7 +90,7 @@ class ApiClient {
       return { ok: true, data }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Network error'
-      
+
       // Handle 401 errors by redirecting to login
       if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
         if (typeof window !== 'undefined') {
@@ -98,10 +98,33 @@ class ApiClient {
         }
         return { ok: false, error: 'Authentication required' }
       }
-      
+
       toast.error(errorMessage)
       return { ok: false, error: errorMessage }
     }
+  }
+
+  // Generic HTTP methods
+  async get<T>(endpoint: string) {
+    return this.request<T>(endpoint, { method: 'GET' })
+  }
+
+  async post<T>(endpoint: string, body?: Record<string, unknown>) {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  }
+
+  async put<T>(endpoint: string, body?: Record<string, unknown>) {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  }
+
+  async delete<T>(endpoint: string) {
+    return this.request<T>(endpoint, { method: 'DELETE' })
   }
 
   // Authentication

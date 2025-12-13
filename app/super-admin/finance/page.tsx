@@ -20,7 +20,7 @@ export default function FinancePage() {
   const [metrics, setMetrics] = useState<any>(null)
   const [payoutQueue, setPayoutQueue] = useState<any[]>([])
   const [reconciliation, setReconciliation] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [_loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchFinancialData()
@@ -40,15 +40,6 @@ export default function FinancePage() {
       console.error("Failed to fetch financial data:", error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleApprovePayout = async (payoutId: string) => {
-    try {
-      await superAdminApi.approvePayout(payoutId)
-      fetchFinancialData()
-    } catch (error) {
-      console.error("Failed to approve payout:", error)
     }
   }
 
