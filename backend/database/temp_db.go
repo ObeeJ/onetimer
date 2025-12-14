@@ -2,11 +2,13 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"log"
 	"onetimer-backend/utils"
 	"os"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 )
@@ -18,7 +20,24 @@ func InitTempDB() *pgxpool.Pool {
 		dbURL = "postgres://postgres:password@localhost:5432/onetimer_temp?sslmode=disable"
 	}
 
-	pool, err := pgxpool.New(context.Background(), dbURL)
+	// Parse config and apply same fixes as production
+	poolConfig, err := pgxpool.ParseConfig(dbURL)
+	if err != nil {
+		log.Printf("Failed to parse database URL: %v", err)
+		return nil
+	}
+
+	// Apply same connection pool settings as production
+	poolConfig.MaxConns = 25
+	poolConfig.MinConns = 5
+	poolConfig.MaxConnLifetime = 30 * time.Minute
+	poolConfig.MaxConnIdleTime = 5 * time.Minute
+	poolConfig.HealthCheckPeriod = 1 * time.Minute
+
+	// CRITICAL: Use simple protocol to prevent prepared statement conflicts
+	poolConfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
 		log.Printf("Failed to connect to database: %v", err)
 		return nil
@@ -29,6 +48,8 @@ func InitTempDB() *pgxpool.Pool {
 		log.Printf("Database ping failed: %v", err)
 		return nil
 	}
+
+	log.Println("✅ Temp database connection pool configured with simple query protocol")
 
 	// Run migrations
 	if err := runMigrations(pool); err != nil {

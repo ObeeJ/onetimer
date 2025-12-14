@@ -5,8 +5,10 @@ import (
 	"onetimer-backend/models"
 	"onetimer-backend/services"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -142,7 +144,24 @@ func TestSurveyWorkflow(t *testing.T) {
 func setupTestDB(t *testing.T) *pgxpool.Pool {
 	// Use test database URL or mock
 	dbURL := "postgres://test:test@localhost/onetimer_test"
-	db, err := pgxpool.New(context.Background(), dbURL)
+
+	// Parse config and apply same fixes as production
+	poolConfig, err := pgxpool.ParseConfig(dbURL)
+	if err != nil {
+		t.Skip("Failed to parse database URL")
+	}
+
+	// Apply same connection pool settings as production
+	poolConfig.MaxConns = 10 // Smaller pool for tests
+	poolConfig.MinConns = 2
+	poolConfig.MaxConnLifetime = 10 * time.Minute
+	poolConfig.MaxConnIdleTime = 2 * time.Minute
+	poolConfig.HealthCheckPeriod = 1 * time.Minute
+
+	// CRITICAL: Use simple protocol to prevent prepared statement conflicts
+	poolConfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+
+	db, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
 		t.Skip("Test database not available")
 	}
