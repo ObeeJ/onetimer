@@ -7,6 +7,7 @@ import (
 	"onetimer-backend/config"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -33,9 +34,10 @@ func NewSupabaseConnection(cfg *config.Config) (*SupabaseDB, error) {
 	poolConfig.MaxConnIdleTime = 5 * time.Minute      // Close idle connections after 5 minutes
 	poolConfig.HealthCheckPeriod = 1 * time.Minute    // Health check interval
 
-	// CRITICAL: Disable prepared statement caching to prevent "already exists" errors
+	// CRITICAL: Use simple protocol to prevent prepared statement conflicts
 	// This fixes: ERROR: prepared statement "stmtcache_..." already exists (SQLSTATE 42P05)
-	poolConfig.ConnConfig.StatementCacheCapacity = 0
+	// Using simple protocol instead of disabling cache completely to avoid mode mismatch
+	poolConfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
 
 	// Create connection pool with config
 	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
@@ -52,7 +54,7 @@ func NewSupabaseConnection(cfg *config.Config) (*SupabaseDB, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	log.Println("✅ Database connection pool configured with statement cache disabled")
+	log.Println("✅ Database connection pool configured with simple query protocol (no prepared statements)")
 
 	supabaseDB := &SupabaseDB{
 		Pool:   pool,
