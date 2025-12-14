@@ -20,7 +20,25 @@ func NewSupabaseConnection(cfg *config.Config) (*SupabaseDB, error) {
 		return nil, fmt.Errorf("DATABASE_URL is required")
 	}
 
-	pool, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
+	// Parse connection config
+	poolConfig, err := pgxpool.ParseConfig(cfg.DatabaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse database URL: %w", err)
+	}
+
+	// Configure connection pool to prevent prepared statement conflicts
+	poolConfig.MaxConns = 25                          // Maximum connections
+	poolConfig.MinConns = 5                           // Minimum connections
+	poolConfig.MaxConnLifetime = 30 * time.Minute     // Recycle connections every 30 minutes
+	poolConfig.MaxConnIdleTime = 5 * time.Minute      // Close idle connections after 5 minutes
+	poolConfig.HealthCheckPeriod = 1 * time.Minute    // Health check interval
+
+	// CRITICAL: Disable prepared statement caching to prevent "already exists" errors
+	// This fixes: ERROR: prepared statement "stmtcache_..." already exists (SQLSTATE 42P05)
+	poolConfig.ConnConfig.StatementCacheCapacity = 0
+
+	// Create connection pool with config
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create connection pool: %w", err)
 	}
@@ -33,6 +51,8 @@ func NewSupabaseConnection(cfg *config.Config) (*SupabaseDB, error) {
 		pool.Close()
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
+
+	log.Println("✅ Database connection pool configured with statement cache disabled")
 
 	supabaseDB := &SupabaseDB{
 		Pool:   pool,
@@ -67,6 +87,26 @@ func (db *SupabaseDB) InitSchema() error {
 		survey_categories TEXT[] DEFAULT ARRAY['lifestyle', 'technology'],
 		created_at TIMESTAMP DEFAULT NOW(),
 		updated_at TIMESTAMP DEFAULT NOW()
+	);
+
+	-- Fillers table (for filler-specific data)
+	CREATE TABLE IF NOT EXISTS fillers (
+		user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+		balance INTEGER DEFAULT 0,
+		total_earned INTEGER DEFAULT 0,
+		kyc_status VARCHAR(50) DEFAULT 'pending' CHECK (kyc_status IN ('pending', 'approved', 'rejected')),
+		referral_code VARCHAR(50) UNIQUE,
+		created_at TIMESTAMP DEFAULT NOW()
+	);
+
+	-- Creators table (for creator-specific data)
+	CREATE TABLE IF NOT EXISTS creators (
+		user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+		organization_type VARCHAR(50),
+		organization_name VARCHAR(255),
+		credits INTEGER DEFAULT 0,
+		status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+		created_at TIMESTAMP DEFAULT NOW()
 	);
 
 	-- Surveys table
@@ -214,6 +254,9 @@ func (db *SupabaseDB) InitSchema() error {
 	CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 	CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 	CREATE INDEX IF NOT EXISTS idx_users_kyc_status ON users(kyc_status);
+	CREATE INDEX IF NOT EXISTS idx_fillers_user_id ON fillers(user_id);
+	CREATE INDEX IF NOT EXISTS idx_fillers_referral_code ON fillers(referral_code);
+	CREATE INDEX IF NOT EXISTS idx_creators_user_id ON creators(user_id);
 	CREATE INDEX IF NOT EXISTS idx_surveys_creator ON surveys(creator_id);
 	CREATE INDEX IF NOT EXISTS idx_surveys_status ON surveys(status);
 	CREATE INDEX IF NOT EXISTS idx_responses_survey ON responses(survey_id);
