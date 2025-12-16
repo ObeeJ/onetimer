@@ -12,6 +12,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *database.SupabaseDB, emailService *services.EmailService, paystackService *services.PaystackService, storageService *services.StorageService, rateLimiter *middleware.RateLimiter, wsHub *services.Hub) {
@@ -68,34 +69,42 @@ func SetupRoutes(app *fiber.App, cache *cache.Cache, cfg *config.Config, db *dat
 		surveyRepo = repository.NewSurveyRepository(baseRepo)
 	}
 
-	// Initialize controllers (Updated to use validated versions)
+	// Initialize controllers with nil-safety checks
+	var dbPool *pgxpool.Pool
+	if db != nil {
+		dbPool = db.Pool
+	}
+
 	userController := controllers.NewUserControllerWithDB(cache, db, userRepo)
-	authController := controllers.NewAuthControllerWithDB(cache, cfg.JWTSecret, emailService, db.Pool)
-	adminController := controllers.NewAdminController(cache, db.Pool)  // Fixed
+	authController := controllers.NewAuthControllerWithDB(cache, cfg.JWTSecret, emailService, dbPool)
+	adminController := controllers.NewAdminController(cache, dbPool)
 	auditController := controllers.NewAuditController(cache, auditRepo)
 	billingController := controllers.NewBillingController()
 	creditsController := controllers.NewCreditsController(cache, cfg, creditRepo)
-	earningsController := controllers.NewEarningsController(cache, db.Pool, cfg)
+	earningsController := controllers.NewEarningsController(cache, dbPool, cfg)
 	eligibilityController := controllers.NewEligibilityController(cache, db, userRepo)
-	exportController := controllers.NewExportController(cache, db.Pool)
-	fillerController := controllers.NewFillerController(cache, db.Pool)
+	exportController := controllers.NewExportController(cache, dbPool)
+	fillerController := controllers.NewFillerController(cache, dbPool)
 	loginController := controllers.NewLoginHandler(cache, cfg.JWTSecret, userRepo)
 	logoutController := controllers.NewLogoutController()
-	onboardingController := controllers.NewOnboardingController(cache, db.Pool)
+	onboardingController := controllers.NewOnboardingController(cache, dbPool)
 	paymentController := controllers.NewPaymentController(cache, cfg.PaystackSecret)
-	referralController := controllers.NewReferralController(cache, db.Pool)
-	superAdminController := controllers.NewSuperAdminController(cache, db.Pool)
-	superAdminDashboardController := controllers.NewSuperAdminDashboardController(cache, db.Pool)
-	superAdminAnalyticsController := controllers.NewSuperAdminAnalyticsController(cache, db.Pool)
-	superAdminFinanceController := controllers.NewSuperAdminFinanceController(cache, db.Pool)
+	referralController := controllers.NewReferralController(cache, dbPool)
+	superAdminController := controllers.NewSuperAdminController(cache, dbPool)
+	superAdminDashboardController := controllers.NewSuperAdminDashboardController(cache, dbPool)
+	superAdminAnalyticsController := controllers.NewSuperAdminAnalyticsController(cache, dbPool)
+	superAdminFinanceController := controllers.NewSuperAdminFinanceController(cache, dbPool)
 	surveyController := controllers.NewSurveyController(cache, surveyRepo)
 	uploadController := controllers.NewUploadController(cache, storageService)
-	withdrawalController := controllers.NewWithdrawalController(cache, db.Pool, cfg.PaystackSecret)
-	waitlistController := controllers.NewWaitlistController(db.Pool, emailService)
-	analyticsController := controllers.NewAnalyticsController(cache, db.Pool)
+	withdrawalController := controllers.NewWithdrawalController(cache, dbPool, cfg.PaystackSecret)
+	waitlistController := controllers.NewWaitlistController(dbPool, emailService)
+	analyticsController := controllers.NewAnalyticsController(cache, dbPool)
 	wsController := controllers.NewWebSocketController(wsHub)
 	notificationController := controllers.NewNotificationHandler(cache, notificationRepo)
 	kycHandler := handlers.NewKYCHandler(cfg)
+	if dbPool != nil {
+		kycHandler.SetDB(dbPool)
+	}
 
 	// WebSocket route (requires upgrade check)
 	app.Use("/ws", func(c *fiber.Ctx) error {

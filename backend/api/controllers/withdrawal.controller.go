@@ -47,6 +47,17 @@ func (h *WithdrawalController) RequestWithdrawal(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
+	// Check KYC verification status
+	var kycVerified bool
+	kycQuery := `SELECT EXISTS(SELECT 1 FROM kyc_verifications WHERE user_id = $1 AND status = 'verified')`
+	err := h.db.QueryRow(context.Background(), kycQuery, userID).Scan(&kycVerified)
+	if err != nil || !kycVerified {
+		return c.Status(403).JSON(fiber.Map{
+			"error":   "KYC verification required",
+			"message": "Please complete KYC verification to enable withdrawals",
+		})
+	}
+
 	// Validate minimum withdrawal amount
 	if req.Amount < 5000 {
 		return c.Status(400).JSON(fiber.Map{"error": "Minimum withdrawal amount is ₦5,000"})
@@ -55,7 +66,7 @@ func (h *WithdrawalController) RequestWithdrawal(c *fiber.Ctx) error {
 	// Check user balance
 	var balance int
 	balanceQuery := `SELECT COALESCE(SUM(amount), 0) FROM earnings WHERE user_id = $1 AND status = 'completed'`
-	err := h.db.QueryRow(context.Background(), balanceQuery, userID).Scan(&balance)
+	err = h.db.QueryRow(context.Background(), balanceQuery, userID).Scan(&balance)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to check balance"})
 	}
@@ -109,26 +120,48 @@ func (h *WithdrawalController) GetWithdrawals(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "Invalid user ID"})
 	}
 
-	// Mock data - TODO: Replace with database query
-	withdrawals := []fiber.Map{
-		{
-			"id":             "w_001",
-			"amount":         15000,
-			"status":         "completed",
-			"bank_name":      "Access Bank",
-			"account_number": "****1234",
-			"created_at":     time.Now().AddDate(0, 0, -5),
-			"processed_at":   time.Now().AddDate(0, 0, -3),
-		},
-		{
-			"id":             "w_002",
-			"amount":         8500,
-			"status":         "pending",
-			"bank_name":      "GTBank",
-			"account_number": "****5678",
-			"created_at":     time.Now().AddDate(0, 0, -1),
-			"processed_at":   nil,
-		},
+	rows, err := h.db.Query(context.Background(), `
+		SELECT id, amount, status, bank_name, account_number, created_at, processed_at
+		FROM withdrawals
+		WHERE user_id = $1
+		ORDER BY created_at DESC
+	`, userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch withdrawals"})
+	}
+	defer rows.Close()
+
+	withdrawals := []fiber.Map{}
+	for rows.Next() {
+		var id uuid.UUID
+		var amount int
+		var status, bankName, accountNumber string
+		var createdAt time.Time
+		var processedAt *time.Time
+
+		if err := rows.Scan(&id, &amount, &status, &bankName, &accountNumber, &createdAt, &processedAt); err != nil {
+			continue
+		}
+
+		// Mask account number for security
+		maskedAccount := "****" + accountNumber[len(accountNumber)-4:]
+
+		withdrawal := fiber.Map{
+			"id":             id.String(),
+			"amount":         amount,
+			"status":         status,
+			"bank_name":      bankName,
+			"account_number": maskedAccount,
+			"created_at":     createdAt,
+		}
+
+		if processedAt != nil {
+			withdrawal["processed_at"] = *processedAt
+		} else {
+			withdrawal["processed_at"] = nil
+		}
+
+		withdrawals = append(withdrawals, withdrawal)
 	}
 
 	return c.JSON(fiber.Map{
@@ -150,6 +183,15 @@ func (h *WithdrawalController) GetBanks(c *fiber.Ctx) error {
 		{"name": "Sterling Bank", "code": "232"},
 		{"name": "Stanbic IBTC", "code": "221"},
 		{"name": "Polaris Bank", "code": "076"},
+		{"name": "Keystone Bank", "code": "082"},
+		{"name": "Providus Bank", "code": "101"},
+		{"name": "Titan Trust Bank", "code": "102"},
+		{"name": "Globus Bank", "code": "001"},
+		{"name": "Kuda Bank", "code": "50211"},
+		{"name": "ALAT by Wema", "code": "035"},
+		{"name": "Carbon", "code": "565"},
+		{"name": "VFD Microfinance Bank", "code": "566"},
+		{"name": "FairMoney Microfinance Bank", "code": "51251"},
 	}
 
 	return c.JSON(fiber.Map{"banks": banks})

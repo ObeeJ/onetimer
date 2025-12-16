@@ -132,8 +132,16 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-slate-600 mb-1">Hours Spent</p>
-                      <p className="text-3xl font-bold text-slate-900">8.5</p>
-                      <p className="text-xs text-slate-500 mt-1">This month</p>
+                      <p className="text-3xl font-bold text-slate-900">
+                        {(() => {
+                          const completedCount = earnings?.transactions?.filter(t => t.type === 'earning').length || 0
+                          const avgMinutesPerSurvey = 15
+                          const totalMinutes = completedCount * avgMinutesPerSurvey
+                          const hours = (totalMinutes / 60).toFixed(1)
+                          return hours
+                        })()}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">Estimated total</p>
                     </div>
                     <div className="p-3 rounded-lg bg-blue-100">
                       <Clock className="h-6 w-6 text-blue-600" />

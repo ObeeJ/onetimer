@@ -27,7 +27,9 @@ export default function SurveysSection() {
   useEffect(() => {
     const fetchSurveys = async () => {
       try {
-        const response = await fetch('/api/surveys')
+        const response = await fetch('/api/surveys', {
+          credentials: 'include'
+        })
         if (response.ok) {
           const data = await response.json()
           setSurveys(data.data || [])

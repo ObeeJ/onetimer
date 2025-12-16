@@ -68,6 +68,12 @@ func (h *LoginController) Login(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "Invalid credentials"})
 	}
 
+	// CRITICAL: Clear any existing auth cookies before setting new ones
+	// This prevents cookie conflicts when switching between roles
+	security.ClearSecureCookie(c, "auth_token")
+	security.ClearSecureCookie(c, "user_role")
+	security.ClearSecureCookie(c, "csrf_token")
+
 	// Generate JWT token
 	token, err := h.generateToken(userID, role)
 	if err != nil {

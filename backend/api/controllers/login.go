@@ -38,7 +38,8 @@ func (h *LoginHandler) Login(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		utils.LogError(ctx, "❌ Failed to parse login request body", err, "client_ip", c.IP())
+		// Don't log the raw error as it may contain sensitive data (passwords)
+		utils.LogWarn(ctx, "❌ Failed to parse login request body", "error_type", "body_parse_error", "client_ip", c.IP())
 		return c.Status(400).JSON(fiber.Map{
 			"error": "Invalid request format",
 			"code":  "PARSE_ERROR",
@@ -46,6 +47,15 @@ func (h *LoginHandler) Login(c *fiber.Ctx) error {
 	}
 
 	utils.LogInfo(ctx, "📧 Attempting login with email", "email", req.Email, "client_ip", c.IP())
+
+	// Nil-safety check for userRepo
+	if h.userRepo == nil {
+		utils.LogError(ctx, "❌ User repository not initialized - database connection failed", nil, "email", req.Email)
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Authentication service temporarily unavailable",
+			"code":  "SERVICE_UNAVAILABLE",
+		})
+	}
 
 	user, err := h.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
@@ -74,6 +84,14 @@ func (h *LoginHandler) Login(c *fiber.Ctx) error {
 	}
 
 	utils.LogInfo(ctx, "✅ Password verified successfully", "email", req.Email, "user_id", user.ID.String())
+
+	// CRITICAL: Clear any existing auth cookies before setting new ones
+	// This prevents cookie conflicts when switching between roles (e.g., filler → super-admin)
+	utils.LogInfo(ctx, "🗑️ Clearing any existing authentication cookies to prevent role conflicts...")
+	security.ClearSecureCookie(c, "auth_token")
+	security.ClearSecureCookie(c, "user_role")
+	security.ClearSecureCookie(c, "csrf_token")
+	utils.LogInfo(ctx, "✅ Old cookies cleared, ready to set new session")
 
 	// Generate JWT token
 	token, err := h.generateToken(user.ID.String(), user.Role)

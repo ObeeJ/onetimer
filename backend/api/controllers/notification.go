@@ -25,8 +25,10 @@ func (h *NotificationHandler) GetNotifications(c *fiber.Ctx) error {
 	}
 
 	notifications, err := h.notificationRepo.GetNotifications(c.Context(), userID)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to get notifications"})
+	if err != nil || notifications == nil {
+		return c.JSON(fiber.Map{
+			"notifications": []fiber.Map{},
+		})
 	}
 
 	return c.JSON(fiber.Map{

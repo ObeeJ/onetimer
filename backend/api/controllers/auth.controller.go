@@ -52,7 +52,8 @@ func (h *AuthController) SendOTP(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		utils.LogError(ctx, "❌ Invalid OTP request body", err, "ip", c.IP())
+		// Don't log raw error to avoid exposing sensitive data
+		utils.LogWarn(ctx, "❌ Invalid OTP request body", "error_type", "body_parse_error", "ip", c.IP())
 		return c.Status(400).JSON(fiber.Map{
 			"error": "Please ensure your request format is correct",
 			"code":  "INVALID_REQUEST",
@@ -136,7 +137,7 @@ func (h *AuthController) VerifyOTP(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		utils.LogError(ctx, "Invalid OTP verification request", err, "ip", c.IP())
+		utils.LogWarn(ctx, "Invalid OTP verification request", "error_type", "body_parse_error", "ip", c.IP())
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
@@ -191,6 +192,12 @@ func (h *AuthController) VerifyOTP(c *fiber.Ctx) error {
 	}
 	utils.LogInfo(ctx, "✅ OTP verified successfully", "email", req.Email)
 
+	// CRITICAL: Clear any existing auth cookies before setting new ones
+	// This prevents cookie conflicts when switching between auth methods
+	security.ClearSecureCookie(c, "auth_token")
+	security.ClearSecureCookie(c, "user_role")
+	security.ClearSecureCookie(c, "csrf_token")
+
 	// Generate JWT token
 	userID := uuid.New().String()
 	token, err := h.generateToken(userID, "filler")
@@ -235,7 +242,7 @@ func (h *AuthController) ForgotPassword(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		utils.LogError(ctx, "Invalid forgot password request", err, "ip", c.IP())
+		utils.LogWarn(ctx, "Invalid forgot password request", "error_type", "body_parse_error", "ip", c.IP())
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
@@ -297,7 +304,8 @@ func (h *AuthController) ResetPassword(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		utils.LogError(ctx, "Invalid reset password request", err, "ip", c.IP())
+		// Don't log raw error as it may contain passwords
+		utils.LogWarn(ctx, "Invalid reset password request", "error_type", "body_parse_error", "ip", c.IP())
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 

@@ -11,10 +11,10 @@ type KYCVerification struct {
 	UserID      uuid.UUID  `json:"user_id"`
 	NIN         string     `json:"nin"`
 	Status      string     `json:"status"`
-	FirstName   string     `json:"first_name"`
-	LastName    string     `json:"last_name"`
+	FirstName   string     `json:"firstname"`
+	LastName    string     `json:"lastname"`
 	Phone       string     `json:"phone"`
-	DateOfBirth string     `json:"date_of_birth"`
+	DateOfBirth string     `json:"birthdate"`
 	Gender      string     `json:"gender"`
 	VerifiedAt  *time.Time `json:"verified_at"`
 	CreatedAt   time.Time  `json.:"created_at"`

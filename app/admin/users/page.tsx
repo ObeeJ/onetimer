@@ -47,7 +47,9 @@ export default function UsersPage() {
 
   const handleExport = async () => {
     try {
-      const response = await fetch('/api/admin/users/export')
+      const response = await fetch('/api/admin/users/export', {
+        credentials: 'include'
+      })
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)

@@ -59,6 +59,10 @@ func (p *PremblyService) VerifyNIN(nin string) (*PremblyResponse, error) {
 		return nil, err
 	}
 
+	// Log response for debugging
+	responseJSON, _ := json.Marshal(result)
+	fmt.Printf("Prembly API Response: %s\n", string(responseJSON))
+
 	if !result.Status {
 		return nil, fmt.Errorf("verification failed: %s", result.Message)
 	}

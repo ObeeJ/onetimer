@@ -29,6 +29,7 @@ export default function EarningsPage() {
     try {
       const response = await fetch('/api/earnings/export', {
         method: 'GET',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       })
       

@@ -17,6 +17,7 @@ export default function KYCUpload() {
     try {
       const response = await fetch('/api/kyc/verify', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nin })
       })

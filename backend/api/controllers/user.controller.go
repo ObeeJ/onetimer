@@ -45,7 +45,8 @@ func (h *UserController) Register(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		utils.LogError(ctx, "Failed to parse registration request", err, "ip", c.IP())
+		// Don't log raw error as it may contain passwords
+		utils.LogWarn(ctx, "Failed to parse registration request", "error_type", "body_parse_error", "ip", c.IP())
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
@@ -290,7 +291,8 @@ func (h *UserController) ChangePassword(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&req); err != nil {
-		utils.LogError(ctx, "Failed to parse password change request", err, "user_id", userID)
+		// Don't log raw error as it contains passwords
+		utils.LogWarn(ctx, "Failed to parse password change request", "error_type", "body_parse_error", "user_id", userID)
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 

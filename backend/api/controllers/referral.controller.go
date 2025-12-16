@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -28,27 +27,41 @@ func (h *ReferralController) GetReferrals(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	referralCode := userID[:8]
+	// Get user's referral code
+	var referralCode string
+	err := h.db.QueryRow(ctx, `SELECT COALESCE(referral_code, '') FROM users WHERE id = $1`, userID).Scan(&referralCode)
+	if err != nil || referralCode == "" {
+		referralCode = userID[:8]
+		h.db.Exec(ctx, `UPDATE users SET referral_code = $1 WHERE id = $2`, referralCode, userID)
+	}
 
 	if c.Query("list") == "true" {
-		// In production, query from database
-		referrals := []fiber.Map{
-			{
-				"id":        "r1",
-				"name":      "Alice Johnson",
-				"email":     "alice@example.com",
-				"joined_at": time.Now().AddDate(0, 0, -5).Format(time.RFC3339),
-				"points":    500,
-				"status":    "active",
-			},
-			{
-				"id":        "r2",
-				"name":      "Bob Smith",
-				"email":     "bob@example.com",
-				"joined_at": time.Now().AddDate(0, 0, -10).Format(time.RFC3339),
-				"points":    750,
-				"status":    "active",
-			},
+		rows, err := h.db.Query(ctx, `
+			SELECT r.id, u.name, u.email, r.created_at, r.bonus_amount, r.status
+			FROM referrals r
+			JOIN users u ON r.referred_id = u.id
+			WHERE r.referrer_id = $1
+			ORDER BY r.created_at DESC
+		`, userID)
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch referrals"})
+		}
+		defer rows.Close()
+
+		referrals := []fiber.Map{}
+		for rows.Next() {
+			var id, name, email, status string
+			var joinedAt time.Time
+			var points int
+			rows.Scan(&id, &name, &email, &joinedAt, &points, &status)
+			referrals = append(referrals, fiber.Map{
+				"id":        id,
+				"name":      name,
+				"email":     email,
+				"joined_at": joinedAt.Format(time.RFC3339),
+				"points":    points,
+				"status":    status,
+			})
 		}
 
 		utils.LogInfo(ctx, "Retrieved referrals for user", "user_id", userID, "count", len(referrals))
@@ -59,7 +72,13 @@ func (h *ReferralController) GetReferrals(c *fiber.Ctx) error {
 		})
 	}
 
-	link := "https://onetimer.com/ref/" + referralCode
+	// Get stats from database
+	var totalReferrals, activeReferrals, totalEarnings int
+	h.db.QueryRow(ctx, `SELECT COUNT(*) FROM referrals WHERE referrer_id = $1`, userID).Scan(&totalReferrals)
+	h.db.QueryRow(ctx, `SELECT COUNT(*) FROM referrals WHERE referrer_id = $1 AND status = 'active'`, userID).Scan(&activeReferrals)
+	h.db.QueryRow(ctx, `SELECT COALESCE(SUM(bonus_amount), 0) FROM referrals WHERE referrer_id = $1 AND bonus_paid = true`, userID).Scan(&totalEarnings)
+
+	link := "https://onetimesurvey.xyz/ref/" + referralCode
 	utils.LogInfo(ctx, "Referral info requested for user", "user_id", userID)
 
 	return c.JSON(fiber.Map{
@@ -67,9 +86,9 @@ func (h *ReferralController) GetReferrals(c *fiber.Ctx) error {
 		"data": fiber.Map{
 			"link":             link,
 			"code":             referralCode,
-			"total_referrals":  8,
-			"active_referrals": 5,
-			"total_earnings":   6250,
+			"total_referrals":  totalReferrals,
+			"active_referrals": activeReferrals,
+			"total_earnings":   totalEarnings,
 		},
 	})
 }
@@ -82,8 +101,30 @@ func (h *ReferralController) GenerateCode(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	code := userID[:8] + "_" + uuid.New().String()[:4]
-	link := "https://onetimer.com/ref/" + code
+	// Check if user already has a referral code
+	var existingCode string
+	err := h.db.QueryRow(ctx, `SELECT COALESCE(referral_code, '') FROM users WHERE id = $1`, userID).Scan(&existingCode)
+	if err == nil && existingCode != "" {
+		link := "https://onetimesurvey.xyz/ref/" + existingCode
+		return c.JSON(fiber.Map{
+			"success": true,
+			"data": fiber.Map{
+				"code": existingCode,
+				"link": link,
+			},
+			"message": "Referral code already exists",
+		})
+	}
+
+	// Generate new code
+	code := userID[:8]
+	link := "https://onetimesurvey.xyz/ref/" + code
+
+	// Save to database
+	_, err = h.db.Exec(ctx, `UPDATE users SET referral_code = $1 WHERE id = $2`, code, userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate code"})
+	}
 
 	utils.LogInfo(ctx, "Generated referral code for user", "user_id", userID, "code", code)
 
@@ -105,22 +146,59 @@ func (h *ReferralController) GetStats(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	// In production, query from database
-	stats := fiber.Map{
-		"total_referrals":   12,
-		"active_referrals":  8,
-		"pending_referrals": 2,
-		"total_earnings":    12000,
-		"this_month":        3500,
-		"conversion_rate":   67.5,
-		"top_referrer_rank": 15,
+	// Get user's referral code
+	var referralCode string
+	err := h.db.QueryRow(ctx, `SELECT COALESCE(referral_code, '') FROM users WHERE id = $1`, userID).Scan(&referralCode)
+	if err != nil || referralCode == "" {
+		// Generate referral code if doesn't exist
+		referralCode = userID[:8]
+		h.db.Exec(ctx, `UPDATE users SET referral_code = $1 WHERE id = $2`, referralCode, userID)
 	}
 
-	utils.LogInfo(ctx, "Referral stats requested for user", "user_id", userID)
+	// Get referral stats
+	var totalReferrals, activeReferrals int
+	var totalEarnings, pendingEarnings int
+
+	h.db.QueryRow(ctx, `SELECT COUNT(*) FROM referrals WHERE referrer_id = $1`, userID).Scan(&totalReferrals)
+	h.db.QueryRow(ctx, `SELECT COUNT(*) FROM referrals WHERE referrer_id = $1 AND status = 'active'`, userID).Scan(&activeReferrals)
+	h.db.QueryRow(ctx, `SELECT COALESCE(SUM(bonus_amount), 0) FROM referrals WHERE referrer_id = $1 AND bonus_paid = true`, userID).Scan(&totalEarnings)
+	h.db.QueryRow(ctx, `SELECT COALESCE(SUM(bonus_amount), 0) FROM referrals WHERE referrer_id = $1 AND bonus_paid = false AND first_survey_completed = true`, userID).Scan(&pendingEarnings)
+
+	// Get referral list
+	rows, _ := h.db.Query(ctx, `
+		SELECT r.id, u.name, u.email, r.status, r.bonus_amount, r.created_at, r.first_survey_completed
+		FROM referrals r
+		JOIN users u ON r.referred_id = u.id
+		WHERE r.referrer_id = $1
+		ORDER BY r.created_at DESC
+	`, userID)
+	defer rows.Close()
+
+	referrals := []fiber.Map{}
+	for rows.Next() {
+		var id, name, email, status string
+		var bonusAmount int
+		var createdAt time.Time
+		var firstSurveyCompleted bool
+		rows.Scan(&id, &name, &email, &status, &bonusAmount, &createdAt, &firstSurveyCompleted)
+		referrals = append(referrals, fiber.Map{
+			"id":                     id,
+			"name":                   name,
+			"email":                  email,
+			"status":                 status,
+			"earnings":               bonusAmount,
+			"join_date":              createdAt,
+			"first_survey_completed": firstSurveyCompleted,
+		})
+	}
 
 	return c.JSON(fiber.Map{
-		"success": true,
-		"data":    stats,
+		"total_referrals":  totalReferrals,
+		"active_referrals": activeReferrals,
+		"total_earnings":   totalEarnings,
+		"pending_earnings": pendingEarnings,
+		"referral_code":    referralCode,
+		"referrals":        referrals,
 	})
 }
 
@@ -143,14 +221,30 @@ func (h *ReferralController) TrackReferral(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Referral code and new user ID are required"})
 	}
 
-	// In production, save referral to database
-	_ = ctx // Would be used for database operations
+	// Find referrer by code
+	var referrerID string
+	err := h.db.QueryRow(ctx, `SELECT id FROM users WHERE referral_code = $1`, req.ReferralCode).Scan(&referrerID)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "Invalid referral code"})
+	}
+
+	// Create referral record
+	_, err = h.db.Exec(ctx, `
+		INSERT INTO referrals (referrer_id, referred_id, referral_code, status, bonus_amount)
+		VALUES ($1, $2, $3, 'pending', 1000)
+	`, referrerID, req.NewUserID, req.ReferralCode)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to track referral"})
+	}
+
+	// Update referred user
+	h.db.Exec(ctx, `UPDATE users SET referred_by = $1 WHERE id = $2`, referrerID, req.NewUserID)
 
 	utils.LogInfo(ctx, "Referral tracked", "referral_code", req.ReferralCode, "new_user", req.NewUserID)
 
 	return c.Status(201).JSON(fiber.Map{
 		"success": true,
 		"message": "Referral tracked successfully",
-		"reward":  100, // Reward points
+		"reward":  1000,
 	})
 }

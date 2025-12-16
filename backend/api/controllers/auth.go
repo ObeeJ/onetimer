@@ -89,6 +89,12 @@ func (h *AuthHandler) VerifyOTP(c *fiber.Ctx) error {
 	// Delete OTP from cache
 	h.cache.Delete(c.Context(), key)
 
+	// CRITICAL: Clear any existing auth cookies before setting new ones
+	// This prevents cookie conflicts when switching between auth methods
+	security.ClearSecureCookie(c, "auth_token")
+	security.ClearSecureCookie(c, "user_role")
+	security.ClearSecureCookie(c, "csrf_token")
+
 	// Generate JWT token
 	token, err := h.generateToken(uuid.New().String(), "filler")
 	if err != nil {

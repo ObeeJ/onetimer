@@ -39,6 +39,7 @@ export function KYCVerificationForm({ onSuccess }: KYCVerificationFormProps) {
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include', // CRITICAL: Send cookies including auth_token
         body: JSON.stringify({ nin })
       })
 
