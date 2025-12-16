@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { motion, useReducedMotion, easeOut } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -104,9 +105,11 @@ export default function ReferralsPage() {
                   <p className="text-sm text-yellow-700 mt-1">
                     Please complete your account verification to unlock the referral program and start earning bonuses.
                   </p>
-                  <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] mt-4 bg-[#013F5C] hover:bg-[#012d42] text-white px-6 py-2">
-                    Complete Verification
-                  </button>
+                  <Link href="/filler/onboarding/verify">
+                    <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] mt-4 bg-[#013F5C] hover:bg-[#012d42] text-white px-6 py-2">
+                      Complete Verification
+                    </button>
+                  </Link>
                 </div>
               </div>
             </CardContent>

@@ -275,6 +275,8 @@ func (db *SupabaseDB) InitSchema() error {
 	CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
 	CREATE INDEX IF NOT EXISTS idx_waitlist_email ON waitlist(email);
 	CREATE INDEX IF NOT EXISTS idx_waitlist_created_at ON waitlist(created_at DESC);
+	CREATE INDEX IF NOT EXISTS idx_kyc_verifications_user_id ON kyc_verifications(user_id);
+	CREATE INDEX IF NOT EXISTS idx_kyc_verifications_status ON kyc_verifications(status);
 
 	-- Notifications table
 	CREATE TABLE IF NOT EXISTS notifications (
@@ -284,6 +286,22 @@ func (db *SupabaseDB) InitSchema() error {
 		message TEXT NOT NULL,
 		read_at TIMESTAMP,
 		created_at TIMESTAMP DEFAULT NOW()
+	);
+
+	-- KYC Verifications table
+	CREATE TABLE IF NOT EXISTS kyc_verifications (
+		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+		user_id UUID UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+		nin VARCHAR(11),
+		status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'rejected')),
+		first_name VARCHAR(255),
+		last_name VARCHAR(255),
+		phone VARCHAR(20),
+		date_of_birth DATE,
+		gender VARCHAR(10),
+		verified_at TIMESTAMP,
+		created_at TIMESTAMP DEFAULT NOW(),
+		updated_at TIMESTAMP DEFAULT NOW()
 	);
 	`
 
